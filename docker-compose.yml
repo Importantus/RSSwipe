@@ -32,6 +32,18 @@ services:
       PMA_ARBITRARY: 1
     networks:
       - vwprog-net
+  frontend:
+    build:
+      dockerfile: frontend/Dockerfile
+    depends_on:
+      - backend
+  backend:
+    build:
+      dockerfile: backend/Dockerfile
+    volumes:
+      - './backend:/src'
+    depends_on:
+      - mariadb
 networks:
   vwprog-net:
     driver: bridge
