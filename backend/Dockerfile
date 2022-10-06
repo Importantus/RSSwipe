@@ -16,4 +16,4 @@ RUN npm install
 COPY . .
 
 EXPOSE 3080
-CMD [ "node", "server.js" ]
+CMD [ "node", "bin/www.js" ]

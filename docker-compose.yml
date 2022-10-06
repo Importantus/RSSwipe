@@ -41,7 +41,7 @@ services:
     build:
       dockerfile: backend/Dockerfile
     volumes:
-      - './backend:/src'
+      - './backend:.'
     depends_on:
       - mariadb
 networks:
