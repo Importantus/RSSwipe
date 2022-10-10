@@ -1,12 +1,7 @@
 FROM node:16.17.0 AS building
 
-WORKDIR /build
-COPY package.json package-lock.json ./
+COPY package**.json .
 RUN npm install
+WORKDIR /usr/app
 
-COPY . .
-RUN npm run build
-
-FROM nginx:1.23.1-alpine as running
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY --from=build-step /build/build /frontend/build
+CMD ["npm run watch-frontend"]

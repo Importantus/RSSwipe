@@ -14,7 +14,7 @@ services:
     volumes:
       - 'vwprog-mariadb:/var/lib/mysql'
     networks:
-      - sail
+      - vwprog-net
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}" ]
       retries: 3
@@ -34,16 +34,24 @@ services:
       - vwprog-net
   frontend:
     build:
-      dockerfile: frontend/Dockerfile
+      context: './frontend'
+      dockerfile: Dockerfile
     depends_on:
       - backend
+    volumes:
+      - './frontend:/usr/app'
+    networks:
+      - vwprog-net
   backend:
     build:
-      dockerfile: backend/Dockerfile
+      context: './backend'
+      dockerfile: Dockerfile
     volumes:
-      - './backend:/src'
+      - './backend:/usr/app'
     depends_on:
       - mariadb
+    networks:
+      - vwprog-net
 networks:
   vwprog-net:
     driver: bridge
