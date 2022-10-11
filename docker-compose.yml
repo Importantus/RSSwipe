@@ -52,6 +52,8 @@ services:
       - mariadb
     networks:
       - vwprog-net
+    ports:
+      - "3080:3080"
 networks:
   vwprog-net:
     driver: bridge

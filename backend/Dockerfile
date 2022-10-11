@@ -11,4 +11,4 @@ WORKDIR /usr/app
 # RUN npm ci --only=production
 
 EXPOSE 3080
-CMD [ "node", "bin/www.js" ]
+CMD [ "node", "bin/www" ]
