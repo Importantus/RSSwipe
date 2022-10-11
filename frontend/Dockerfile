@@ -4,4 +4,5 @@ COPY package**.json .
 RUN npm install
 WORKDIR /usr/app
 
-CMD ["npm run watch-frontend"]
+EXPOSE 3000
+CMD ["npm", "start"]

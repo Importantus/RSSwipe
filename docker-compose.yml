@@ -42,6 +42,8 @@ services:
       - './frontend:/usr/app'
     networks:
       - vwprog-net
+    ports:
+      - "3000:3000"
   backend:
     build:
       context: './backend'
