@@ -21,7 +21,7 @@
     }
   },
   "scripts": {
-    "watch-frontend": "npm-watch",
+    "watch-frontend": "react-scripts start",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

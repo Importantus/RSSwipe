@@ -26,36 +26,12 @@ services:
     ports:
       - "8000:80"
     environment:
-      PMA_USER: "${DB_USERNAME}"
+      PMA_USER: "root"
       PMA_PASSWORD: "${DB_PASSWORD}"
       PMA_HOST: mariadb
-      PMA_ARBITRARY: 1
+      PMA_ARBITRARY: 0
     networks:
       - vwprog-net
-  frontend:
-    build:
-      context: './frontend'
-      dockerfile: Dockerfile
-    depends_on:
-      - backend
-    volumes:
-      - './frontend:/usr/app'
-    networks:
-      - vwprog-net
-    ports:
-      - "3000:3000"
-  backend:
-    build:
-      context: './backend'
-      dockerfile: Dockerfile
-    volumes:
-      - './backend:/usr/app'
-    depends_on:
-      - mariadb
-    networks:
-      - vwprog-net
-    ports:
-      - "3080:3080"
 networks:
   vwprog-net:
     driver: bridge

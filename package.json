@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "nodemon": "^2.0.20",
-    "npm-watch": "^0.11.0"
-  }
-}
