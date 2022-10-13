@@ -19,17 +19,6 @@ router.get('/predefined', async function (req, res, next) {
     }
 });
 
-router.post('/custom-query', function(req, res, next) {
-    let result = "No Result"
-    let conn = pool.getConnection()
-        .then(conn => {
-            result = conn.query(req.body.customQuery);
-        })
-        .catch(err => console.log(err));
-    let datetime = new Date().toISOString()
-    res.json({queryResponse: result});
-});
-
 module.exports = router;
 
 /*
