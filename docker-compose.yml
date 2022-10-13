@@ -26,7 +26,7 @@ services:
     ports:
       - "8000:80"
     environment:
-      PMA_USER: "root"
+      PMA_USER: "${DB_USERNAME}"
       PMA_PASSWORD: "${DB_PASSWORD}"
       PMA_HOST: mariadb
       PMA_ARBITRARY: 0

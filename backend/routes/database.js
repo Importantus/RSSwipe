@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const mariadb = require('mariadb');
-const pool = mariadb.createPool({ host: 'localhost', user: 'someusername', database: 'mydb', connectionLimit: 5, port: 3306, password: 'somepassword' });
+const pool = mariadb.createPool({ host: 'localhost', user: 'someusername', database: 'somedatabase', connectionLimit: 5, port: 3306, password: 'somepassword' });
 
 /* GET users listing. */
 router.get('/predefined', async function (req, res, next) {
@@ -9,7 +9,7 @@ router.get('/predefined', async function (req, res, next) {
     let conn;
     try{
         conn = await pool.getConnection();
-        const rows = await conn.query('select * from user');
+        const rows = await conn.query('select * from category');
         if(rows) result = rows[0];
         res.json({queryResponse: result});
     }catch (e) {
