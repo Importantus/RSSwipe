@@ -6,7 +6,7 @@
       .then((response) => response.json())
       .then((data) => {
         queryResult =
-          "Most recent query result from rest endpoint: " + data.queryResponse;
+          "Most recent query result from rest endpoint: " + JSON.stringify(data.queryResponse);
       })
       .catch((reason) => console.log(reason));
   }
