@@ -1,0 +1,28 @@
+services:
+  - docker:dind
+
+variables:
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+  IMAGE_TAG: $CI_REGISTRY_IMAGE
+
+before_script:
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+
+build-frontend:
+  stage: build
+  only:
+    variables:
+      - $CI_COMMIT_REF_SLUG == "main"
+  script:
+    - docker build -t $IMAGE_TAG/frontend frontend/.
+    - docker push $IMAGE_TAG/frontend
+
+build-backend:
+  stage: build
+  only:
+    variables:
+      - $CI_COMMIT_REF_SLUG == "main"
+  script:
+    - docker build -t $IMAGE_TAG/backend backend/.
+    - docker push $IMAGE_TAG/backend
