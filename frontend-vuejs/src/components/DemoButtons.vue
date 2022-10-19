@@ -1,5 +1,6 @@
 <script>
-import axios from "axios";
+
+let backendURL = import.meta.env.VITE_BACKEND_PROTOCOL + '://' + import.meta.env.VITE_BACKEND_HOST + ':' + import.meta.env.VITE_BACKEND_PORT + '/';
 
 export default {
   data() {
@@ -10,7 +11,7 @@ export default {
   },
   methods: {
     getClock(event) {
-      fetch('http://localhost:3080/clock', {crossDomain: true})
+      fetch(backendURL + 'clock', {crossDomain: true})
           .then(response => response.json())
           .then(
               data => this.clockData = "Most recent date-time from rest endpoint: " + data.someDateTime
@@ -18,7 +19,7 @@ export default {
           .catch(reason => console.log(reason));
     },
     getDatabase(event) {
-      fetch('http://localhost:3080/database/predefined', {crossDomain: true})
+      fetch(backendURL + 'database/predefined', {crossDomain: true})
           .then(response => response.json())
           .then(
               data => this.sqlData = data.queryResponse
