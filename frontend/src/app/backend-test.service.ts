@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 @Injectable()
 export class BackendTestService {
 
-  baseURL: string = "http://" + process.env['BACKEND_HOST'] +":" + process.env['BACKEND_PORT'] + "/";
+  baseURL: string = "http://localhost:3080/";
 
   constructor(private http: HttpClient) {
   }

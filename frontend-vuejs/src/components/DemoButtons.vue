@@ -1,6 +1,6 @@
 <script>
 
-let backendURL = import.meta.env.VITE_BACKEND_PROTOCOL + '://' + import.meta.env.VITE_BACKEND_HOST + ':' + import.meta.env.VITE_BACKEND_PORT + '/';
+let backendURL = 'http://localhost:3080/';
 
 export default {
   data() {
