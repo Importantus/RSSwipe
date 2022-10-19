@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const mariadb = require('mariadb');
-const pool = mariadb.createPool({ host: process.env.DB_HOST, user: process.env.DB_USERNAME, database: process.env.DB_DATABASE, connectionLimit: 5, port: process.env.DB_PORT, password: process.env.DB_PASSWORD });
+const pool = mariadb.createPool({ host: process.env.DB_HOST, user: process.env.DB_USER, database: process.env.DB_DATABASE, connectionLimit: 5, port: process.env.DB_PORT, password: process.env.DB_PASSWORD });
 
 /* GET users listing. */
 router.get('/predefined', async function (req, res, next) {

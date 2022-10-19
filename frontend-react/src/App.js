@@ -6,7 +6,7 @@ function ClockButton() {
     const [buttonText, updateButtonText] = useState('Press Button to get Datetime');
 
     function getClock() {
-        fetch('http://localhost:3080/clock', {crossDomain: true})
+        fetch('http://localhost:8080/clock', {crossDomain: true})
             .then(response => response.json())
             .then(
                 data => updateButtonText("Most recent date-time from rest endpoint: " + data.someDateTime)

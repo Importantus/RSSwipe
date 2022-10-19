@@ -1,6 +1,6 @@
 <script>
 
-let backendURL = 'http://localhost:3080/';
+let backendURL = 'http://localhost:8080/';
 
 export default {
   data() {

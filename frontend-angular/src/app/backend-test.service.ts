@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 @Injectable()
 export class BackendTestService {
 
-  baseURL: string = "http://localhost:3080/";
+  baseURL: string = "http://localhost:8080/";
 
   constructor(private http: HttpClient) {
   }
