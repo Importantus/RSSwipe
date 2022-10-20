@@ -15,8 +15,8 @@ build-frontend:
     variables:
       - $CI_COMMIT_REF_SLUG == "main"
   script:
-    - docker build -t $IMAGE_TAG/frontend frontend/.
-    - docker push $IMAGE_TAG/frontend
+    - docker build -t $IMAGE_TAG/frontend:frontend-latest frontend/.
+    - docker push $IMAGE_TAG/frontend:frontend-latest
 
 build-backend:
   stage: build
@@ -24,5 +24,5 @@ build-backend:
     variables:
       - $CI_COMMIT_REF_SLUG == "main"
   script:
-    - docker build -t $IMAGE_TAG/backend backend/.
-    - docker push $IMAGE_TAG/backend
+    - docker build -t $IMAGE_TAG/backend:backend-latest backend/.
+    - docker push $IMAGE_TAG/backend:backend-latest
