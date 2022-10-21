@@ -17,7 +17,7 @@ build-frontend:
       - $CI_COMMIT_REF_SLUG == "main"
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build --build-arg "BACKEND_URL=https://$CI_PROJECT_NAME.vwprg.mylab.th-luebeck.de" -t $IMAGE_TAG/frontend:frontend-temp frontend/.
+    - docker build --build-arg "BACKEND_URL=https://$CI_PROJECT_NAME-backend.vwprg.mylab.th-luebeck.de" -t $IMAGE_TAG/frontend:frontend-temp frontend/.
     - docker push $IMAGE_TAG/frontend:frontend-temp
 
 build-backend:
