@@ -2,12 +2,14 @@ import { Injectable } from '@angular/core';
 
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from "./../environments/environment";
+
 
 
 @Injectable()
 export class BackendTestService {
 
-  baseURL: string = "http://localhost:8080/";
+  baseURL: string = environment.BACKEND_URL + "/";
 
   constructor(private http: HttpClient) {
   }

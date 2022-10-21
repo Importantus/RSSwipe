@@ -6,7 +6,7 @@ function ClockButton() {
     const [buttonText, updateButtonText] = useState('Press Button to get Datetime');
 
     function getClock() {
-        fetch('http://localhost:8080/clock', {crossDomain: true})
+        fetch(process.env.REACT_APP_BACKEND_URL + '/clock', {crossDomain: true})
             .then(response => response.json())
             .then(
                 data => updateButtonText("Most recent date-time from rest endpoint: " + data.someDateTime)
@@ -28,7 +28,7 @@ function DBQueryButton() {
     const [queryResult, updateButtonText] = useState('Press Button to execute predefined query');
 
     function executeQuery() {
-        fetch('http://localhost:3080/database/predefined', {crossDomain: true})
+        fetch(process.env.REACT_APP_BACKEND_URL + '/database/predefined', {crossDomain: true})
             .then(response => response.json())
             .then(
                 data => updateButtonText(data.queryResponse)
@@ -43,26 +43,6 @@ function DBQueryButton() {
             </button>
             <div>{JSON.stringify(queryResult)}</div>
         </div>
-    );
-}
-
-function DBCustomQueryButton() {
-    const [buttonText, updateButtonText] = useState('Press Button to get a execute query');
-
-    function executeQuery() {
-        fetch('http://localhost:3080/clock', {crossDomain: true})
-            .then(response => response.json())
-            .then(
-                data => updateButtonText("Most recent date-time from rest endpoint: " + data.someDateTime)
-            )
-            .catch(reason => console.log(reason));
-    }
-
-    return (
-        <button onClick={executeQuery}>
-            {buttonText}
-        </button>,
-            <div></div>
     );
 }
 

@@ -2,7 +2,7 @@
   let text = "Press Button to get Datetime";
 
   function getClock() {
-    fetch("http://localhost:8080/clock", { crossDomain: true })
+    fetch(import.meta.env.VITE_BACKEND_URL + "/clock", { crossDomain: true })
       .then((response) => response.json())
       .then((data) => {
         text = "Most recent date-time from rest endpoint: " + data.someDateTime;

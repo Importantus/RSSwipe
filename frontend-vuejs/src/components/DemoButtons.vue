@@ -1,6 +1,6 @@
 <script>
 
-let backendURL = 'http://localhost:8080/';
+let backendURL = import.meta.env.VITE_BACKEND_URL;
 
 export default {
   data() {
@@ -11,7 +11,8 @@ export default {
   },
   methods: {
     getClock(event) {
-      fetch(backendURL + 'clock', {crossDomain: true})
+      console.log(backendURL);
+      fetch(backendURL + '/clock', {crossDomain: true})
           .then(response => response.json())
           .then(
               data => this.clockData = "Most recent date-time from rest endpoint: " + data.someDateTime
@@ -19,7 +20,7 @@ export default {
           .catch(reason => console.log(reason));
     },
     getDatabase(event) {
-      fetch(backendURL + 'database/predefined', {crossDomain: true})
+      fetch(backendURL + '/database/predefined', {crossDomain: true})
           .then(response => response.json())
           .then(
               data => this.sqlData = data.queryResponse

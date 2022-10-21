@@ -5,7 +5,10 @@ import vue from '@vitejs/plugin-vue'
 
 
 export default defineConfig({
-
+  server:{
+    port: 80
+  },
+  envDir: "../",
   plugins: [vue()],
   resolve: {
     alias: {

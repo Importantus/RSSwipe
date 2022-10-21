@@ -2,7 +2,7 @@
   let queryResult = "Press Button to execute predefined query";
 
   function executeQuery() {
-    fetch("http://localhost:8080/database/predefined", { crossDomain: true })
+    fetch(import.meta.env.VITE_BACKEND_URL + "/database/predefined", { crossDomain: true })
       .then((response) => response.json())
       .then((data) => {
         queryResult =

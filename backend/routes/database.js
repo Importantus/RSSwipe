@@ -10,7 +10,7 @@ router.get('/predefined', async function (req, res, next) {
     try{
         conn = await pool.getConnection();
         const rows = await conn.query('select * from category');
-        if(rows) result = rows[0];
+        if(rows.length) result = rows[0];
         res.json({queryResponse: result});
     }catch (e) {
         console.log(e);

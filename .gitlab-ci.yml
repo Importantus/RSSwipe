@@ -1,3 +1,7 @@
+stages:
+  - build
+  - deploy
+
 services:
   - docker:dind
 
@@ -15,8 +19,7 @@ build-frontend:
     variables:
       - $CI_COMMIT_REF_SLUG == "main"
   script:
-    - docker build -t $IMAGE_TAG/frontend:frontend-latest frontend/.
-    - docker push $IMAGE_TAG/frontend:frontend-latest
+    - docker build -t --build-arg BACKEND_URL=$CI_PROJECT_NAME.vwprg.mylab.th-luebeck.de $IMAGE_TAG/frontend:frontend-latest frontend/.
 
 build-backend:
   stage: build
@@ -25,4 +28,13 @@ build-backend:
       - $CI_COMMIT_REF_SLUG == "main"
   script:
     - docker build -t $IMAGE_TAG/backend:backend-latest backend/.
+
+deploy-everything:
+  stage:
+    - deploy
+  only:
+    variables:
+      - $CI_COMMIT_REF_SLUG == "main"
+  script:
+    - docker push $IMAGE_TAG/frontend:frontend-latest
     - docker push $IMAGE_TAG/backend:backend-latest
