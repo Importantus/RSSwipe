@@ -19,7 +19,7 @@ build-frontend:
     variables:
       - $CI_COMMIT_REF_SLUG == "main"
   script:
-    - docker build -t --build-arg BACKEND_URL=$CI_PROJECT_NAME.vwprg.mylab.th-luebeck.de $IMAGE_TAG/frontend:frontend-latest frontend/.
+    - docker build -t --build-arg "BACKEND_URL=https://$CI_PROJECT_NAME.vwprg.mylab.th-luebeck.de" $IMAGE_TAG/frontend:frontend-latest frontend/.
 
 build-backend:
   stage: build
@@ -30,8 +30,7 @@ build-backend:
     - docker build -t $IMAGE_TAG/backend:backend-latest backend/.
 
 deploy-everything:
-  stage:
-    - deploy
+  stage: deploy
   only:
     variables:
       - $CI_COMMIT_REF_SLUG == "main"
