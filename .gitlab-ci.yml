@@ -10,15 +10,13 @@ variables:
   DOCKER_DRIVER: overlay2
   IMAGE_TAG: $CI_REGISTRY_IMAGE
 
-before_script:
-  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-
 build-frontend:
   stage: build
   only:
     variables:
       - $CI_COMMIT_REF_SLUG == "main"
   script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker build --build-arg "BACKEND_URL=https://$CI_PROJECT_NAME.vwprg.mylab.th-luebeck.de" -t $IMAGE_TAG/frontend:frontend-temp frontend/.
     - docker push $IMAGE_TAG/frontend:frontend-temp
 
@@ -28,6 +26,7 @@ build-backend:
     variables:
       - $CI_COMMIT_REF_SLUG == "main"
   script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker build -t $IMAGE_TAG/backend:backend-temp backend/.
     - docker push $IMAGE_TAG/backend:backend-temp
 
