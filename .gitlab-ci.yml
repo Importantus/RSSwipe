@@ -19,7 +19,8 @@ build-frontend:
     variables:
       - $CI_COMMIT_REF_SLUG == "main"
   script:
-    - docker build --build-arg "BACKEND_URL=https://$CI_PROJECT_NAME.vwprg.mylab.th-luebeck.de" -t $IMAGE_TAG/frontend:frontend-latest frontend/.
+    - docker build --build-arg "BACKEND_URL=https://$CI_PROJECT_NAME.vwprg.mylab.th-luebeck.de" -t $IMAGE_TAG/frontend:frontend-temp frontend/.
+    - docker push $IMAGE_TAG/frontend:frontend-temp
 
 build-backend:
   stage: build
@@ -27,13 +28,18 @@ build-backend:
     variables:
       - $CI_COMMIT_REF_SLUG == "main"
   script:
-    - docker build -t $IMAGE_TAG/backend:backend-latest backend/.
+    - docker build -t $IMAGE_TAG/backend:backend-temp backend/.
+    - docker push $IMAGE_TAG/backend:backend-temp
 
 deploy-everything:
   stage: deploy
   only:
     variables:
       - $CI_COMMIT_REF_SLUG == "main"
+  image:
+    name: gcr.io/go-containerregistry/crane:debug
+    entrypoint: [ "" ]
   script:
-    - docker push $IMAGE_TAG/frontend:frontend-latest
-    - docker push $IMAGE_TAG/backend:backend-latest
+    - crane auth login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - crane tag $IMAGE_TAG/frontend:frontend-temp frontend-latest
+    - crane tag $IMAGE_TAG/backend:backend-temp backend-latest
