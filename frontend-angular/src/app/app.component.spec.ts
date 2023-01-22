@@ -23,13 +23,13 @@ describe('AppComponent', () => {
   it(`should have as title 'frontend-angular'`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('frontend-angular');
+    expect(app.title).toEqual('frontend-old-angular');
   });
 
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.content span')?.textContent).toContain('frontend-angular app is running!');
+    expect(compiled.querySelector('.content span')?.textContent).toContain('frontend-old-angular app is running!');
   });
 });

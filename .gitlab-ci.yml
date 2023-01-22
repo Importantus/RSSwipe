@@ -17,8 +17,8 @@ build-frontend:
       - $CI_COMMIT_REF_SLUG == "main"
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build --build-arg "BACKEND_URL=https://$CI_PROJECT_NAME-backend.vwprg.mylab.th-luebeck.de" -t $IMAGE_TAG/frontend:frontend-temp frontend/.
-    - docker push $IMAGE_TAG/frontend:frontend-temp
+    - docker build --build-arg "BACKEND_URL=https://$CI_PROJECT_NAME-backend.vwprg.mylab.th-luebeck.de" -t $IMAGE_TAG/frontend-old:frontend-old-temp frontend-old/.
+    - docker push $IMAGE_TAG/frontend-old:frontend-old-temp
 
 build-backend:
   stage: build
@@ -40,5 +40,5 @@ deploy-everything:
     entrypoint: [ "" ]
   script:
     - crane auth login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - crane tag $IMAGE_TAG/frontend:frontend-temp frontend-latest
+    - crane tag $IMAGE_TAG/frontend-old:frontend-old-temp frontend-old-latest
     - crane tag $IMAGE_TAG/backend:backend-temp backend-latest

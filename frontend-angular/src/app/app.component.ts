@@ -7,7 +7,7 @@ import {BackendTestService} from "./backend-test.service";
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'frontend-angular';
+  title = 'frontend-old-angular';
   responseOutput = '';
 
   constructor(private backendService: BackendTestService) {

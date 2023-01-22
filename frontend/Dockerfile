@@ -4,19 +4,13 @@ WORKDIR /build
 COPY package.json package-lock.json ./
 RUN npm install
 
-ARG BACKEND_URL
-ENV NG_BACKEND_URL=$BACKEND_URL
-
 COPY . .
-RUN cp ./src/environments/environment.prod.ts ./src/environments/environment.prod.ts.old &&  \
-    sed "s%BACKEND_URL: '0'%BACKEND_URL: '$NG_BACKEND_URL'%" ./src/environments/environment.prod.ts.old > ./src/environments/environment.prod.ts
 
-RUN cat ./src/environments/environment.prod.ts
+ARG BACKEND_URL
+ENV REACT_APP_BACKEND_URL=$BACKEND_URL
 
-RUN npx ng build --configuration=production
+RUN npm run build
 
 FROM nginx:1.23.1-alpine as running
 COPY nginx.conf /etc/nginx/nginx.conf
-COPY --from=building /build/dist /frontend/build
-
-EXPOSE 80
+COPY --from=building /build/build /frontend/build
