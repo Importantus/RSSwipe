@@ -1,4 +1,4 @@
-FROM node:16.17.0 AS building
+FROM git.mylab.th-luebeck.de:4181/vwprg/teaching/docker-archive/node:latest AS building
 
 WORKDIR /build
 COPY package.json package-lock.json ./
@@ -10,6 +10,6 @@ ENV VITE_BACKEND_URL=$BACKEND_URL
 COPY . .
 RUN npm run build
 
-FROM nginx:1.23.1-alpine as running
+FROM git.mylab.th-luebeck.de:4181/vwprg/teaching/docker-archive/nginx:alpine as running
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY --from=building /build/dist /frontend/

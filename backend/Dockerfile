@@ -1,4 +1,4 @@
-FROM node:16
+FROM git.mylab.th-luebeck.de:4181/vwprg/teaching/docker-archive/node:latest
 
 # Create app directory
 WORKDIR /usr/src/app
