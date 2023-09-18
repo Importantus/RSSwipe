@@ -32,6 +32,38 @@ services:
       PMA_ARBITRARY: 0
     networks:
       - vwprog-net
+  vwprg-backend:
+    build: backend/.
+    command: npm run watch-backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_USER: '${DB_USER}'
+      DB_PASSWORD: '${DB_PASSWORD}'
+      DB_HOST: mariadb
+      DB_PORT: '${DB_PORT}'
+      DB_DATABASE: '${DB_DATABASE}'
+    volumes:
+      - ./backend/:/usr/src/app
+      - /usr/app/node_modules
+    networks:
+      - vwprog-net
+    depends_on:
+      - mariadb
+  vwprg-frontend:
+    image: node:16
+    working_dir: /usr/src/app
+    command: bash -c "npm install && npm run watch-frontend"
+    ports:
+      - "80:4173"
+    environment:
+      VITE_BACKEND_URL: 'http://localhost:8080'
+    volumes:
+      - ./frontend/:/usr/src/app
+    networks:
+      - vwprog-net
+    depends_on:
+      - vwprg-backend
 networks:
   vwprog-net:
     driver: bridge
