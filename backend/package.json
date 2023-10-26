@@ -13,10 +13,10 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "mariadb": "^3.0.1",
-    "morgan": "~1.9.1",
-    "nodemon": "^3.0.1"
+    "morgan": "~1.9.1"
   },
   "devDependencies": {
-    "prisma": "^5.5.2"
+    "prisma": "^5.5.2",
+    "nodemon": "^3.0.1"
   }
 }
