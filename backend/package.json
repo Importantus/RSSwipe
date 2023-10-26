@@ -7,13 +7,16 @@
     "watch-backend": "nodemon --ext js ./bin/www"
   },
   "dependencies": {
-    "nodemon": "^2.0.20",
     "cookie-parser": "~1.4.4",
     "cors": "^2.8.5",
     "debug": "~2.6.9",
-    "express": "~4.16.1",
-    "morgan": "~1.9.1",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
     "mariadb": "^3.0.1",
-    "dotenv": "^16.0.3"
+    "morgan": "~1.9.1",
+    "nodemon": "^3.0.1"
+  },
+  "devDependencies": {
+    "prisma": "^5.5.2"
   }
 }
