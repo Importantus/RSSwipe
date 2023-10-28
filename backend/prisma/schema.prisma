@@ -9,3 +9,65 @@ datasource db {
   provider = "mysql"
   url      = env("MYSQL_CONNECTION_STRING")
 }
+
+model User {
+  id          Int              @id @default(autoincrement())
+  name        String
+  email       String           @unique
+  password    String
+  createdAt   DateTime         @default(now())
+  articles    ArticleHasUser[]
+  UserHasFeed UserHasFeed[]
+  settings    settings[]
+}
+
+model Feed {
+  id          Int           @id @default(autoincrement())
+  title       String
+  link        String
+  createdAt   DateTime      @default(now())
+  faviconUrl  String
+  lastUpdate  DateTime
+  UserHasFeed UserHasFeed[]
+  Article     Article[]
+}
+
+model UserHasFeed {
+  userId Int
+  feedId Int
+  user   User @relation(fields: [userId], references: [id])
+  feed   Feed @relation(fields: [feedId], references: [id])
+
+  @@id([userId, feedId])
+}
+
+model Article {
+  id             Int              @id @default(autoincrement())
+  title          String
+  link           String
+  createdAt      DateTime         @default(now())
+  feedId         Int
+  ArticleHasUser ArticleHasUser[]
+  feed           Feed             @relation(fields: [feedId], references: [id])
+}
+
+model settings {
+  id            Int      @id @default(autoincrement())
+  expTimeRead   DateTime @default(now())
+  expTimeUnread DateTime @updatedAt
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model ArticleHasUser {
+  articleId Int
+  userId    Int
+  saved     Boolean?
+  read      Boolean?
+  dateSaved DateTime?
+  dateRead  DateTime?
+  article   Article   @relation(fields: [articleId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@id([articleId, userId])
+}
