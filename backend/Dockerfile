@@ -4,12 +4,12 @@ FROM git.mylab.th-luebeck.de:4181/vwprg/teaching/docker-archive/node:latest
 WORKDIR /usr/src/app
 
 # Combine all environment variables into one mariadb connection string
-ARG MYSQL_DATABASE
-ARG MYSQL_USER
-ARG MYSQL_PASSWORD
-ARG MYSQL_HOST
-ARG MYSQL_PORT
-ENV MYSQL_CONNECTION_STRING="mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}"
+# ARG DB_DATABASE
+# ARG DB_USER
+# ARG DB_PASSWORD
+# ARG DB_HOST
+# ARG DB_PORT
+# ENV MYSQL_CONNECTION_STRING="mysql://test${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
 
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
