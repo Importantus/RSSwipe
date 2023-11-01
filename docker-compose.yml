@@ -34,7 +34,7 @@ services:
       - vwprog-net
   vwprg-backend:
     build: backend/.
-    command: bash -c "npm install && npm run watch-backend"
+    command: bash -c "npm install && npm run dev"
     ports:
       - "8080:8080"
     environment:
@@ -43,6 +43,7 @@ services:
       DB_HOST: mariadb
       DB_PORT: '${DB_PORT}'
       DB_DATABASE: '${DB_DATABASE}'
+      MYSQL_CONNECTION_STRING: 'mysql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}'
     volumes:
       - ./backend/:/usr/src/app
       - /usr/app/node_modules
@@ -53,7 +54,7 @@ services:
   vwprg-frontend:
     image: node:16
     working_dir: /usr/src/app
-    command: bash -c "npm install && npm run watch-frontend"
+    command: bash -c "npm install && npm run dev"
     ports:
       - "80:4173"
     environment:
