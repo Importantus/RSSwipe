@@ -75,7 +75,7 @@
         }
       }
     },
-    "/user": {
+    "/register": {
       "post": {
         "description": "Register a new user",
         "tags": [
@@ -110,7 +110,9 @@
             "$ref": "#/components/responses/InvalidInputError"
           }
         }
-      },
+      }
+    },
+    "/user": {
       "get": {
         "description": "Get your user data",
         "tags": [
