@@ -3,13 +3,13 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 
-import articleRouter from "./routes/articles";
-import feedRouter from "./routes/feeds";
-import loginRouter from "./routes/login";
-import readinglistRouter from "./routes/readinglist";
-import settingsRouter from "./routes/settings";
-import userRouter from "./routes/user";
-import registerRouter from "./routes/register";
+import v1articleRouter from "./routes/v1/articles";
+import v1feedRouter from "./routes/v1/feeds";
+import v1loginRouter from "./routes/v1/login";
+import v1readinglistRouter from "./routes/v1/readinglist";
+import v1settingsRouter from "./routes/v1/settings";
+import v1userRouter from "./routes/v1/user";
+import v1registerRouter from "./routes/v1/register";
 
 import { auth, notFound, errorHandler } from "./middleware";
 
@@ -38,41 +38,41 @@ const versions: APIVersion[] = [
         resources: [
             {
                 path: "/user",
-                router: userRouter,
+                router: v1userRouter,
                 name: "user",
                 auth: true
             },
             {
                 path: "/settings",
-                router: settingsRouter,
+                router: v1settingsRouter,
                 name: "settings",
                 auth: true
             },
             {
                 path: "/login",
-                router: loginRouter,
+                router: v1loginRouter,
                 name: "login"
             },
             {
                 path: "/register",
-                router: registerRouter,
+                router: v1registerRouter,
                 name: "register"
             },
             {
                 path: "/feeds",
-                router: feedRouter,
+                router: v1feedRouter,
                 name: "feeds",
                 auth: true
             },
             {
                 path: "/articles",
-                router: articleRouter,
+                router: v1articleRouter,
                 name: "articles",
                 auth: true
             },
             {
                 path: "/readinglist",
-                router: readinglistRouter,
+                router: v1readinglistRouter,
                 name: "readinglist",
                 auth: true
             }
