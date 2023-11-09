@@ -11,30 +11,30 @@ datasource db {
 }
 
 model User {
-  id          Int              @id @default(autoincrement())
+  id          String        @id @default(uuid())
   name        String
-  email       String           @unique
+  email       String        @unique
   password    String
-  createdAt   DateTime         @default(now())
-  articles    ArticleHasUser[]
-  UserHasFeed UserHasFeed[]
-  settings    settings[]
+  createdAt   DateTime      @default(now())
+  articles    ArticleList[]
+  UserHasFeed FeedList[]
+  settings    Settings[]
 }
 
 model Feed {
-  id          Int           @id @default(autoincrement())
+  id          String     @id @default(uuid())
   title       String
   link        String
-  createdAt   DateTime      @default(now())
+  createdAt   DateTime   @default(now())
   faviconUrl  String
   lastUpdate  DateTime
-  UserHasFeed UserHasFeed[]
+  UserHasFeed FeedList[]
   Article     Article[]
 }
 
-model UserHasFeed {
-  userId    Int
-  feedId    Int
+model FeedList {
+  userId    String
+  feedId    String
   openInApp Boolean @default(true)
   user      User    @relation(fields: [userId], references: [id])
   feed      Feed    @relation(fields: [feedId], references: [id])
@@ -43,27 +43,27 @@ model UserHasFeed {
 }
 
 model Article {
-  id             Int              @id @default(autoincrement())
+  id             String        @id @default(uuid())
   title          String
   link           String
   imageUrl       String
-  createdAt      DateTime         @default(now())
-  feedId         Int
-  ArticleHasUser ArticleHasUser[]
-  feed           Feed             @relation(fields: [feedId], references: [id])
+  createdAt      DateTime      @default(now())
+  feedId         String
+  ArticleHasUser ArticleList[]
+  feed           Feed          @relation(fields: [feedId], references: [id])
 }
 
-model settings {
-  id            Int      @id @default(autoincrement())
+model Settings {
+  id            String   @id @default(uuid())
   expTimeRead   DateTime @default(now())
   expTimeUnread DateTime @updatedAt
-  userId        Int
+  userId        String
   user          User     @relation(fields: [userId], references: [id])
 }
 
-model ArticleHasUser {
-  articleId Int
-  userId    Int
+model ArticleList {
+  articleId String
+  userId    String
   saved     Boolean?
   read      Boolean?
   dateSaved DateTime?
