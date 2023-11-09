@@ -11,28 +11,28 @@ datasource db {
 }
 
 model User {
-  id          Int              @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   name        String
-  email       String           @unique
+  email       String        @unique
   password    String
-  createdAt   DateTime         @default(now())
-  articles    ArticleHasUser[]
-  UserHasFeed UserHasFeed[]
-  settings    settings[]
+  createdAt   DateTime      @default(now())
+  articles    ArticleList[]
+  UserHasFeed FeedList[]
+  settings    Settings[]
 }
 
 model Feed {
-  id          Int           @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   title       String
   link        String
-  createdAt   DateTime      @default(now())
+  createdAt   DateTime   @default(now())
   faviconUrl  String
   lastUpdate  DateTime
-  UserHasFeed UserHasFeed[]
+  UserHasFeed FeedList[]
   Article     Article[]
 }
 
-model UserHasFeed {
+model FeedList {
   userId    Int
   feedId    Int
   openInApp Boolean @default(true)
@@ -43,17 +43,17 @@ model UserHasFeed {
 }
 
 model Article {
-  id             Int              @id @default(autoincrement())
+  id             Int           @id @default(autoincrement())
   title          String
   link           String
   imageUrl       String
-  createdAt      DateTime         @default(now())
+  createdAt      DateTime      @default(now())
   feedId         Int
-  ArticleHasUser ArticleHasUser[]
-  feed           Feed             @relation(fields: [feedId], references: [id])
+  ArticleHasUser ArticleList[]
+  feed           Feed          @relation(fields: [feedId], references: [id])
 }
 
-model settings {
+model Settings {
   id            Int      @id @default(autoincrement())
   expTimeRead   DateTime @default(now())
   expTimeUnread DateTime @updatedAt
@@ -61,7 +61,7 @@ model settings {
   user          User     @relation(fields: [userId], references: [id])
 }
 
-model ArticleHasUser {
+model ArticleList {
   articleId Int
   userId    Int
   saved     Boolean?
