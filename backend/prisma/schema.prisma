@@ -33,10 +33,11 @@ model Feed {
 }
 
 model UserHasFeed {
-  userId Int
-  feedId Int
-  user   User @relation(fields: [userId], references: [id])
-  feed   Feed @relation(fields: [feedId], references: [id])
+  userId    Int
+  feedId    Int
+  openInApp Boolean @default(true)
+  user      User    @relation(fields: [userId], references: [id])
+  feed      Feed    @relation(fields: [feedId], references: [id])
 
   @@id([userId, feedId])
 }
@@ -45,6 +46,7 @@ model Article {
   id             Int              @id @default(autoincrement())
   title          String
   link           String
+  imageUrl       String
   createdAt      DateTime         @default(now())
   feedId         Int
   ArticleHasUser ArticleHasUser[]
