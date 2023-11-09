@@ -11,7 +11,7 @@ datasource db {
 }
 
 model User {
-  id          Int           @id @default(autoincrement())
+  id          String        @id @default(uuid())
   name        String
   email       String        @unique
   password    String
@@ -22,7 +22,7 @@ model User {
 }
 
 model Feed {
-  id          Int        @id @default(autoincrement())
+  id          String     @id @default(uuid())
   title       String
   link        String
   createdAt   DateTime   @default(now())
@@ -33,8 +33,8 @@ model Feed {
 }
 
 model FeedList {
-  userId    Int
-  feedId    Int
+  userId    String
+  feedId    String
   openInApp Boolean @default(true)
   user      User    @relation(fields: [userId], references: [id])
   feed      Feed    @relation(fields: [feedId], references: [id])
@@ -43,27 +43,27 @@ model FeedList {
 }
 
 model Article {
-  id             Int           @id @default(autoincrement())
+  id             String        @id @default(uuid())
   title          String
   link           String
   imageUrl       String
   createdAt      DateTime      @default(now())
-  feedId         Int
+  feedId         String
   ArticleHasUser ArticleList[]
   feed           Feed          @relation(fields: [feedId], references: [id])
 }
 
 model Settings {
-  id            Int      @id @default(autoincrement())
+  id            String   @id @default(uuid())
   expTimeRead   DateTime @default(now())
   expTimeUnread DateTime @updatedAt
-  userId        Int
+  userId        String
   user          User     @relation(fields: [userId], references: [id])
 }
 
 model ArticleList {
-  articleId Int
-  userId    Int
+  articleId String
+  userId    String
   saved     Boolean?
   read      Boolean?
   dateSaved DateTime?
