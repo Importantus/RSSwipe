@@ -25,6 +25,10 @@
     {
       "name": "readinglist",
       "description": "Your Readinglist"
+    },
+    {
+      "name": "starred",
+      "description": "Your Starred Articles"
     }
   ],
   "servers": [
@@ -671,6 +675,119 @@
         "responses": {
           "200": {
             "description": "Article removed from readinglist"
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidInputError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/starred": {
+      "get": {
+        "description": "Get all your starred articles",
+        "tags": [
+          "starred"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All your starred articles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Article"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/starred/articles": {
+      "post": {
+        "description": "Star an article",
+        "tags": [
+          "starred"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "description": "The id of the article"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Article starred"
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidInputError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "delete": {
+        "description": "Unstar an article",
+        "tags": [
+          "starred"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "description": "The id of the article"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Article unstarred"
           },
           "400": {
             "$ref": "#/components/responses/InvalidInputError"
