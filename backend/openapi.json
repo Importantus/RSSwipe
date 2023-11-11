@@ -33,8 +33,26 @@
       "description": "Production server"
     },
     {
-      "url": "http://localhost:8080",
-      "description": "Development server"
+      "url": "{protocol}://{host}:{port}/{endpoint}",
+      "description": "Development server",
+      "variables": {
+        "protocol": {
+          "enum": [
+            "http",
+            "https"
+          ],
+          "default": "http"
+        },
+        "host": {
+          "default": "localhost"
+        },
+        "port": {
+          "default": "8080"
+        },
+        "endpoint": {
+          "default": "v1"
+        }
+      }
     }
   ],
   "paths": {
@@ -91,7 +109,7 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "User registered",
             "content": {
               "application/json": {
@@ -100,6 +118,26 @@
                   "properties": {
                     "token": {
                       "type": "string"
+                    },
+                    "user": {
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "username": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
                     }
                   }
                 }
@@ -108,6 +146,21 @@
           },
           "400": {
             "$ref": "#/components/responses/InvalidInputError"
+          },
+          "409": {
+            "description": "User with that email already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -153,7 +206,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/UserUpdateInput"
               }
             }
           }
@@ -187,9 +240,30 @@
             "bearerAuth": []
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserDeleteInput"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "User deleted"
+            "description": "User deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -703,9 +777,6 @@
           "email": {
             "type": "string"
           },
-          "username": {
-            "type": "string"
-          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -716,6 +787,32 @@
           "username",
           "email"
         ]
+      },
+      "UserUpdateInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string"
+          },
+          "oldPassword": {
+            "type": "string"
+          }
+        }
+      },
+      "UserDeleteInput": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string"
+          }
+        }
       },
       "UserRegisterInput": {
         "type": "object",
