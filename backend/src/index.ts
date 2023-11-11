@@ -13,8 +13,10 @@ import v1registerRouter from "./routes/v1/register";
 
 import { auth, notFound, errorHandler } from "./middleware";
 
+import { environment } from "./helper/environment";
+
 const app = express();
-const port = process.env.PORT || 8080;
+const port = environment.backendPort;
 
 interface APIVersion {
     path: string;
