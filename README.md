@@ -8,6 +8,7 @@ git clone https://git.mylab.th-luebeck.de/vwprg/wise23_24/b2.git
 ```
 
 Create a .env file in the root directory of the project and copy the content of the .env.local file into it. 
+Make the same for the .env file in the b2/backend/prisma directory.
 
 Start the app:
 ```bash
@@ -17,13 +18,13 @@ docker compose up
 
 Run migrations:
 ```bash
- docker exec -it b2-vwprg-backend-1 npx prisma migrate deploy
+npx prisma migrate deploy
 ```
 
 
 Generate the prisma client:
 ```bash
- docker exec -it b2-vwprg-backend-1 npx prisma generate
+npx prisma generate
 ```
 
 ### Get latest changes
@@ -34,6 +35,7 @@ git pull
 ```
 
 Check if the .env.local file has changed and copy the content of the .env.local file into your .env file.
+Make the same for the .env file in the b2/backend/prisma directory.
 
 Restart the app:
 ```bash
@@ -45,12 +47,12 @@ Check if there are new migrations, if so run them:
 
 Run migrations:
 ```bash
- docker exec -it b2-vwprg-backend-1 npx prisma migrate deploy
+npx prisma migrate deploy
 ```
 
 Generate the prisma client:
 ```bash
- docker exec -it b2-vwprg-backend-1 npx prisma generate
+npx prisma generate
 ```
 
 ### How to make changes to the database
@@ -59,12 +61,12 @@ Make changes to the schema.prisma file
 
 Migrate the changes:
 ```bash
- docker exec -it b2-vwprg-backend-1 npx prisma migrate dev --name <name of migration>
+npx prisma migrate dev --name <name of migration>
 ```
 
 Generate the prisma client:
 ```bash
- docker exec -it b2-vwprg-backend-1 npx prisma generate
+npx prisma generate
 ```
 
 ### Troubleshooting
