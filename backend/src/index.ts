@@ -10,6 +10,7 @@ import v1readinglistRouter from "./routes/v1/readinglist";
 import v1settingsRouter from "./routes/v1/settings";
 import v1userRouter from "./routes/v1/user";
 import v1registerRouter from "./routes/v1/register";
+import v1starredRouter from "./routes/v1/starred";
 
 import { auth, notFound, errorHandler } from "./middleware";
 
@@ -74,6 +75,12 @@ const versions: APIVersion[] = [
                 path: "/readinglist",
                 router: v1readinglistRouter,
                 name: "readinglist",
+                auth: true
+            },
+            {
+                path: "/starred",
+                router: v1starredRouter,
+                name: "starred",
                 auth: true
             }
         ]

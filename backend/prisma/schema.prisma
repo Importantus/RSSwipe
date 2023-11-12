@@ -33,11 +33,12 @@ model Feed {
 }
 
 model FeedList {
-  userId    String
-  feedId    String
-  openInApp Boolean @default(true)
-  user      User    @relation(fields: [userId], references: [id])
-  feed      Feed    @relation(fields: [feedId], references: [id])
+  userId     String
+  feedId     String
+  openInApp  Boolean  @default(true)
+  followedAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  feed       Feed     @relation(fields: [feedId], references: [id])
 
   @@id([userId, feedId])
 }
@@ -64,10 +65,14 @@ model Settings {
 model ArticleList {
   articleId String
   userId    String
-  saved     Boolean?
-  read      Boolean?
+  seen      Boolean   @default(false)
+  saved     Boolean   @default(false)
+  read      Boolean   @default(false)
+  starred   Boolean   @default(false)
+  dateSeen  DateTime?
   dateSaved DateTime?
   dateRead  DateTime?
+  dateStar  DateTime?
   article   Article   @relation(fields: [articleId], references: [id])
   user      User      @relation(fields: [userId], references: [id])
 
