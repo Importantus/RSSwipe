@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
+import HomeTopWrapper from '@/components/home/HomeTopWrapper.vue';
+import HomeMiddleWrapper from '@/components/home/HomeMiddleWrapper.vue';
+import HomeBottomWrapper from '@/components/home/HomeBottomWrapper.vue';
 </script>
 
 <template>
   <main>
-    <TheWelcome />
+    <HomeTopWrapper />
+    <HomeMiddleWrapper />
+    <HomeBottomWrapper />
   </main>
 </template>
