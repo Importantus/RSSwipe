@@ -7,6 +7,6 @@ import { List } from 'lucide-vue-next';
 
 <template>
     <button @click="DiscardArticle">
-        <List size="28" class=" text-white m-3" />
+        <List size="24" class=" text-white m-3" />
     </button>
 </template>

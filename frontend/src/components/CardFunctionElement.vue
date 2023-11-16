@@ -5,7 +5,7 @@ import ReadingListButton from '@/components/ReadingListButton.vue';
 </script>
 
 <template>
-    <div class="flex flex-row items-center bg-secondary rounded-3xl justify-between px-4 p-3 mx-16">
+    <div class="flex flex-row items-center justify-between bg-secondary-900 rounded-[30px] w-56 m-auto p-4 px-7">
         <DiscardArticleButton />
         <ReadingListButton />
         <SaveArticleButton />

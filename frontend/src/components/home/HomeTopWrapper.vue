@@ -7,7 +7,7 @@ import FeedFilterList from '@/components/FeedFilterList.vue';
 
 <template>
     <div class=" flex flex-col">
-        <div class="flex flex-row items-center m-4">
+        <div class="flex flex-row items-center my-2">
             <div class="flex-none basis 1/4">
                 <UserSettingsButton />
             </div>

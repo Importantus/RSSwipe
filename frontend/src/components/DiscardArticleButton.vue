@@ -6,7 +6,7 @@ import { X } from 'lucide-vue-next';
 </script>
 
 <template>
-    <button class="bg-zinc-400 rounded-full" @click="DiscardArticle">
-        <X size="28" class=" text-primary m-3" />
+    <button class=" bg-[#D9D9D9] rounded-full" @click="DiscardArticle">
+        <X size="24" class=" text-primary-600 m-3" />
     </button>
 </template>
