@@ -2,6 +2,8 @@
 import { RouterLink, RouterView } from 'vue-router'
 </script>
 
-<template>
-  <RouterView />
+<template >
+  <div class="max-w-sm m-auto">
+    <RouterView />
+  </div>
 </template>
