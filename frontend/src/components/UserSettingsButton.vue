@@ -7,7 +7,7 @@ function openUserSettings() {
 
 <template>
     <button @click="openUserSettings">
-        <UserCircle2 size="32" class=" text-white" />
+        <UserCircle2 size="24" class=" text-white" />
     </button>
 </template>
 
