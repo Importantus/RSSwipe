@@ -1,5 +1,20 @@
 # RSSwiper
 
+## Deploy Version Access
+A deployed version of this projects main branch can be found here:
+
+[Frontend](https://b2.vwprg.mylab.th-luebeck.de/)
+
+
+The backend and phymyadmin can be reached under their respective urls as well:
+
+[Backend](https://b2-backend.vwprg.mylab.th-luebeck.de/)
+
+[phypmyadmin](https://phpmyadmin.vwprg.mylab.th-luebeck.de/)
+
+
+
+
 ## Local Setup
 
 Clone the repo: 
