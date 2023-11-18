@@ -14,8 +14,10 @@ import v1starredRouter from "./routes/v1/starred";
 
 import { auth, notFound, errorHandler } from "./middleware";
 
+import { environment } from "./helper/environment";
+
 const app = express();
-const port = process.env.PORT || 8080;
+const port = environment.backendPort;
 
 interface APIVersion {
     path: string;
@@ -96,7 +98,7 @@ app.get("/", (_, res) => {
     res.json(versions.map(version => {
         return {
             version: version.name,
-            path: `/${version.path}`
+            path: `${version.path}`
         }
     }));
 });
