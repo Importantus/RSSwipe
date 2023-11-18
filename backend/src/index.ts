@@ -91,7 +91,7 @@ app.get("/", (_, res) => {
     res.json(versions.map(version => {
         return {
             version: version.name,
-            path: `/${version.path}`
+            path: `${version.path}`
         }
     }));
 });
