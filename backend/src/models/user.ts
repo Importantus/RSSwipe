@@ -86,7 +86,8 @@ export async function updateUserData(id: string, data: UserUpdateInputType) {
 
     // Check if user with new email already exists
     if (data.email) {
-        if (await getUserByEmail(data.email)) {
+        const user = await getUserByEmail(data.email);
+        if (user && user.id !== id) { // Check if user is not the same user
             throw APIError.badRequest("User with this email already exists");
         }
     }
