@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import router from '@/router';
 import { UserCircle2 } from 'lucide-vue-next';
 function openUserSettings() {
-    console.log("openUserSettings");
+    router.push({ name: 'Account' });
 }
 </script>
 
