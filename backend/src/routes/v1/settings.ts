@@ -1,6 +1,6 @@
 import express from "express";
 import h from "../../helper/errorHelper";
-import { getSettings, updateSettings } from "../../models/settings";
+import { updateSettings, getSettings } from "../../models/settings";
 import { assert } from "superstruct";
 import { SettingsUpdateInput } from "../../validators/settings";
 import APIError from "../../helper/apiError";
