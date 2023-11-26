@@ -56,8 +56,8 @@ model Article {
 
 model Settings {
   id            String   @id @default(uuid())
-  expTimeRead   DateTime @default(now())
-  expTimeUnread DateTime @updatedAt
+  expTimeRead   Int 
+  expTimeUnread Int 
   userId        String
   user          User     @relation(fields: [userId], references: [id])
 }
