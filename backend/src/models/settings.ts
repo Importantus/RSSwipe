@@ -3,29 +3,32 @@ import APIError from "../helper/apiError";
 import {SettingsUpdateInputType} from "../validators/settings"
 const prisma = new PrismaClient();
 
-export async function getSettings(id: string) {
-    const settings = await getSettingsById(id);
+
+
+export async function getSettingsIdByUserId(userId: string) {
+    
+    const settings = await prisma.settings.findFirst({
+        where: {
+            userId: userId
+        },
+        select: {
+            id: true 
+        }
+    });
 
     if (!settings) {
         throw APIError.notFound();
     }
 
-    return {
-        exprTimeRead: settings,
-        exprTimeUnRead: settings
-    };
+    return settings.id;
 }
-
 export async function updateSettings(id: string, updateData: SettingsUpdateInputType) {
-    const settings = await getSettingsById(id);
+    const settingsid = await getSettingsIdByUserId(id);
 
-    if (!settings) {
-        throw APIError.notFound();
-    }
 
     await prisma.settings.update({
         where: {
-            id
+            id:settingsid
         },
         data: {
             expTimeRead: updateData.expTimeRead,
@@ -33,12 +36,21 @@ export async function updateSettings(id: string, updateData: SettingsUpdateInput
         }
     });
 }
+export async function getSettings(userId:string) {
+    const settingsid = await getSettingsIdByUserId(userId);
+   
+        const settings = await prisma.settings.findUnique({
+            where: {
+                id:settingsid
+            }
+        });
+        return settings;
+    
+}
 
-async function getSettingsById(id: string) {
-    const settings = await prisma.settings.findUnique({
-        where: {
-            id
-        }
-    });
-    return settings;
+
+
+
+function getSettingsById(id: string) {
+    throw new Error("Function not implemented.");
 }
