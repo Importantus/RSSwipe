@@ -6,7 +6,7 @@ function feedSelected() {
 </script>
 
 <template>
-    <div class="flex flex-row m-2 gap-2 overflow-scroll no-scrollbar">
+    <div class="flex flex-row mt-5 mb-8 gap-2 overflow-scroll no-scrollbar">
         <button class="flex flex-row rounded-xl p-2 px-4 bg-primary-600" @click="feedSelected">
             <div class="align-middle">
                 <p class="font-text-detail text-xs">All</p>

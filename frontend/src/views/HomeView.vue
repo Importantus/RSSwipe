@@ -5,13 +5,17 @@ import HomeBottomWrapper from '@/components/home/HomeBottomWrapper.vue';
 </script>
 
 <template>
-  <main>
-    <div class="flex flex-col bg-gradient-radial from-background-900 to-background-950 h-screen px-5">
-      <HomeTopWrapper />
-      <HomeMiddleWrapper class="flex-1 pb-40" />
-      <div class="w-full fixed right-0 bottom-12">
-        <HomeBottomWrapper />
-      </div>
+  <div class="flex flex-col gradient h-screen px-5 pt-5">
+    <HomeTopWrapper />
+    <HomeMiddleWrapper class="flex-1 pb-40" />
+    <div class="w-full fixed right-0 bottom-11">
+      <HomeBottomWrapper />
     </div>
-  </main>
+  </div>
 </template>
+
+<style scoped>
+.gradient {
+  background: radial-gradient(114.56% 50% at 50% 50%, #3d3d3d 0%, #101010 81.77%);
+}
+</style>
