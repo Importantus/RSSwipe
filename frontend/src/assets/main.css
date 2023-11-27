@@ -30,7 +30,7 @@
 
 .slide-left-enter-from,
 .slide-right-leave-to {
-  transform: translateX(0%);
+  transform: scale(0.99) translateX(-1%);
   filter: brightness(0.5);
 }
 
