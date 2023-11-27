@@ -44,9 +44,29 @@ router.beforeEach((to, from, next) => {
 })
 
 router.afterEach((to, from) => {
-  const toDepth = to.path.split('/').length
-  const fromDepth = from.path.split('/').length
-  to.meta.transition = toDepth < fromDepth ? 'slide-right' : 'slide-left'
+  const toDepth = to.path.split('/').filter(Boolean);
+  const fromDepth = from.path.split('/').filter(Boolean)
+
+  const toDepthLength = toDepth.length;
+  const fromDepthLength = fromDepth.length
+
+  if (!from.name) {
+    to.meta.transition = 'fade';
+    return
+  }
+
+  if (toDepthLength === fromDepthLength) {
+    const toLastDepthLength = toDepth[toDepthLength - 1]?.length || 0;
+    const fromLastDepthLength = fromDepth[fromDepthLength - 1]?.length || 0
+
+    if (!toLastDepthLength || !fromLastDepthLength) {
+      to.meta.transition = toLastDepthLength > fromLastDepthLength ? 'slide-right' : 'slide-left'
+    } else {
+      to.meta.transition = 'fade'
+    }
+  } else {
+    to.meta.transition = toDepthLength > fromDepthLength ? 'slide-right' : 'slide-left'
+  }
 })
 
 export default router
