@@ -40,11 +40,14 @@ export async function loginUser(email: string, password: string) {
         }
 
         // Check if password is correct
-        bcrypt.compare(password, user.password, (_, result) => {
+        try {
+            const result = await bcrypt.compare(password, user.password);
             if (!result) {
                 throw APIError.notAuthorized();
             }
-        });
+        } catch (error) {
+            throw APIError.notAuthorized();
+        }
 
         // Generate JWT token
         return jwt.sign({ id: user.id }, environment.jwtSecret, { expiresIn: environment.jwtExpiration });
