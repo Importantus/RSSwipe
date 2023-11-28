@@ -1,4 +1,4 @@
-import { PrismaClient, User } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import APIError from "../helper/apiError";
 import jwt from "jsonwebtoken";
@@ -16,13 +16,21 @@ export async function registerUser(name: string, email: string, password: string
 
     const hash = await bcrypt.hash(password, saltRounds);
 
+    // Create user and settings and connect them
     const user = await prisma.user.create({
         data: {
             name,
             email,
-            password: hash
+            password: hash,
+            settings: {
+                create: {
+                    expTimeRead: 1000 * 60 * 60 * 24 * 3, // 3 days
+                    expTimeUnread: -1,
+                }
+            }
         }
-    })
+    });
+
 
     return {
         id: user.id,
