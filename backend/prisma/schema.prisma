@@ -46,9 +46,10 @@ model FeedList {
 model Article {
   id             String        @id @default(uuid())
   title          String
-  link           String
-  imageUrl       String
+  link           String        @unique
+  imageUrl       String?
   createdAt      DateTime      @default(now())
+  publishedAt    DateTime
   feedId         String
   ArticleHasUser ArticleList[]
   feed           Feed          @relation(fields: [feedId], references: [id])
