@@ -1100,12 +1100,10 @@
         "type": "object",
         "properties": {
           "expTimeRead": {
-            "type": "string",
-            "format": "date-time"
+            "type": "number"
           },
           "expTimeUnread": {
-            "type": "string",
-            "format": "date-time"
+            "type": "number"
           }
         }
       },
