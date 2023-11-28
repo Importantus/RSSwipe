@@ -565,7 +565,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "type": "integer"
+                "type": "string"
               }
             }
           }
@@ -1104,9 +1104,6 @@
       "UpdateArticleInput": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer"
-          },
           "read": {
             "type": "boolean"
           },
@@ -1174,7 +1171,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer"
+            "type": "string"
           },
           "title": {
             "type": "string"
