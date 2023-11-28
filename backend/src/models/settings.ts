@@ -1,18 +1,16 @@
-import { PrismaClient, Settings } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import APIError from "../helper/apiError";
-import {SettingsUpdateInputType} from "../validators/settings"
+import { SettingsUpdateInputType } from "../validators/settings"
 const prisma = new PrismaClient();
 
-
-
 export async function getSettingsIdByUserId(userId: string) {
-    
+
     const settings = await prisma.settings.findFirst({
         where: {
             userId: userId
         },
         select: {
-            id: true 
+            id: true
         }
     });
 
@@ -22,13 +20,15 @@ export async function getSettingsIdByUserId(userId: string) {
 
     return settings.id;
 }
+
+
 export async function updateSettings(id: string, updateData: SettingsUpdateInputType) {
     const settingsid = await getSettingsIdByUserId(id);
 
 
     await prisma.settings.update({
         where: {
-            id:settingsid
+            id: settingsid
         },
         data: {
             expTimeRead: updateData.expTimeRead,
@@ -36,21 +36,18 @@ export async function updateSettings(id: string, updateData: SettingsUpdateInput
         }
     });
 }
-export async function getSettings(userId:string) {
+
+
+export async function getSettings(userId: string) {
     const settingsid = await getSettingsIdByUserId(userId);
-   
-        const settings = await prisma.settings.findUnique({
-            where: {
-                id:settingsid
-            }
-        });
-        return settings;
-    
-}
 
-
-
-
-function getSettingsById(id: string) {
-    throw new Error("Function not implemented.");
+    const settings = await prisma.settings.findUnique({
+        where: {
+            id: settingsid
+        }
+    });
+    return {
+        expTimeRead: settings?.expTimeRead,
+        expTimeUnread: settings?.expTimeUnread
+    };
 }
