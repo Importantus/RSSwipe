@@ -411,6 +411,46 @@
       }
     },
     "/feeds/{id}": {
+      "get": {
+        "description": "Get a feed by id",
+        "tags": [
+          "feed"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id of the feed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The feed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Feed"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidInputError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
       "put": {
         "description": "Update a feed",
         "tags": [
@@ -419,6 +459,17 @@
         "security": [
           {
             "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id of the feed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -462,11 +513,11 @@
         "parameters": [
           {
             "name": "id",
-            "in": "query",
+            "in": "path",
             "description": "The id of the feed",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string"
             }
           }
         ],
@@ -553,6 +604,17 @@
             "bearerAuth": []
           }
         ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id of the article",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "The article",
@@ -591,6 +653,17 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id of the article",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Article marked successfully"
@@ -618,11 +691,11 @@
         "parameters": [
           {
             "name": "id",
-            "in": "query",
+            "in": "path",
             "description": "The id of the article",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string"
             }
           }
         ],
@@ -972,12 +1045,12 @@
       "CreateFeedInput": {
         "type": "object",
         "properties": {
-          "title": {
-            "type": "string"
-          },
-          "link": {
+          "url": {
             "type": "string",
             "format": "uri"
+          },
+          "openInApp": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -988,16 +1061,6 @@
       "UpdateFeedInput": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "title": {
-            "type": "string"
-          },
-          "link": {
-            "type": "string",
-            "format": "uri"
-          },
           "openInApp": {
             "type": "boolean"
           }
