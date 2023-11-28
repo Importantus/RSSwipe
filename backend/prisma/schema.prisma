@@ -24,10 +24,10 @@ model User {
 model Feed {
   id          String     @id @default(uuid())
   title       String
-  link        String
+  link        String     @unique
   createdAt   DateTime   @default(now())
-  faviconUrl  String
-  lastUpdate  DateTime
+  faviconUrl  String?
+  lastUpdate  DateTime   @default(now())
   UserHasFeed FeedList[]
   Article     Article[]
 }
