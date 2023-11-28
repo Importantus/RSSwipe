@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { FeedCreateInputType, FeedUpdateInputType } from "../validators/feeds";
-import { getFaviconUrl, parseFeed } from "./feedparser";
+import { getFaviconUrl, parseFeed, parseFeedAndAddToDb } from "./feedparser";
 import APIError from "../helper/apiError";
 
 const prisma = new PrismaClient();
@@ -34,6 +34,8 @@ export async function followFeed(userId: string, feedInput: FeedCreateInputType)
             feedId: feed.id
         }
     });
+
+    parseFeedAndAddToDb(feed);
 
     return feed;
 }
