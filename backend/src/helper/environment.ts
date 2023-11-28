@@ -20,5 +20,7 @@ export const environment = {
     backendPort: constructEnv("BACKEND_PORT"),
     backendURL: constructEnv("BACKEND_URL"),
     viteBackendURL: constructEnv("VITE_BACKEND_URL"),
+    feedUpdateInterval: 1000 * 60 * 10,
+    timeToDeleteOldArticles: 1000 * 60 * 60 * 24 * 10,
 };
 
