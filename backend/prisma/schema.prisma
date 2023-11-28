@@ -37,7 +37,7 @@ model FeedList {
   feedId     String
   openInApp  Boolean  @default(true)
   followedAt DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   feed       Feed     @relation(fields: [feedId], references: [id])
 
   @@id([userId, feedId])
@@ -55,11 +55,11 @@ model Article {
 }
 
 model Settings {
-  id            String   @id @default(uuid())
-  expTimeRead   Int 
-  expTimeUnread Int 
+  id            String @id @default(uuid())
+  expTimeRead   Int
+  expTimeUnread Int
   userId        String
-  user          User     @relation(fields: [userId], references: [id])
+  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ArticleList {
@@ -74,7 +74,7 @@ model ArticleList {
   dateRead  DateTime?
   dateStar  DateTime?
   article   Article   @relation(fields: [articleId], references: [id])
-  user      User      @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([articleId, userId])
 }
