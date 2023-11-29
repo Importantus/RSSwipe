@@ -1,35 +1,85 @@
+@import './fonts.css';
 @import './base.css';
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-
-  font-weight: normal;
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
 }
 
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-right-enter-active,
+.slide-left-leave-active {
+  z-index: 1000;
+  /* black shadow left */
+  box-shadow: -10px 0px 10px 0px rgba(0, 0, 0, 0.5);
+}
+
+.slide-right-enter-from,
+.slide-left-leave-to {
+  transform: translateX(100%);
+}
+
+.slide-left-enter-from,
+.slide-right-leave-to {
+  transform: scale(0.99) translateX(-1%);
+  filter: brightness(0.5);
+}
+
+.slide-left-enter-active,
+.slide-left-leave-active {
+  transition: all 0.3s ease;
+}
+
+@layer base {
+
+  h1,
+  title {
+    @apply font-title text-white;
+  }
+
+  h2 {
+    @apply font-text text-white;
+  }
+
+  p {
+    @apply font-text text-white;
+  }
+
+  html {
+    @apply bg-background-950;
+    @apply text-white;
   }
 }
 
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
+@layer utilities {
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+
+  input {
+    @apply font-text text-white;
+    @apply rounded-md;
+    @apply px-2 py-1;
+    @apply box-border;
+    @apply focus:outline-none;
   }
 }
