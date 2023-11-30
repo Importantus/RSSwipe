@@ -4,6 +4,7 @@ import { assert } from "superstruct";
 import { ArticleUpdateInput, GetArticlesQuery } from "../../validators/articles";
 import APIError from "../../helper/apiError";
 import { getArticle, getArticleContent, getArticles, updateArticle } from "../../models/articles";
+import { uuid } from "../../validators/uuids";
 
 const router = express.Router();
 
@@ -30,6 +31,12 @@ router.get("/:id", h(async (req, res) => {
     const id = res.locals.userId;
     const articleId = req.params.id;
 
+    try {
+        assert(articleId, uuid)
+    } catch (err: any) {
+        throw APIError.badRequest("Invalid id")
+    }
+
     const article = await getArticle(id, articleId);
 
     if (!article) {
@@ -42,6 +49,12 @@ router.get("/:id", h(async (req, res) => {
 router.put("/:id", h(async (req, res) => {
     const id = res.locals.userId;
     const articleId = req.params.id;
+
+    try {
+        assert(articleId, uuid)
+    } catch (err: any) {
+        throw APIError.badRequest("Invalid id")
+    }
 
     try {
         assert(req.body, ArticleUpdateInput)
@@ -58,6 +71,12 @@ router.put("/:id", h(async (req, res) => {
 
 router.get("/:id/content", h(async (req, res) => {
     const articleId = req.params.id;
+
+    try {
+        assert(articleId, uuid)
+    } catch (err: any) {
+        throw APIError.badRequest("Invalid id")
+    }
 
     const article = await getArticleContent(articleId);
 

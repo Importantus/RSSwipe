@@ -4,6 +4,7 @@ import { followFeed, getFeedInfo, getFollowedFeeds, unfollowFeed, updateFeed } f
 import APIError from "../../helper/apiError";
 import { assert } from "superstruct";
 import { FeedCreateInput, FeedUpdateInput } from "../../validators/feeds";
+import { uuid } from "../../validators/uuids";
 
 
 const router = express.Router();
@@ -36,6 +37,14 @@ router.get("/:feedId", h(async (req, res) => {
     const id = res.locals.userId;
     const feedId = req.params.feedId;
 
+    console.log(feedId);
+
+    try {
+        assert(feedId, uuid)
+    } catch (err: any) {
+        throw APIError.badRequest("Invalid id")
+    }
+
     res.status(200).json(
         await getFeedInfo(id, feedId)
     );
@@ -44,6 +53,12 @@ router.get("/:feedId", h(async (req, res) => {
 router.delete("/:feedId", h(async (req, res) => {
     const id = res.locals.userId;
     const feedId = req.params.feedId;
+
+    try {
+        assert(feedId, uuid)
+    } catch (err: any) {
+        throw APIError.badRequest("Invalid id")
+    }
 
     await unfollowFeed(id, feedId);
 
@@ -55,6 +70,12 @@ router.delete("/:feedId", h(async (req, res) => {
 router.put("/:feedId", h(async (req, res) => {
     const id = res.locals.userId;
     const feedId = req.params.feedId;
+
+    try {
+        assert(feedId, uuid)
+    } catch (err: any) {
+        throw APIError.badRequest("Invalid id")
+    }
 
     try {
         assert(req.body, FeedUpdateInput)
