@@ -97,6 +97,10 @@ export async function getArticle(userId: string, articleId: string) {
         },
     });
 
+    if (!article) {
+        throw APIError.notFound();
+    }
+
     const articleList = await prisma.articleList.findUnique({
         where: {
             articleId_userId: {
@@ -111,9 +115,11 @@ export async function getArticle(userId: string, articleId: string) {
         read: articleList?.read ?? false,
         saved: articleList?.saved ?? false,
         starred: articleList?.starred ?? false,
+        seen: articleList?.seen ?? false,
         dateRead: articleList?.dateRead ?? null,
         dateSaved: articleList?.dateSaved ?? null,
-        dateStarred: articleList?.dateStar ?? null
+        dateStarred: articleList?.dateStar ?? null,
+        dateSeen: articleList?.dateSeen ?? null
     };
 }
 
