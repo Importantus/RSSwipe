@@ -16,6 +16,7 @@ import { auth, notFound, errorHandler } from "./middleware";
 
 import { environment } from "./helper/environment";
 import { initFeedParser } from "./models/feedparser";
+import { initGarbageCollector } from "./models/garbageCollector";
 
 const app = express();
 const port = environment.backendPort;
@@ -134,6 +135,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 initFeedParser();
+initGarbageCollector();
 
 app.listen(port, () => {
     console.log(`Server started at http://localhost:${port}`);

@@ -12,6 +12,18 @@ export async function followFeed(userId: string, feedInput: FeedCreateInputType)
 
     if (!feed) {
         feed = await createFeed(feedInput);
+    } else {
+        // Check if feed is active
+        if (!feed.active) {
+            await prisma.feed.update({
+                where: {
+                    id: feed.id
+                },
+                data: {
+                    active: true
+                }
+            });
+        }
     }
 
     // Check if user already follows feed
@@ -72,9 +84,13 @@ export async function unfollowFeed(userId: string, feedId: string) {
     });
 
     if (!otherFollow) {
-        await prisma.feed.delete({
+        // Set feed to inactive
+        await prisma.feed.update({
             where: {
                 id: feedId
+            },
+            data: {
+                active: false
             }
         });
     }

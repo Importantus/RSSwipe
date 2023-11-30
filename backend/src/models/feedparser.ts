@@ -21,7 +21,17 @@ export async function getFaviconUrl(url: string) {
     const html = res.data;
     const dom = new JSDOM(html);
     const favicon = dom.window.document.querySelector("link[rel='icon']")?.getAttribute("href");
-    return url + favicon;
+
+    if (!favicon) {
+        return null;
+    }
+
+    // Check if favicon is a relative path
+    if (favicon?.startsWith("/")) {
+        return url + favicon;
+    } else {
+        return favicon;
+    }
 }
 
 /**
@@ -130,58 +140,21 @@ async function addArticlesToDb(feed: Parser.Output<any>, feedId: string) {
     console.log(`Added ${newArticles} from ${articles.length} Articles`);
 }
 
-async function deleteOldArticles(feed: Feed) {
-    let deletedArticles = 0;
-
-    const articles = await prisma.article.findMany({
-        where: {
-            feedId: feed.id,
-            createdAt: {
-                lt: new Date(Date.now() - environment.timeToDeleteOldArticles)
-            }
-        }
-    });
-
-    // Check if article is in any articleList and has saved set to false
-    for (const article of articles) {
-        const articleLists = await prisma.articleList.findMany({
-            where: {
-                articleId: article.id
-            }
-        });
-
-        let saved = false;
-        for (const articleList of articleLists) {
-            if (articleList.saved || articleList.starred) {
-                saved = true;
-                break;
-            }
-        }
-
-        if (!saved) {
-            await prisma.article.delete({
-                where: {
-                    id: article.id
-                }
-            });
-            deletedArticles++;
-        }
-    }
-
-    console.log(`Deleted ${deletedArticles} old Articles`);
-}
-
 /**
  * Parse all feeds and add them to the database
  */
 async function updateAllFeeds() {
-    const feeds = await prisma.feed.findMany();
+    // Find all active feeds
+    const feeds = await prisma.feed.findMany({
+        where: {
+            active: true
+        }
+    });
 
     console.log(`Updating ${feeds.length} Feeds`);
 
     for (const feed of feeds) {
         await parseFeedAndAddToDb(feed);
-        await deleteOldArticles(feed);
     }
 }
 
@@ -190,6 +163,12 @@ async function updateAllFeeds() {
  * @param intervall The intervall in ms to update the feeds
  */
 export function initFeedParser(intervall = environment.feedUpdateInterval) {
-    updateAllFeeds();
-    setInterval(updateAllFeeds, intervall);
+    console.log("Initializing Feed Parser with an intervall of " + intervall + "ms");
+    setInterval(() => {
+        try {
+            updateAllFeeds()
+        } catch (err) {
+            console.error(err);
+        }
+    }, intervall);
 }
