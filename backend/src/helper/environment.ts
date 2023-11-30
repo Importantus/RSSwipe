@@ -7,7 +7,7 @@ function constructEnv(name: string, mandatory: boolean = true): string {
 }
 
 export const environment = {
-    // THIS IS NOT BEST PRACTICE!!! We only define the sercets here, 
+    // THIS IS BAD PRACTICE!!! We only define the sercets here, 
     // because we don't have access to the secret management in deployment
     jwtSecret: "supersecret",
     jwtExpiration: "30d",
@@ -21,6 +21,7 @@ export const environment = {
     backendURL: constructEnv("BACKEND_URL"),
     viteBackendURL: constructEnv("VITE_BACKEND_URL"),
     feedUpdateInterval: 1000 * 60 * 10,
-    timeToDeleteOldArticles: 1000 * 60 * 60 * 24 * 10,
+    timeToDeleteOldArticles: 1000 * 60 * 60 * 24 * 7,
+    garbageCollectorInterval: 1000 * 60 * 60 * 1,
 };
 
