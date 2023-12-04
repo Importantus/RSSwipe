@@ -102,7 +102,11 @@ export async function parseFeedAndAddToDb(feed: Feed) {
         }
     });
 
-    await addArticlesToDb(parsedFeed, feed.id);
+    try {
+        await addArticlesToDb(parsedFeed, feed.id);
+    } catch (err) {
+        console.error("\nError while adding articles of feed " + feed.title + " to database: \n" + err);
+    }
 }
 
 /**
@@ -115,26 +119,35 @@ async function addArticlesToDb(feed: Parser.Output<any>, feedId: string) {
     let newArticles = 0;
 
     for (const article of articles) {
-        const existingArticle = await prisma.article.findUnique({
-            where: {
-                link: article.link
-            }
-        });
-
-        if (!existingArticle) {
-            const imageUrl = await getImageUrl(article.link);
-
-            await prisma.article.create({
-                data: {
-                    title: article.title,
-                    link: article.link,
-                    imageUrl: imageUrl,
-                    feedId: feedId,
-                    publishedAt: new Date(article.pubDate)
+        try {
+            const existingArticle = await prisma.article.findUnique({
+                where: {
+                    link: article.link
                 }
             });
 
-            newArticles++;
+            if (!existingArticle) {
+                const imageUrl = await getImageUrl(article.link);
+
+                let publishedAt: Date | null = new Date(article.pubDate);
+                if (isNaN(publishedAt.getTime())) {
+                    publishedAt = null;
+                }
+
+                await prisma.article.create({
+                    data: {
+                        title: article.title,
+                        link: article.link,
+                        imageUrl: imageUrl,
+                        feedId: feedId,
+                        publishedAt: publishedAt
+                    }
+                });
+
+                newArticles++;
+            }
+        } catch (err) {
+            console.error("\nError while adding article " + article.title + " to database: \n" + err);
         }
     }
 
@@ -145,17 +158,25 @@ async function addArticlesToDb(feed: Parser.Output<any>, feedId: string) {
  * Parse all feeds and add them to the database
  */
 async function updateAllFeeds() {
-    // Find all active feeds
-    const feeds = await prisma.feed.findMany({
-        where: {
-            active: true
+    try {
+        // Find all active feeds
+        const feeds = await prisma.feed.findMany({
+            where: {
+                active: true
+            }
+        });
+
+        console.log(`Updating ${feeds.length} Feeds`);
+
+        for (const feed of feeds) {
+            try {
+                await parseFeedAndAddToDb(feed);
+            } catch (err) {
+                console.error("\nFehler beim Parsen von Feed " + feed.title + ": \n" + err);
+            }
         }
-    });
-
-    console.log(`Updating ${feeds.length} Feeds`);
-
-    for (const feed of feeds) {
-        await parseFeedAndAddToDb(feed);
+    } catch (err) {
+        console.error(err);
     }
 }
 

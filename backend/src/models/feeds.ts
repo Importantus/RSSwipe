@@ -11,7 +11,12 @@ export async function followFeed(userId: string, feedInput: FeedCreateInputType)
     let feed = await getFeedByUrl(feedInput.url);
 
     if (!feed) {
-        feed = await createFeed(feedInput);
+        try {
+            feed = await createFeed(feedInput);
+        } catch (err) {
+            console.error(err);
+            throw APIError.badRequest("Invalid feed url");
+        }
     } else {
         // Check if feed is active
         if (!feed.active) {

@@ -134,8 +134,17 @@ versions.forEach(version => {
 app.use(notFound);
 app.use(errorHandler);
 
-initFeedParser();
-initGarbageCollector();
+try {
+    initFeedParser();
+} catch (e) {
+    console.log("Error while parsing feeds: " + e);
+}
+
+try {
+    initGarbageCollector();
+} catch (e) {
+    console.log("Error while bringing out the trash: " + e);
+}
 
 app.listen(port, () => {
     console.log(`Server started at http://localhost:${port}`);
