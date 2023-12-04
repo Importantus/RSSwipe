@@ -27,4 +27,8 @@ export default class APIError extends Error {
     static badRequest(message: any) {
         return new APIError("Bad request: " + message, 400);
     }
+
+    static internalServerError(message: any) {
+        return new APIError("Internal server error: " + message, 500);
+    }
 }

@@ -1,13 +1,13 @@
-function constructEnv(name: string, mandatory: boolean = true): string {
+function constructEnv(name: string, defaultOption: string = ""): string {
     const env = process.env[name];
-    if (!env && mandatory) {
+    if (!env && !defaultOption) {
         throw new Error(`Environment variable ${name} not found`);
     }
-    return env || "";
+    return env || defaultOption;
 }
 
 export const environment = {
-    // THIS IS NOT BEST PRACTICE!!! We only define the sercets here, 
+    // TO DEFINE THE SECRETS HERE IS BAD PRACTICE!!! We only do that, 
     // because we don't have access to the secret management in deployment
     jwtSecret: "supersecret",
     jwtExpiration: "30d",
@@ -16,9 +16,14 @@ export const environment = {
     dbDatabase: constructEnv("DB_DATABASE"),
     dbUser: constructEnv("DB_USER"),
     dbPassword: constructEnv("DB_PASSWORD"),
-    status: constructEnv("STATUS", false),
+    status: constructEnv("STATUS", "production"),
     backendPort: constructEnv("BACKEND_PORT"),
     backendURL: constructEnv("BACKEND_URL"),
     viteBackendURL: constructEnv("VITE_BACKEND_URL"),
+    feedUpdateInterval: 1000 * 60 * 1,
+    timeToDeleteOldArticles: 1000 * 60 * 60 * 24 * 7,
+    garbageCollectorInterval: 1000 * 60 * 60 * 1,
+    maxUrlLength: 1000, // Default size for all urls
+    maxImageUrlLength: 10000, // Sometimes, image urls can be stored in an optimized format, which can be longer than the other urls
 };
 

@@ -24,10 +24,11 @@ model User {
 model Feed {
   id          String     @id @default(uuid())
   title       String
-  link        String
+  link        String     @unique @db.VarChar(1000)
   createdAt   DateTime   @default(now())
-  faviconUrl  String
-  lastUpdate  DateTime
+  faviconUrl  String?    @db.VarChar(1000)
+  lastUpdate  DateTime   @default(now())
+  active      Boolean    @default(true)
   UserHasFeed FeedList[]
   Article     Article[]
 }
@@ -46,9 +47,10 @@ model FeedList {
 model Article {
   id             String        @id @default(uuid())
   title          String
-  link           String
-  imageUrl       String
+  link           String        @unique @db.VarChar(1000)
+  imageUrl       String?       @db.VarChar(1000)
   createdAt      DateTime      @default(now())
+  publishedAt    DateTime?
   feedId         String
   ArticleHasUser ArticleList[]
   feed           Feed          @relation(fields: [feedId], references: [id])
@@ -73,7 +75,7 @@ model ArticleList {
   dateSaved DateTime?
   dateRead  DateTime?
   dateStar  DateTime?
-  article   Article   @relation(fields: [articleId], references: [id])
+  article   Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([articleId, userId])
