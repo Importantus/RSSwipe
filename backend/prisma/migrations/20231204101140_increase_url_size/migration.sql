@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE `Article` MODIFY `link` VARCHAR(1000) NOT NULL,
+    MODIFY `imageUrl` VARCHAR(1000) NULL;
+
+-- AlterTable
+ALTER TABLE `Feed` MODIFY `link` VARCHAR(1000) NOT NULL,
+    MODIFY `faviconUrl` VARCHAR(1000) NULL;
