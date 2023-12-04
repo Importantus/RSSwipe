@@ -50,7 +50,7 @@ model Article {
   link           String        @unique @db.VarChar(1000)
   imageUrl       String?       @db.VarChar(1000)
   createdAt      DateTime      @default(now())
-  publishedAt    DateTime
+  publishedAt    DateTime?
   feedId         String
   ArticleHasUser ArticleList[]
   feed           Feed          @relation(fields: [feedId], references: [id])
