@@ -22,7 +22,7 @@ export async function getFaviconUrl(url: string) {
     const dom = new JSDOM(html);
     const favicon = dom.window.document.querySelector("link[rel='icon']")?.getAttribute("href");
 
-    if (!favicon) {
+    if (!favicon && (favicon?.length || 0) > environment.maxImageUrlLength) {
         return null;
     }
 
@@ -44,7 +44,8 @@ async function getImageUrl(url: string) {
     const html = res.data;
     const dom = new JSDOM(html);
     const image = dom.window.document.querySelector("meta[property='og:image']")?.getAttribute("content");
-    return image;
+    console.log((image?.length || 0) > environment.maxImageUrlLength ? undefined : image)
+    return (image?.length || 0) > environment.maxImageUrlLength ? undefined : image;
 }
 
 /**
