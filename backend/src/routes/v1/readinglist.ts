@@ -1,5 +1,5 @@
 import express from "express";
-import { addArticleToReadingList, getReadingList } from "../../models/readinglist";
+import { addArticleToReadingList, getReadingList, removeArticleFromReadingList } from "../../models/readinglist";
 import h from "../../helper/errorHelper";
 import { assert } from "superstruct";
 import APIError from "../../helper/apiError";
@@ -15,7 +15,7 @@ router.get("/", h(async (_, res) => {
     )
 }));
 
-router.put("/", h(async (req, res) => {
+router.post("/articles", h(async (req, res) => {
     const id = res.locals.userId;
     const articleId = req.body
 
@@ -25,12 +25,14 @@ router.put("/", h(async (req, res) => {
         throw APIError.badRequest(err.message)
     }
 
-    res.status(200).json(
-        await addArticleToReadingList(id, articleId.id)
-    )
+    await addArticleToReadingList(id, articleId.id)
+
+    res.status(200).json({
+        message: "Article added to reading list"
+    })
 }));
 
-router.delete("/", h(async (req, res) => {
+router.delete("/articles", h(async (req, res) => {
     const id = res.locals.userId;
     const articleId = req.body
 
@@ -40,9 +42,11 @@ router.delete("/", h(async (req, res) => {
         throw APIError.badRequest(err.message)
     }
 
-    res.status(200).json(
-        await addArticleToReadingList(id, articleId.id)
-    )
+    await removeArticleFromReadingList(id, articleId.id)
+
+    res.status(200).json({
+        message: "Article deleted from reading list"
+    })
 }));
 
 export default router;

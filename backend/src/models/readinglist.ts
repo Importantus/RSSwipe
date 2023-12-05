@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { updateArticle } from './articles';
 
 const prisma = new PrismaClient();
 
@@ -29,44 +30,9 @@ export async function getReadingList(userId: string) {
 }
 
 export async function addArticleToReadingList(userId: string, articleId: string) {
-    const articleList = await prisma.articleList.findUnique({
-        where: {
-            articleId_userId: {
-                userId,
-                articleId,
-            },
-        },
-    });
-
-    if (articleList) {
-        return await prisma.articleList.update({
-            where: {
-                articleId_userId: {
-                    userId,
-                    articleId,
-                },
-            },
-            data: { saved: true },
-        });
-    } else {
-        return await prisma.articleList.create({
-            data: {
-                saved: true,
-                article: { connect: { id: articleId } },
-                user: { connect: { id: userId } },
-            },
-        });
-    }
+    return await updateArticle(userId, articleId, { saved: true });
 }
 
 export async function removeArticleFromReadingList(userId: string, articleId: string) {
-    return await prisma.articleList.update({
-        where: {
-            articleId_userId: {
-                userId,
-                articleId,
-            },
-        },
-        data: { saved: false },
-    });
+    return await updateArticle(userId, articleId, { saved: false });
 }
