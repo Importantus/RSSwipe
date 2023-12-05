@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import ArticleSource from './ArticleSource.vue';
+
+defineProps<{
+    article: Article;
+}>()
 </script>
 
 <template>
     <div class="flex flex-col w-full p-4 gap-1 bg-gradient-to-t from-black to-transparent">
-        <ArticleSource />
+        <ArticleSource :article="article" />
         <div>
-            <h2 class="text-2xl">Tageschau: Thema heute</h2>
+            <h2 class="text-2xl">{{ article.title }}</h2>
         </div>
     </div>
 </template>
