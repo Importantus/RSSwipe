@@ -29,7 +29,27 @@ export async function getArticles(userId: string, query: GetArticlesQueryType) {
                 id: {
                     in: feeds
                 }
-            }
+            },
+            OR: [
+                {
+                    ArticleHasUser: {
+                        some: {
+                            userId: userId,
+                            seen: false
+                        }
+                    }
+                },
+                {
+                    NOT: {
+                        ArticleHasUser: {
+                            some: {
+                                userId: userId
+                            }
+                        }
+                    }
+                }
+
+            ]
         },
         take: Number(limit),
         orderBy: {
@@ -52,24 +72,6 @@ export async function getArticles(userId: string, query: GetArticlesQueryType) {
             }
         },
     });
-
-    // Check if article is in the users articleList and has seen set to true
-    for (const article of articles) {
-        const articleList = await prisma.articleList.findUnique({
-            where: {
-                articleId_userId: {
-                    userId,
-                    articleId: article.id
-                }
-            }
-        });
-
-        // If it is seen, remove the article from the response
-        if (articleList?.seen) {
-            articles.splice(articles.indexOf(article), 1);
-        }
-    }
-
 
     return articles;
 }
