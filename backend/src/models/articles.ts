@@ -123,7 +123,17 @@ export async function getArticle(userId: string, articleId: string) {
     };
 }
 
-export async function updateArticle(userId: string, articleId: string, input: ArticleUpdateInputType) {
+export async function updateArticle(userId: string, articleId: string, input: ArticleUpdateInputType) {    // Check if article exists
+    const article = await prisma.article.findUnique({
+        where: {
+            id: articleId
+        }
+    });
+
+    if (!article) {
+        throw APIError.notFound();
+    }
+
     const articleList = await prisma.articleList.findUnique({
         where: {
             articleId_userId: {
