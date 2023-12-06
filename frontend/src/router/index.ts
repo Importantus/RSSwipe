@@ -3,6 +3,7 @@ import HomeView from '@/views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import UserDataView from '@/views/UserDataView.vue'
+import ReaderView from '@/views/ReaderView.vue'
 import { useAuthStore } from '@/stores/auth'
 import pinia from '@/stores/index'
 
@@ -28,6 +29,11 @@ const router = createRouter({
       path: '/account',
       name: 'Account',
       component: UserDataView
+    },
+    {
+      path: '/article/:id',
+      name: 'Article',
+      component: ReaderView
     }
   ]
 })
