@@ -2,12 +2,17 @@
 import { useStartPageStore, ArticleStatus } from '@/stores/startPage';
 import ArticleCard from '../ArticleCard.vue';
 import { onMounted } from 'vue';
+import router from '@/router';
 
 const store = useStartPageStore();
 
 onMounted(async () => {
     await store.fetchArticles();
 });
+
+function openArticle() {
+    router.push(`/article/${store.articles[0].id}`);
+}
 </script>
 
 <template>
@@ -19,7 +24,9 @@ onMounted(async () => {
             <ArticleCard :article="store.articles[1]" />
         </div>
         <div class="col-start-1 row-start-1 mt-6">
-            <ArticleCard :article="store.articles[0]" />
+            <button class="h-full w-full text-left max-h-[70vh]" @click="openArticle">
+                <ArticleCard :article="store.articles[0]" />
+            </button>
         </div>
     </div>
     <div v-else-if="store.status === ArticleStatus.LOADING" class="flex items-center justify-center">
