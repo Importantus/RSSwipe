@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-row w-fit rounded-lg p-1 px-2 bg-secondary-900 bg-opacity-60 max-w-[16rem]">
+    <div class="flex flex-row w-fit rounded-md p-1 px-2 bg-secondary-900 bg-opacity-60 max-w-[16rem]">
         <div class="w-4 h-4">
             <img :src="article.feed.faviconUrl" alt="favicon" />
         </div>
@@ -8,6 +8,7 @@
 </template>
 
 <script setup lang="ts">
+import type { Article } from '@/types';
 import { defineProps } from 'vue';
 
 defineProps<{
