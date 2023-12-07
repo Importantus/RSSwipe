@@ -4,9 +4,10 @@ import APIError from "../helper/apiError";
 import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
 import axios from "axios";
+import { getPrismaClient } from "../prismaClient";
 
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 export async function getArticles(userId: string, query: GetArticlesQueryType) {
     let { limit, feeds } = query;

@@ -3,9 +3,10 @@ import axios from "axios";
 import { JSDOM } from "jsdom";
 import { Feed, PrismaClient } from "@prisma/client";
 import { environment } from "../helper/environment";
+import { getPrismaClient } from "../prismaClient";
 
 const parser = new Parser();
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 /**
  * Get favicon url from html

@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { environment } from "../helper/environment";
+import { getPrismaClient } from "../prismaClient";
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 export function initGarbageCollector(intervall = environment.garbageCollectorInterval) {
     console.log("Initialising garbage collector with interval of " + intervall + "ms");
