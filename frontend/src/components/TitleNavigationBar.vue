@@ -8,7 +8,7 @@ defineProps({
 </script>
 
 <template>
-    <div class="flex flex-row items-center justify-between mt-5">
+    <div class="flex flex-row items-center justify-between mt-5 sticky top-0 bg-background-950 py-5 z-10">
         <div class="flex flex-row items-center">
             <router-link v-if="backNavigationPath" :to="backNavigationPath">
                 <MoveLeft size="24" class=" text-white" />
