@@ -1,6 +1,8 @@
 
 import axios from "@/axios";
+import type { Article } from "@/types";
 import { defineStore } from "pinia";
+import { useReadingListStore } from "./readingList";
 
 export enum ArticleStatus {
     LOADING,
@@ -60,10 +62,12 @@ export const useStartPageStore = defineStore({
             }
         },
         async saveArticle() {
-            this._updateArticle({
+            await this._updateArticle({
                 saved: true,
                 seen: true
-            })            // TODO update readinglist
+            })
+            const readinglist = useReadingListStore();
+            readinglist.update()
         },
         async discardArticle() {
             this._updateArticle({
