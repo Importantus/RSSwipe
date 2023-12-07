@@ -2,8 +2,9 @@ import { PrismaClient } from "@prisma/client";
 import { FeedCreateInputType, FeedUpdateInputType } from "../validators/feeds";
 import { getFaviconUrl, parseFeed, parseFeedAndAddToDb } from "./feedparser";
 import APIError from "../helper/apiError";
+import { getPrismaClient } from "../prismaClient";
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 
 export async function followFeed(userId: string, feedInput: FeedCreateInputType) {

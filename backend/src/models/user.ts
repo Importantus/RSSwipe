@@ -4,9 +4,10 @@ import APIError from "../helper/apiError";
 import jwt from "jsonwebtoken";
 import { environment } from "../helper/environment";
 import { UserDeleteInputType, UserUpdateInputType } from "../validators/user";
+import { getPrismaClient } from "../prismaClient";
 
 const saltRounds = 10;
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 export async function registerUser(name: string, email: string, password: string) {
     // Check if user already exists

@@ -4,9 +4,10 @@ import APIError from "../helper/apiError";
 import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
 import axios from "axios";
+import { getPrismaClient } from "../prismaClient";
 
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 export async function getArticles(userId: string, query: GetArticlesQueryType) {
     let { limit, feeds } = query;
@@ -125,7 +126,17 @@ export async function getArticle(userId: string, articleId: string) {
     };
 }
 
-export async function updateArticle(userId: string, articleId: string, input: ArticleUpdateInputType) {
+export async function updateArticle(userId: string, articleId: string, input: ArticleUpdateInputType) {    // Check if article exists
+    const article = await prisma.article.findUnique({
+        where: {
+            id: articleId
+        }
+    });
+
+    if (!article) {
+        throw APIError.notFound();
+    }
+
     const articleList = await prisma.articleList.findUnique({
         where: {
             articleId_userId: {

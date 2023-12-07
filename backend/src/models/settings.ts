@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import APIError from "../helper/apiError";
 import { SettingsUpdateInputType } from "../validators/settings"
-const prisma = new PrismaClient();
+import { getPrismaClient } from "../prismaClient";
+const prisma = getPrismaClient();
 
 export async function getSettingsIdByUserId(userId: string) {
 
