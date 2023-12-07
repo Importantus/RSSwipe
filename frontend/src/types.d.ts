@@ -20,3 +20,22 @@ interface Article {
     dateStarred: string | null;
     dateSeen: string | null;
 }
+
+export interface StoredArticle {
+    articleInfo: Article;
+    content?: ArticleContent;
+}
+
+export interface ArticleContent {
+    content: {
+        title: string;
+        content: string;
+        textContent: string;
+        length: number;
+        excerpt: string;
+        byline: string;
+        dir: string;
+        siteName: string;
+        lang: string;
+    }
+}
