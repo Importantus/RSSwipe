@@ -17,6 +17,17 @@ instance.interceptors.request.use((config) => {
     return Promise.reject(error);
 })
 
+//Go to 404 page if 404 error
+instance.interceptors.response.use((response) => {
+    return response;
+}, (error) => {
+    if (error.response.status === 404) {
+        window.location.href = '/404'
+    }
+
+    return Promise.reject(error);
+})
+
 export default instance;
 
 

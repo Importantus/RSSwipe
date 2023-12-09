@@ -2,12 +2,17 @@
 import { useStartPageStore, ArticleStatus } from '@/stores/startPage';
 import ArticleCard from '../ArticleCard.vue';
 import { onMounted } from 'vue';
+import router from '@/router';
 
 const store = useStartPageStore();
 
 onMounted(async () => {
     await store.fetchArticles();
 });
+
+function openArticle() {
+    router.push(`/article/${store.articles[0].id}`);
+}
 </script>
 
 <template>

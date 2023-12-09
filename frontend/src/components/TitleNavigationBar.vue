@@ -13,7 +13,7 @@ defineProps({
             <router-link v-if="backNavigationPath" :to="backNavigationPath">
                 <MoveLeft size="24" class=" text-white" />
             </router-link>
-            <h1 class="text-2xl font-bold text-white ml-2">{{ title }}</h1>
+            <h1 class="truncate ... max-width-full text-2xl font-bold text-white ml-2">{{ title }}</h1>
         </div>
         <div class="flex flex-row items-center">
             <slot></slot>

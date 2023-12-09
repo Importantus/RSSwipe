@@ -58,6 +58,28 @@
   position: absolute;
 }
 
+.titlebar-hide-enter-from,
+.titlebar-hide-leave-to {
+  margin-top: -56px;
+}
+
+.titlebar-hide-enter-active,
+.titlebar-hide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.shareelement-hide-enter-from,
+.shareelement-hide-leave-to {
+  opacity: 0;
+  transform: translateY(50px);
+}
+
+.shareelement-hide-enter-active,
+.shareelement-hide-leave-active {
+  transition: all 0.3s ease;
+}
+
+
 @layer base {
 
   h1,
