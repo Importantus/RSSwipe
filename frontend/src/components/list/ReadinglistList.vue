@@ -21,7 +21,8 @@ store.update();
         <div v-else>
             <TransitionGroup name="list" tag="div" class="flex flex-col gap-3">
                 <ReadinglistItem v-for="article in store.articles" :key="article.articleInfo.id"
-                    :article="article.articleInfo" @swipe-right="store.removeArticle(article.articleInfo)" :swipe-right="{
+                    :article="article.articleInfo" @swipe-right="store.removeArticle(article.articleInfo)"
+                    :downloaded="article.content !== undefined" :swipe-right="{
                         color: 'red',
                         name: 'Remove',
                         removeCard: true,

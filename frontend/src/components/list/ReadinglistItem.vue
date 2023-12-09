@@ -2,7 +2,7 @@
 import type { Article } from '@/types';
 import ArticleSource from '../ArticleSource.vue';
 import { ref } from 'vue';
-import { Icon } from 'lucide-vue-next';
+import { Icon, FileDown, BookOpenCheck, Star } from 'lucide-vue-next';
 
 interface SwipeDirection {
     name: string
@@ -13,6 +13,7 @@ interface SwipeDirection {
 
 const props = defineProps<{
     article: Article;
+    downloaded: boolean;
     swipeLeft: SwipeDirection,
     swipeRight: SwipeDirection
 }>();
@@ -117,8 +118,13 @@ function releaseHandler() {
                         </button>
                     </div>
                 </Transition>
-                <div>
+                <div class="flex flex-row gap-2 items-center">
                     <ArticleSource :article="props.article" />
+                    <div class="h-full flex flex-row gap-1 items-center">
+                        <FileDown v-if="props.downloaded" size="16" />
+                        <BookOpenCheck v-if="props.article.read" size="16" />
+                        <Star v-if="props.article.starred" size="16" />
+                    </div>
                 </div>
                 <h2 class="text-lg">{{ props.article.title }}</h2>
             </div>

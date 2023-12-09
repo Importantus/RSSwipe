@@ -58,8 +58,6 @@ function releaseHandler() {
 }
 
 const url = computed(() => `"${props.article.imageUrl}"`)
-
-console.log(props.article.title, props.index)
 </script>
 
 <template>
