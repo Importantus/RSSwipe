@@ -11,6 +11,8 @@ const app = createApp(App)
 
 app.use(store)
 app.use(router)
-app.use(Vue3TouchEvents)
+app.use(Vue3TouchEvents, {
+    disableClick: true,
+})
 
 app.mount('#app')
