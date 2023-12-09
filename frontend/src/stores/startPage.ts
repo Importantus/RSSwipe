@@ -4,6 +4,8 @@ import type { Article } from "@/types";
 import { defineStore } from "pinia";
 import { useReadingListStore } from "./readingList";
 
+const STORED_ARTICLES = 5
+
 export enum ArticleStatus {
     LOADING,
     READY,
@@ -15,26 +17,27 @@ export const useStartPageStore = defineStore({
     id: 'startPage',
     state: () => ({
         articles: [] as Article[],
-        status: ArticleStatus.LOADING
+        status: ArticleStatus.LOADING,
+        lastActions: [] as Article[]
     }),
     actions: {
         async fetchArticles() {
-            if (this.articles.length > 5) {
+            console.log(this.articles.length)
+            if (this.articles.length >= STORED_ARTICLES) {
                 this.status = ArticleStatus.READY
                 return
             }
 
             this.status = ArticleStatus.LOADING
-
+            console.log("Loading")
             const response = await axios.get('/articles', {
                 // TODO: set selected feeds
                 params: {
-                    limit: 5
+                    limit: STORED_ARTICLES - this.articles.length
                 }
             })
 
             if (response.status === 200) {
-                console.log(response.data)
                 for (const article of response.data) {
                     if (!this.articles.find(a => a.id === article.id)) {
                         this.articles.push(article)
@@ -44,7 +47,7 @@ export const useStartPageStore = defineStore({
                 console.log(response)
             }
 
-            if (this.articles.length < 3) {
+            if (this.articles.length < 1) {
                 this.status = ArticleStatus.OUT_OF_ARTICLES
             } else {
                 this.status = ArticleStatus.READY
@@ -52,16 +55,14 @@ export const useStartPageStore = defineStore({
         },
         async _updateArticle(params: Partial<Article>) {
             const article = this.articles[0]
-            const response = await axios.put(`/articles/${article.id}`, params)
-
-            if (response.status === 200) {
+            if (params.seen) {
                 this.articles.shift()
-                this.fetchArticles()
-            } else {
-                console.log(response)
             }
+            await axios.put(`/articles/${article.id}`, params)
+            this.fetchArticles()
         },
         async saveArticle() {
+            this.saveAction()
             await this._updateArticle({
                 saved: true,
                 seen: true
@@ -70,8 +71,29 @@ export const useStartPageStore = defineStore({
             readinglist.update()
         },
         async discardArticle() {
+            this.saveAction()
             this._updateArticle({
                 seen: true
+            })
+        },
+        saveAction() {
+            this.lastActions.unshift(this.articles[0],
+            )
+
+            if (this.lastActions.length > 5) {
+                this.lastActions.pop()
+            }
+        },
+        revertAction() {
+            console.log("Undo")
+            if (this.lastActions.length === 0) {
+                return
+            }
+
+            this.articles.unshift(this.lastActions.shift()!)
+            this._updateArticle({
+                saved: false,
+                seen: false
             })
         }
     }
