@@ -13,9 +13,16 @@ export const useReadingListStore = defineStore({
     state: () => ({
         articles: JSON.parse(localStorage.getItem('readinglist') || '[]') as StoredArticle[],
         status: StoreStatus.LOADING,
-        lastRemovedArticleId: ''
+        removedArticles: [] as Article[]
     }),
     actions: {
+        addArticle(article: Article) {
+            this.addContentToArticle(article)
+
+            this.articles.unshift({
+                articleInfo: article
+            })
+        },
         async update() {
             this.status = StoreStatus.LOADING
 
@@ -30,13 +37,7 @@ export const useReadingListStore = defineStore({
                 for (const article of readingList) {
                     const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
                     if (index === -1) {
-                        const content = await this.getArticleContent(article)
-
-                        // Add articles to beginning of array
-                        this.articles.unshift({
-                            articleInfo: article,
-                            content
-                        })
+                        this.addArticle(article)
                     }
                 }
 
@@ -48,6 +49,19 @@ export const useReadingListStore = defineStore({
                 this.status = StoreStatus.ERROR
             }
         },
+        async addContentToArticle(article: Article) {
+            const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
+
+            if (index === -1) {
+                return
+            }
+
+            const content = await this.getArticleContent(article)
+
+            this.articles[index].content = content
+
+            localStorage.setItem('readinglist', JSON.stringify(this.articles))
+        },
         async getArticleContent(article: Article) {
             const response = await axios.get(`/articles/${article.id}/content`)
 
@@ -58,39 +72,35 @@ export const useReadingListStore = defineStore({
             }
         },
         async removeArticle(article: Article) {
-            const response = await axios.delete(`/readinglist/articles`, {
+            axios.delete(`/readinglist/articles`, {
                 data: {
                     id: article.id
                 }
             })
 
-            if (response.status === 200) {
-                const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
 
-                if (index !== -1) {
-                    this.articles.splice(index, 1)
-                }
+            const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
 
-                this.lastRemovedArticleId = article.id
-
-                localStorage.setItem('readinglist', JSON.stringify(this.articles))
-            } else {
-                console.log(response)
+            if (index !== -1) {
+                this.articles.splice(index, 1)
             }
+
+            this.removedArticles.push(article)
+
+            localStorage.setItem('readinglist', JSON.stringify(this.articles))
         },
         async undo() {
-            if (!this.lastRemovedArticleId) {
+            if (this.removedArticles.length === 0) {
                 return
             }
-            const response = await axios.post(`/readinglist/articles`, {
-                id: this.lastRemovedArticleId
-            })
 
-            if (response.status === 200) {
-                this.update()
-            } else {
-                console.log(response)
-            }
+            const lastRemovedArticle = this.removedArticles.pop()
+
+            this.addArticle(lastRemovedArticle!)
+
+            axios.post(`/readinglist/articles`, {
+                id: lastRemovedArticle!.id
+            })
         }
     }
 })
