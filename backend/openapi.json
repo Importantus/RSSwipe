@@ -863,9 +863,9 @@
         }
       }
     },
-    "/starred/article": {
-      "put": {
-        "description": "Star or Unstar an article",
+    "/starred/articles": {
+      "post": {
+        "description": "Star an article",
         "tags": [
           "starred"
         ],
@@ -880,18 +880,13 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "articleId": {
+                  "id": {
                     "type": "string",
                     "description": "The id of the article"
-                  },
-                  "starred": {
-                    "type": "boolean",
-                    "description": "Whether the article should be starred or unstarred"
                   }
                 },
                 "required": [
-                  "articleId",
-                  "starred"
+                  "id"
                 ]
               }
             }
@@ -899,7 +894,47 @@
         },
         "responses": {
           "200": {
-            "description": "The updated starred/unstarred Article"
+            "description": "Article starred"
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidInputError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "delete": {
+        "description": "Unstar an article",
+        "tags": [
+          "starred"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The id of the article"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Article unstarred"
           },
           "400": {
             "$ref": "#/components/responses/InvalidInputError"
