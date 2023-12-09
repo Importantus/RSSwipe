@@ -66,7 +66,7 @@ function getScrollPercent() {
 
 <template>
     <Transition name="titlebar-hide">
-        <TitleNavigationBar v-if="!hideUi" class="bg-[#353535]" :title="article.title" backNavigationPath="/" />
+        <TitleNavigationBar v-if="!hideUi" class="bg-[#353535] mx-5" :title="article.title" backNavigationPath="/" />
     </Transition>
     <div class="bottom-0 left-0 w-full h-2 bg-primary-600" :style="`width: ${scrollpercent}%;`">
     </div>
