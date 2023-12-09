@@ -22,18 +22,16 @@ export const useStartPageStore = defineStore({
     }),
     actions: {
         async fetchArticles() {
-            console.log(this.articles.length)
             if (this.articles.length >= STORED_ARTICLES) {
                 this.status = ArticleStatus.READY
                 return
             }
 
             this.status = ArticleStatus.LOADING
-            console.log("Loading")
             const response = await axios.get('/articles', {
                 // TODO: set selected feeds
                 params: {
-                    limit: STORED_ARTICLES - this.articles.length
+                    limit: STORED_ARTICLES + this.articles.length
                 }
             })
 
@@ -85,7 +83,6 @@ export const useStartPageStore = defineStore({
             }
         },
         revertAction() {
-            console.log("Undo")
             if (this.lastActions.length === 0) {
                 return
             }
