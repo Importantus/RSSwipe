@@ -47,7 +47,7 @@ export const useReadingListStore = defineStore({
                     this.addArticleLocal(article)
                 }
 
-                for (const article of this.articles) {
+                for (const article of [...this.articles]) {
                     const index = readingList.findIndex(a => a.id === article.articleInfo.id)
                     if (index === -1) {
                         this.removeArticleLocal(article.articleInfo)
@@ -71,7 +71,7 @@ export const useReadingListStore = defineStore({
 
             const content = await this.getArticleContent(article)
             console.log("Adding content to article " + article.title)
-            this.articles[index].content = content
+            this.articles[this.articles.findIndex(a => a.articleInfo.id === article.id)].content = content
 
             localStorage.setItem('readinglist', JSON.stringify(this.articles))
         },
