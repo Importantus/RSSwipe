@@ -58,17 +58,20 @@ function releaseHandler() {
 }
 
 const url = computed(() => `"${props.article.imageUrl}"`)
+const articleUrl = computed(() => `/article/${props.article.id}`)
 </script>
 
 <template>
-    <div v-if="!hidden" v-touch:drag="swipeHandler" v-touch:press="pressHandler" v-touch:release="releaseHandler"
-        class="transitions h-full max-h-[70vh] drop-shadow-lg rounded-xl bg-center bg-cover bg-background-800" :style="{
-            marginTop: 1.5 - (props.index * 0.75) + 'rem',
-            backgroundImage: 'url(' + url + ')',
-            transform: 'translateX(' + elementTransformX + 'px) rotateZ(' + elementRotateZ + 'deg)',
-        }">
-        <ArticleInfoElement :article="props.article" class="rounded-xl absolute bottom-0" />
-    </div>
+    <RouterLink :to="articleUrl">
+        <div v-if="!hidden" v-touch:drag="swipeHandler" v-touch:press="pressHandler" v-touch:release="releaseHandler"
+            class="transitions h-full max-h-[70vh] drop-shadow-lg rounded-xl bg-center bg-cover bg-background-800" :style="{
+                marginTop: 1.5 - (props.index * 0.75) + 'rem',
+                backgroundImage: 'url(' + url + ')',
+                transform: 'translateX(' + elementTransformX + 'px) rotateZ(' + elementRotateZ + 'deg)',
+            }">
+            <ArticleInfoElement :article="props.article" class="rounded-xl absolute bottom-0" />
+        </div>
+    </RouterLink>
 </template>
 
 <style scoped>

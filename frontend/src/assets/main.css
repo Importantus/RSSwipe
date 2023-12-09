@@ -66,6 +66,7 @@
 .titlebar-hide-enter-active,
 .titlebar-hide-leave-active {
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .shareelement-hide-enter-from,
