@@ -12,17 +12,13 @@ onMounted(async () => {
 
 <template>
     <div v-if="store.status === ArticleStatus.READY || store.articles.length >= 3" class="grid">
-        <div class="col-start-1 row-start-1">
-            <ArticleCard :article="store.articles[2]" />
+        <div v-if="store.status === ArticleStatus.LOADING" class="w-full h-2 fixed top-0 left-0 animated-gradient">
         </div>
-        <div class="col-start-1 row-start-1 mt-3">
-            <ArticleCard :article="store.articles[1]" />
-        </div>
-        <div class="col-start-1 row-start-1 mt-6">
-            <ArticleCard :article="store.articles[0]" />
-        </div>
+        <ArticleCard class="col-start-1 row-start-1" v-for="(article, index) in store.articles.slice(0, 3).reverse()"
+            :key="article.id" :index="Math.min(store.articles.length - 1, 2) - index" :article="article" />
     </div>
-    <div v-else-if="store.status === ArticleStatus.LOADING" class="flex items-center justify-center">
+    <div v-else-if="store.status === ArticleStatus.LOADING && store.articles.length === 0"
+        class="flex items-center justify-center">
         <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-600"></div>
     </div>
     <div v-else-if="store.status === ArticleStatus.ERROR" class="flex items-center justify-center">
@@ -36,3 +32,22 @@ onMounted(async () => {
         <p class="text-red-500">Unknown error</p>
     </div>
 </template>
+
+
+<style scoped>
+.animated-gradient {
+    background: linear-gradient(270deg, #CF6A31 0%, #4E2915 50%, #CF6A31 50%, #4E2915 100%);
+    background-size: 200% 100%;
+    animation: gradient 1s ease infinite;
+}
+
+@keyframes gradient {
+    0% {
+        background-position: 100% 0%;
+    }
+
+    100% {
+        background-position: 0% 0%;
+    }
+}
+</style>
