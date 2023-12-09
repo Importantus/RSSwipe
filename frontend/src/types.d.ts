@@ -39,3 +39,8 @@ export interface ArticleContent {
         lang: string;
     }
 }
+
+export type Settings = {
+    expTimeRead: number,
+    expTimeUnread: number
+}

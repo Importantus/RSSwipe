@@ -1,5 +1,5 @@
 import axios from "@/axios";
-import type { Article, StoredArticle } from "@/types";
+import type { Article, Settings, StoredArticle } from "@/types";
 import { defineStore } from "pinia";
 
 export enum StoreStatus {
@@ -13,7 +13,8 @@ export const useReadingListStore = defineStore({
     state: () => ({
         articles: JSON.parse(localStorage.getItem('readinglist') || '[]') as StoredArticle[],
         status: StoreStatus.LOADING,
-        removedArticles: [] as Article[]
+        removedArticles: [] as Article[],
+        settings: {} as Settings
     }),
     actions: {
         addArticleLocal(article: Article) {
@@ -25,15 +26,16 @@ export const useReadingListStore = defineStore({
 
             this.addContentToArticle(article)
         },
-        removeArticleLocal(article: Article) {
+        removeArticleLocal(article: Article, undo = true) {
             const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
 
             if (index !== -1) {
                 this.articles.splice(index, 1)
             }
 
-            this.removedArticles.push(article)
-
+            if (undo) {
+                this.removedArticles.push(article)
+            }
             localStorage.setItem('readinglist', JSON.stringify(this.articles))
         },
         async update() {
@@ -50,7 +52,7 @@ export const useReadingListStore = defineStore({
                 for (const article of [...this.articles]) {
                     const index = readingList.findIndex(a => a.id === article.articleInfo.id)
                     if (index === -1) {
-                        this.removeArticleLocal(article.articleInfo)
+                        this.removeArticleLocal(article.articleInfo, false)
                     }
                 }
 
@@ -104,6 +106,24 @@ export const useReadingListStore = defineStore({
             axios.post(`/readinglist/articles`, {
                 id: lastRemovedArticle!.id
             })
+        },
+        async loadSettings() {
+            const response = await axios.get('/settings')
+
+            if (response.status === 200) {
+                this.settings = response.data
+            } else {
+                console.log(response)
+            }
+        },
+        async updateSettings(settings: Settings) {
+            const response = await axios.put('/settings', settings)
+
+            if (response.status === 200) {
+                this.settings = response.data
+            } else {
+                console.log(response)
+            }
         }
     }
 })

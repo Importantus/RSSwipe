@@ -28,7 +28,12 @@ const router = createRouter({
     {
       path: '/readinglist',
       name: 'Reading List',
-      component: ReadinglistViewVue
+      component: ReadinglistViewVue,
+    },
+    {
+      path: '/readinglist/settings',
+      name: 'Reading List Settings',
+      component: () => import('@/views/ReadinglistSettingsView.vue')
     },
     {
       path: '/account',
