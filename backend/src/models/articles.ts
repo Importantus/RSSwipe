@@ -170,14 +170,14 @@ export async function updateArticle(userId: string, articleId: string, input: Ar
                 }
             },
             data: {
-                read: input.read ?? false,
-                seen: input.seen ?? false,
-                starred: input.starred ?? false,
-                saved: input.saved ?? false,
-                dateRead: input.read ? new Date() : null,
-                dateSaved: input.saved ? new Date() : null,
-                dateStar: input.starred ? new Date() : null,
-                dateSeen: input.seen ? new Date() : null
+                read: input.read ?? articleList.read,
+                seen: input.seen ?? articleList.seen,
+                starred: input.starred ?? articleList.starred,
+                saved: input.saved ?? articleList.saved,
+                dateRead: input.read ? new Date() : articleList.dateRead,
+                dateSaved: input.saved ? new Date() : articleList.dateSaved,
+                dateStar: input.starred ? new Date() : articleList.dateStar,
+                dateSeen: input.seen ? new Date() : articleList.dateSeen
             }
         });
     }
