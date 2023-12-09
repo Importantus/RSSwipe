@@ -16,28 +16,41 @@ export const useReadingListStore = defineStore({
         removedArticles: [] as Article[]
     }),
     actions: {
-        addArticle(article: Article) {
-            this.addContentToArticle(article)
+        addArticleLocal(article: Article) {
+            if (this.articles.findIndex(a => a.articleInfo.id === article.id) === -1) {
+                this.articles.unshift({
+                    articleInfo: article
+                })
+            }
 
-            this.articles.unshift({
-                articleInfo: article
-            })
+            this.addContentToArticle(article)
+        },
+        removeArticleLocal(article: Article) {
+            const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
+
+            if (index !== -1) {
+                this.articles.splice(index, 1)
+            }
+
+            this.removedArticles.push(article)
+
+            localStorage.setItem('readinglist', JSON.stringify(this.articles))
         },
         async update() {
             this.status = StoreStatus.LOADING
 
-            const response = await axios.get('/readinglist', {
-                params: {
-                    limit: 50
-                }
-            })
+            const response = await axios.get('/readinglist')
 
             if (response.status === 200) {
                 const readingList = response.data as Article[]
                 for (const article of readingList) {
-                    const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
+                    this.addArticleLocal(article)
+                }
+
+                for (const article of this.articles) {
+                    const index = readingList.findIndex(a => a.id === article.articleInfo.id)
                     if (index === -1) {
-                        this.addArticle(article)
+                        this.removeArticleLocal(article.articleInfo)
                     }
                 }
 
@@ -52,12 +65,12 @@ export const useReadingListStore = defineStore({
         async addContentToArticle(article: Article) {
             const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
 
-            if (index === -1) {
+            if (index === -1 || this.articles[index].content) {
                 return
             }
 
             const content = await this.getArticleContent(article)
-
+            console.log("Adding content to article " + article.title)
             this.articles[index].content = content
 
             localStorage.setItem('readinglist', JSON.stringify(this.articles))
@@ -77,17 +90,7 @@ export const useReadingListStore = defineStore({
                     id: article.id
                 }
             })
-
-
-            const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
-
-            if (index !== -1) {
-                this.articles.splice(index, 1)
-            }
-
-            this.removedArticles.push(article)
-
-            localStorage.setItem('readinglist', JSON.stringify(this.articles))
+            this.removeArticleLocal(article)
         },
         async undo() {
             if (this.removedArticles.length === 0) {
@@ -96,7 +99,7 @@ export const useReadingListStore = defineStore({
 
             const lastRemovedArticle = this.removedArticles.pop()
 
-            this.addArticle(lastRemovedArticle!)
+            this.addArticleLocal(lastRemovedArticle!)
 
             axios.post(`/readinglist/articles`, {
                 id: lastRemovedArticle!.id
