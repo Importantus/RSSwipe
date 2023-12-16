@@ -20,6 +20,7 @@ let content = ref("");
 let article = ref({} as Article)
 let articleStatus = ref(ArticleStatus.LOADING);
 let scrollpercent = ref(0);
+let lastScrollTop = 0;
 let hideUi = ref(false);
 
 onMounted(async () => {
@@ -55,12 +56,29 @@ async function getArticleContent() {
 
 //get scroll position
 function getScrollPercent() {
-    console.log("getScrollPercent");
     const scrollDiv = document.getElementById("scroll");
     if (scrollDiv) {
-        hideUi.value = scrollpercent.value < (scrollDiv.scrollTop / (scrollDiv.scrollHeight - scrollDiv.clientHeight)) * 100;
+        calculateUIHide();
         scrollpercent.value = (scrollDiv.scrollTop / (scrollDiv.scrollHeight - scrollDiv.clientHeight)) * 100;
     }
+}
+
+function calculateUIHide() {
+    const scrollDiv = document.getElementById("scroll");
+    const tolerance = 50;
+    if (scrollDiv) {
+        if (lastScrollTop < scrollDiv.scrollTop) {
+            console.log(scrollDiv.scrollTop)
+            if (scrollDiv.scrollTop - lastScrollTop > tolerance) {
+                lastScrollTop = scrollDiv.scrollTop - (tolerance + 1);
+                hideUi.value = true
+            }
+        } else {
+            lastScrollTop = scrollDiv.scrollTop;
+            hideUi.value = false
+        }
+    }
+
 }
 </script>
 
