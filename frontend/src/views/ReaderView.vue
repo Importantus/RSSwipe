@@ -14,6 +14,8 @@ enum ArticleStatus {
     ERROR,
 }
 
+const TOLERANCE = window.innerHeight * 0.1;
+
 const route = useRoute();
 const articleId = route.params.id.toString();
 let content = ref("");
@@ -65,12 +67,10 @@ function getScrollPercent() {
 
 function calculateUIHide() {
     const scrollDiv = document.getElementById("scroll");
-    const tolerance = 50;
     if (scrollDiv) {
         if (lastScrollTop < scrollDiv.scrollTop) {
-            console.log(scrollDiv.scrollTop)
-            if (scrollDiv.scrollTop - lastScrollTop > tolerance) {
-                lastScrollTop = scrollDiv.scrollTop - (tolerance + 1);
+            if (scrollDiv.scrollTop - lastScrollTop > TOLERANCE) {
+                lastScrollTop = scrollDiv.scrollTop - (TOLERANCE + 1);
                 hideUi.value = true
             }
         } else {
@@ -83,29 +83,32 @@ function calculateUIHide() {
 </script>
 
 <template>
-    <Transition name="titlebar-hide">
-        <TitleNavigationBar v-if="!hideUi" class="bg-[#353535] mx-5" :title="article.title" backNavigationPath="/" />
-    </Transition>
-    <div class="bottom-0 left-0 w-full h-2 bg-primary-600" :style="`width: ${scrollpercent}%;`">
-    </div>
-    <div id="scroll" class="px-5 h-full overflow-y-scroll no-scrollbar pb-24">
-        <div v-if="articleStatus === ArticleStatus.READY">
-            <div class="pt-5 border-b-2">
-                <img :src="article.imageUrl" class="pb-5">
-                <FeedFilterItem class="mt-2" :favicon="article.feed.faviconUrl" :title="article.feed.title"
-                    :noTruncate="true" />
-                <div v-html="DOMPurify.sanitize(article.title)" class="text-3xl font-bold text-white py-5"></div>
+    <div>
+        <Transition name="titlebar-hide">
+            <TitleNavigationBar v-if="!hideUi" class="mx-5" :title="article.title" backNavigationPath="/" />
+        </Transition>
+        <div class="bottom-0 left-0 w-full h-1 rounded-r-full bg-primary-600" :style="`width: ${scrollpercent}%;`">
+        </div>
+        <div id="scroll" class="px-5 h-full overflow-y-scroll no-scrollbar pb-24">
+            <div v-if="articleStatus === ArticleStatus.READY">
+                <div class="pt-5 border-b-2">
+                    <img :src="article.imageUrl" class="pb-5">
+                    <FeedFilterItem class="mt-2" :favicon="article.feed.faviconUrl" :title="article.feed.title"
+                        :noTruncate="true" />
+                    <div v-html="DOMPurify.sanitize(article.title)" class="text-3xl font-bold text-white py-5"></div>
+                </div>
+                <div class="prose prose-invert" v-html="DOMPurify.sanitize(content)">
+                </div>
             </div>
-            <div class="prose prose-invert" v-html="DOMPurify.sanitize(content)">
+            <div v-else-if="articleStatus === ArticleStatus.LOADING"
+                class="flex items-center justify-center h-full pb-[20vw]">
+                <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-600"></div>
             </div>
         </div>
-        <div v-else-if="articleStatus === ArticleStatus.LOADING" class="flex items-center justify-center h-full pb-[20vw]">
-            <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-600"></div>
-        </div>
+        <Transition name="shareelement-hide">
+            <div v-if="!hideUi" class="w-full fixed right-0 bottom-11">
+                <ReaderFunctionElement />
+            </div>
+        </Transition>
     </div>
-    <Transition name="shareelement-hide">
-        <div v-if="!hideUi" class="w-full fixed right-0 bottom-11">
-            <ReaderFunctionElement />
-        </div>
-    </Transition>
 </template>
