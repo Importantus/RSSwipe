@@ -2,10 +2,6 @@
 import ShareArticleButton from '@/components/ShareArticleButton.vue';
 import StarArticleButton from '@/components/StarArticleButton.vue';
 import OpenExternalButton from './OpenExternalButton.vue';
-
-import props from 'vue-strict-prop';
-
-
 </script>
 
 <template>

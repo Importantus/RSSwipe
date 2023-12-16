@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Article } from '@/types';
 import ArticleSource from './ArticleSource.vue';
 
 defineProps<{

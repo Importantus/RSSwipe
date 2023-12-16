@@ -7,6 +7,7 @@ import router from '@/router';
 import DOMPurify from 'dompurify';
 import FeedFilterItem from '@/components/FeedFilterItem.vue';
 import ReaderFunctionElement from '@/components/ReaderFunctionElement.vue';
+import type { Article } from '@/types';
 
 enum ArticleStatus {
     LOADING,
