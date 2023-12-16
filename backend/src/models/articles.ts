@@ -30,7 +30,27 @@ export async function getArticles(userId: string, query: GetArticlesQueryType) {
                 id: {
                     in: feeds
                 }
-            }
+            },
+            OR: [
+                {
+                    ArticleHasUser: {
+                        some: {
+                            userId: userId,
+                            seen: false
+                        }
+                    }
+                },
+                {
+                    NOT: {
+                        ArticleHasUser: {
+                            some: {
+                                userId: userId
+                            }
+                        }
+                    }
+                }
+
+            ]
         },
         take: Number(limit),
         orderBy: {
@@ -53,24 +73,6 @@ export async function getArticles(userId: string, query: GetArticlesQueryType) {
             }
         },
     });
-
-    // Check if article is in the users articleList and has seen set to true
-    for (const article of articles) {
-        const articleList = await prisma.articleList.findUnique({
-            where: {
-                articleId_userId: {
-                    userId,
-                    articleId: article.id
-                }
-            }
-        });
-
-        // If it is seen, remove the article from the response
-        if (articleList?.seen) {
-            articles.splice(articles.indexOf(article), 1);
-        }
-    }
-
 
     return articles;
 }
@@ -168,14 +170,14 @@ export async function updateArticle(userId: string, articleId: string, input: Ar
                 }
             },
             data: {
-                read: input.read ?? false,
-                seen: input.seen ?? false,
-                starred: input.starred ?? false,
-                saved: input.saved ?? false,
-                dateRead: input.read ? new Date() : null,
-                dateSaved: input.saved ? new Date() : null,
-                dateStar: input.starred ? new Date() : null,
-                dateSeen: input.seen ? new Date() : null
+                read: input.read ?? articleList.read,
+                seen: input.seen ?? articleList.seen,
+                starred: input.starred ?? articleList.starred,
+                saved: input.saved ?? articleList.saved,
+                dateRead: input.read ? new Date() : articleList.dateRead,
+                dateSaved: input.saved ? new Date() : articleList.dateSaved,
+                dateStar: input.starred ? new Date() : articleList.dateStar,
+                dateSeen: input.seen ? new Date() : articleList.dateSeen
             }
         });
     }

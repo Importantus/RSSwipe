@@ -1109,6 +1109,12 @@
           },
           "seen": {
             "type": "boolean"
+          },
+          "starred": {
+            "type": "boolean"
+          },
+          "saved": {
+            "type": "boolean"
           }
         },
         "required": [

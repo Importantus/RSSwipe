@@ -1,12 +1,13 @@
 <script setup lang="ts">
-function DiscardArticle() {
-    console.log("DiscardArticle");
+function openReadinglist() {
+    router.push({ name: 'Reading List' });
 }
+import router from '@/router';
 import { List } from 'lucide-vue-next';
 </script>
 
 <template>
-    <button @click="DiscardArticle">
+    <button @click="openReadinglist">
         <List size="24" class=" text-white m-3" />
     </button>
 </template>

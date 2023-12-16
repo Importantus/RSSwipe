@@ -13,7 +13,7 @@ function handleLogout() {
 
 <template>
     <div class="px-5">
-        <TitleNavigationBar title="Account" backNavigationPath="/" />
+        <TitleNavigationBar class="mt-5" title="Account" backNavigationPath="/" />
         <button @click="handleLogout"
             class="w-full h-14 bg-amber-600 rounded-lg mt-10 hover:bg-amber-700 transition">Logout</button>
     </div>
