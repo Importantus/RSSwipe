@@ -23,7 +23,7 @@ export const UserUpdateInput = s.object({
     name: s.optional(name),
     email: s.optional(email),
     password: s.optional(password),
-    oldPassword: password
+    oldPassword: s.optional(password),
 })
 
 export const UserDeleteInput = s.object({
