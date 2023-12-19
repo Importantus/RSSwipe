@@ -97,8 +97,6 @@ function calculateUIHide() {
     }
 }
 
-//TODO  Buttons Redesign
-//TODO: Button Functionality
 </script>
 
 <template>
