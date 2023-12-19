@@ -9,10 +9,6 @@ const store = useStartPageStore();
 onMounted(async () => {
     await store.fetchArticles();
 });
-
-function openArticle() {
-    router.push(`/article/${store.articles[0].id}`);
-}
 </script>
 
 <template>
