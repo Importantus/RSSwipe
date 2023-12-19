@@ -15,8 +15,6 @@ export enum ReaderContext {
     READINGLIST
 }
 
-//TODO: Make global article functions
-
 export const useReaderStore = defineStore({
     id: 'reader',
     state: () => ({
@@ -126,6 +124,59 @@ export const useReaderStore = defineStore({
             } else {
                 console.error(response)
             }
+        },
+
+        async openArticleExternal(article: Article) {
+            window.open(article.link, '_blank')!.focus();
+        },
+
+        async shareArticle(article: Article) {
+            navigator
+                .share({
+                    title: article.title,
+                    text: 'Check out this article!',
+                    url: article.link,
+                })
+                .then(() => console.log('Successful share! 🎉'))
+                .catch(err => console.error(err));
+        },
+
+        async setArticleStarred(article: Article, starred: boolean) {
+            const request = { "id": article.id }
+            if (starred) {
+                console.log("Starring:" + article.id)
+                const response = await axios.post(`/starred/articles`, request)
+                if (response.status === 200) {
+                    return response.data as Article
+                } else {
+                    console.error(response)
+                }
+            } else {
+                console.log("Unstarring:" + article.id)
+                const response = await axios.delete(`/starred/articles`, { data: request })
+                if (response.status === 200) {
+                    return response.data as Article
+                } else {
+                    console.error(response)
+                }
+            }
+
+        },
+
+        async getStarStatus(article: Article) {
+            const response = await axios.get(`/starred`)
+            if (response.status === 200) {
+                const data: Article[] = response.data
+                const starred: Article | undefined = data.find(a => a.id === article.id)
+                if (starred) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                console.error(response)
+            }
+            return null;
         }
     }
 })
