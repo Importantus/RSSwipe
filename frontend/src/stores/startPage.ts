@@ -3,6 +3,7 @@ import axios from "@/axios";
 import type { Article } from "@/types";
 import { defineStore } from "pinia";
 import { useReadingListStore } from "./readingList";
+import { useCategoriesStore } from "./categories";
 
 const STORED_ARTICLES = 5
 
@@ -21,6 +22,10 @@ export const useStartPageStore = defineStore({
         lastActions: [] as Article[]
     }),
     actions: {
+        async reload() {
+            this.articles = []
+            await this.fetchArticles()
+        },
         async fetchArticles() {
             if (this.articles.length >= STORED_ARTICLES) {
                 this.status = ArticleStatus.READY
@@ -28,10 +33,14 @@ export const useStartPageStore = defineStore({
             }
 
             this.status = ArticleStatus.LOADING
+
+            const categoriesStore = useCategoriesStore()
+
             const response = await axios.get('/articles', {
                 // TODO: set selected feeds
                 params: {
-                    limit: STORED_ARTICLES + this.articles.length
+                    limit: STORED_ARTICLES + this.articles.length,
+                    categories: categoriesStore.selectedCategories.map(c => c.id)
                 }
             })
 
