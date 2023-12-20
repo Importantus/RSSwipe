@@ -3,12 +3,14 @@ import ArticleInfoElement from '@/components/ArticleInfoElement.vue';
 import { useStartPageStore } from '@/stores/startPage';
 import type { Article } from '@/types';
 import { computed, ref } from 'vue';
+import { ReaderContext, useReaderStore } from '@/stores/reader';
 const props = defineProps<{
     article: Article;
     index: number;
 }>()
 
 const store = useStartPageStore();
+const readerStore = useReaderStore();
 
 const hidden = ref(false);
 const elementTransformX = ref(0)
@@ -18,6 +20,10 @@ let posX = 0;
 
 const displayWidth = window.innerWidth;
 const swipeToTrigger = displayWidth / 4;
+
+function openinReader() {
+    readerStore.openArticle(ReaderContext.STARTPAGE, store.articles[0]);
+}
 
 function pressHandler(event: TouchEvent | MouseEvent) {
     if (props.index !== 0) return;
@@ -62,7 +68,7 @@ const articleUrl = computed(() => `/article/${props.article.id}`)
 </script>
 
 <template>
-    <RouterLink :to="articleUrl">
+    <div @click="openinReader">
         <div v-if="!hidden" v-touch:drag="swipeHandler" v-touch:press="pressHandler" v-touch:release="releaseHandler"
             class="transitions h-full max-h-[70vh] drop-shadow-lg rounded-xl bg-center bg-cover bg-background-800" :style="{
                 marginTop: 1.5 - (props.index * 0.75) + 'rem',
@@ -71,7 +77,7 @@ const articleUrl = computed(() => `/article/${props.article.id}`)
             }">
             <ArticleInfoElement :article="props.article" class="rounded-xl absolute bottom-0" />
         </div>
-    </RouterLink>
+    </div>
 </template>
 
 <style scoped>

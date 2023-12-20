@@ -18,7 +18,7 @@ function selectFeedItem() {
             <img :src="favicon" alt="favicon" />
         </div>
         <div class="align-middle pl-3">
-            <p class="font-text-detail text-xs text-opacity-60 " :class="{ 'w-10 truncate ...': !noTruncate }">
+            <p class="font-text-detail text-xs text-opacity-60 line-clamp-1" :class="{ 'w-10 truncate ...': !noTruncate }">
                 {{
                     title }}</p>
         </div>

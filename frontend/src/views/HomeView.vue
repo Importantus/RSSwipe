@@ -4,6 +4,7 @@ import HomeMiddleWrapper from '@/components/home/HomeMiddleWrapper.vue';
 import HomeBottomWrapper from '@/components/home/HomeBottomWrapper.vue';
 import UndoButtonVue from '@/components/home/UndoButton.vue';
 import { useStartPageStore } from '@/stores/startPage';
+import { useReaderStore } from '@/stores/reader';
 
 const store = useStartPageStore()
 </script>

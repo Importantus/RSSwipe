@@ -3,6 +3,7 @@ import type { Article } from '@/types';
 import ArticleSource from '../ArticleSource.vue';
 import { ref } from 'vue';
 import { Icon, FileDown, BookOpenCheck, Star } from 'lucide-vue-next';
+import { ReaderContext, useReaderStore } from '@/stores/reader';
 
 interface SwipeDirection {
     name: string
@@ -18,6 +19,7 @@ const props = defineProps<{
     swipeRight: SwipeDirection
 }>();
 
+const readerStore = useReaderStore();
 const emit = defineEmits(['swipeLeft', 'swipeRight'])
 
 const elementTransformX = ref(0)
@@ -26,6 +28,11 @@ let mouseover = ref(false);
 
 const displayWidth = window.innerWidth;
 const swipeToTrigger = displayWidth / 3;
+
+function openInReader() {
+    readerStore.openArticle(ReaderContext.READINGLIST, props.article);
+}
+
 function pressHandler(event: TouchEvent | MouseEvent) {
     if (mouseover.value) return;
     console.log(event.type);
@@ -35,6 +42,7 @@ function pressHandler(event: TouchEvent | MouseEvent) {
         posX = (event as TouchEvent).touches[0].clientX;
     }
 }
+
 
 function swipeHandler(event: TouchEvent | MouseEvent) {
     if (mouseover.value) return;
@@ -82,7 +90,7 @@ function releaseHandler() {
 </script>
 
 <template>
-    <RouterLink :to="`/article/${props.article.id}`">
+    <div @click="openInReader">
         <div class="w-full rounded-xl bg-background-900 overflow-hidden transition-colors relative">
             <div v-if="elementTransformX < 0" class="absolute z-0 top-0 bottom-0 w-full h-full transition-all"
                 :style="{ filter: 'saturate(' + Math.min((Math.abs(elementTransformX) / swipeToTrigger) ** 2, 1) + ')', background: props.swipeLeft.color }">
@@ -129,5 +137,5 @@ function releaseHandler() {
                 <h2 class="text-lg">{{ props.article.title }}</h2>
             </div>
         </div>
-    </RouterLink>
+    </div>
 </template>

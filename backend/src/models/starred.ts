@@ -2,6 +2,42 @@ import { PrismaClient } from "@prisma/client";
 import APIError from "../helper/apiError";
 const prisma = new PrismaClient();
 
+async function articleListtoArticle(starredArticles: any[]) {
+    const articles = await Promise.all(
+        starredArticles
+            .filter(starArticle => starArticle !== null)
+            .map(async (starArticle) => {
+                const article = await prisma.article.findFirst({
+                    where: {
+                        id: starArticle.articleId
+                    },
+                    select: {
+                        id: true,
+                        title: true,
+                        imageUrl: true,
+                        link: true,
+                        publishedAt: true,
+                        createdAt: true,
+                        feed: {
+                            select: {
+                                id: true,
+                                title: true,
+                                link: true,
+                                faviconUrl: true
+                            }
+                        }
+                    },
+                });
+
+                return article;
+            })
+    );
+
+    console.log(articles);
+    return articles;
+}
+
+
 export async function getStarredArticles(userId: string) {
 
     const starredArticles = await prisma.articleList.findMany({
@@ -15,7 +51,7 @@ export async function getStarredArticles(userId: string) {
         throw APIError.badRequest("The User doesn't have any starred articles");
     }
 
-    return starredArticles;
+    return await articleListtoArticle(starredArticles);
 }
 
 export async function getStarredArticle(articleId: string, userId: string) {
