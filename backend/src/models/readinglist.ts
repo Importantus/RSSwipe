@@ -15,6 +15,7 @@ export async function getReadingList(userId: string) {
                     link: true,
                     publishedAt: true,
                     createdAt: true,
+                    category: true,
                     feed: {
                         select: {
                             id: true,

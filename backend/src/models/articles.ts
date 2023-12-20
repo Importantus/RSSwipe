@@ -10,7 +10,7 @@ import { getPrismaClient } from "../prismaClient";
 const prisma = getPrismaClient();
 
 export async function getArticles(userId: string, query: GetArticlesQueryType) {
-    let { limit, feeds } = query;
+    let { limit, feeds, categories } = query;
 
 
     if (!feeds) {
@@ -23,14 +23,31 @@ export async function getArticles(userId: string, query: GetArticlesQueryType) {
         feeds = feedList?.map(feed => feed.feedId) ?? [];
     }
 
+    if (!categories) {
+        const categoryList = await prisma.category.findMany();
+
+        categories = categoryList?.map(category => category.id) ?? [];
+    }
+
 
     const articles = await prisma.article.findMany({
         where: {
-            feed: {
-                id: {
-                    in: feeds
+            AND: [
+                {
+                    category: {
+                        id: {
+                            in: categories
+                        }
+                    }
+                },
+                {
+                    feed: {
+                        id: {
+                            in: feeds
+                        }
+                    }
                 }
-            },
+            ],
             OR: [
                 {
                     ArticleHasUser: {
@@ -63,6 +80,7 @@ export async function getArticles(userId: string, query: GetArticlesQueryType) {
             link: true,
             publishedAt: true,
             createdAt: true,
+            category: true,
             feed: {
                 select: {
                     id: true,
@@ -89,6 +107,7 @@ export async function getArticle(userId: string, articleId: string) {
             link: true,
             publishedAt: true,
             createdAt: true,
+            category: true,
             feed: {
                 select: {
                     id: true,

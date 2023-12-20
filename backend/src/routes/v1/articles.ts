@@ -16,6 +16,11 @@ router.get("/", h(async (req, res) => {
         req.query.feeds = [req.query.feeds];
     }
 
+    // If req.query.categories is a string, convert it to an array
+    if (typeof req.query.categories === "string") {
+        req.query.categories = [req.query.categories];
+    }
+
     try {
         assert(req.query, GetArticlesQuery)
     } catch (err: any) {

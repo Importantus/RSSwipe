@@ -2,6 +2,7 @@ import * as s from 'superstruct';
 
 const limit = s.size(s.string(), 1, 50);
 const feeds = s.array(s.string());
+const categories = s.array(s.string());
 
 const read = s.boolean();
 const seen = s.boolean();
@@ -10,7 +11,8 @@ const saved = s.boolean();
 
 export const GetArticlesQuery = s.object({
     limit: s.optional(limit),
-    feeds: s.optional(feeds)
+    feeds: s.optional(feeds),
+    categories: s.optional(categories)
 });
 
 export const ArticleUpdateInput = s.object({
