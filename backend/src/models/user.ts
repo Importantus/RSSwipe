@@ -89,7 +89,7 @@ export async function updateUserData(id: string, data: UserUpdateInputType) {
 
     // Check if old password is correct
     if (data.password) {
-        const result = await bcrypt.compare(data.oldPassword, user.password);
+        const result = await bcrypt.compare(data.oldPassword || "", user.password);
 
         if (!result) {
             throw APIError.forbidden();
