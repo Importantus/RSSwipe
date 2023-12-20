@@ -33,7 +33,7 @@
   ],
   "servers": [
     {
-      "url": "https://rsswiper.mylab.th-luebeck.de/api",
+      "url": "https://b2-backend.vwprg.mylab.th-luebeck.de/v1",
       "description": "Production server"
     },
     {
