@@ -54,6 +54,8 @@ model Article {
   feedId         String
   ArticleHasUser ArticleList[]
   feed           Feed          @relation(fields: [feedId], references: [id])
+  categoryId     String?
+  category       Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 }
 
 model Settings {
@@ -79,4 +81,11 @@ model ArticleList {
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([articleId, userId])
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  articles  Article[]
 }
