@@ -46,7 +46,6 @@ async function getImageUrl(url: string) {
     const html = res.data;
     const dom = new JSDOM(html);
     const image = dom.window.document.querySelector("meta[property='og:image']")?.getAttribute("content");
-    console.log((image?.length || 0) > environment.maxImageUrlLength ? undefined : image)
     return (image?.length || 0) > environment.maxImageUrlLength ? undefined : image;
 }
 
