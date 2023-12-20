@@ -29,6 +29,10 @@
     {
       "name": "starred",
       "description": "Your Starred Articles"
+    },
+    {
+      "name": "category",
+      "description": "The Categories of the articles"
     }
   ],
   "servers": [
@@ -568,6 +572,18 @@
                 "type": "string"
               }
             }
+          },
+          {
+            "name": "categories",
+            "in": "query",
+            "description": "The ids of the categories to return articles from. If not set, articles from all categories are returned",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         ],
         "responses": {
@@ -944,6 +960,34 @@
           }
         }
       }
+    },
+    "/categories": {
+      "get": {
+        "description": "Get all possible categories",
+        "tags": [
+          "category"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All possible categories",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Category"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1075,6 +1119,9 @@
           "id": {
             "type": "integer"
           },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
           "title": {
             "type": "string"
           },
@@ -1200,6 +1247,17 @@
           },
           "openInApp": {
             "type": "boolean"
+          }
+        }
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
           }
         }
       }
