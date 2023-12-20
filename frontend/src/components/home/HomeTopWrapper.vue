@@ -3,6 +3,7 @@ import FeedSettingsButton from '@/components/FeedSettingsButton.vue';
 import GreetingBanner from '@/components/GreetingBanner.vue';
 import UserSettingsButton from '@/components/UserSettingsButton.vue';
 import FeedFilterList from '@/components/FeedFilterList.vue';
+import CategoryList from '../categories/CategoryList.vue';
 </script>
 
 <template>
@@ -12,6 +13,9 @@ import FeedFilterList from '@/components/FeedFilterList.vue';
             <GreetingBanner class="flex-1 basis 2/4" greeting="Let's Choose" />
             <FeedSettingsButton class="flex-none basis 1/4" />
         </div>
-        <FeedFilterList />
+        <div class="mt-5 mb-8 flex flex-col gap-2">
+            <CategoryList />
+            <FeedFilterList />
+        </div>
     </div>
 </template>

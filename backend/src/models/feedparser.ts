@@ -4,6 +4,7 @@ import { JSDOM } from "jsdom";
 import { Feed, PrismaClient } from "@prisma/client";
 import { environment } from "../helper/environment";
 import { getPrismaClient } from "../prismaClient";
+import { categorizeArticles } from "./categorizer";
 
 const parser = new Parser();
 const prisma = getPrismaClient();
@@ -45,7 +46,6 @@ async function getImageUrl(url: string) {
     const html = res.data;
     const dom = new JSDOM(html);
     const image = dom.window.document.querySelector("meta[property='og:image']")?.getAttribute("content");
-    console.log((image?.length || 0) > environment.maxImageUrlLength ? undefined : image)
     return (image?.length || 0) > environment.maxImageUrlLength ? undefined : image;
 }
 
@@ -176,6 +176,8 @@ async function updateAllFeeds() {
                 console.error("\nFehler beim Parsen von Feed " + feed.title + ": \n" + err);
             }
         }
+
+        categorizeArticles();
     } catch (err) {
         console.error(err);
     }

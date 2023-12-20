@@ -1,19 +1,54 @@
 <script setup lang="ts">
+import { useStartPageStore, ArticleStatus } from '@/stores/startPage';
 import ArticleCard from '../ArticleCard.vue';
+import { onMounted } from 'vue';
+import router from '@/router';
+
+const store = useStartPageStore();
+
+onMounted(async () => {
+    await store.fetchArticles();
+});
 </script>
 
 <template>
-    <div class="grid">
-        <div class="col-start-1 row-start-1">
-            <ArticleCard
-                url="https://images.tagesschau.de/image/5a2557eb-50d5-4161-b8d0-c976bade922a/AAABh_9ZeCk/AAABibBx3ic/20x9-960/symbol-vereinte-nationen-100.webp" />
+    <div v-if="store.status === ArticleStatus.READY || store.articles.length >= 3" class="grid">
+        <div v-if="store.status === ArticleStatus.LOADING" class="w-full h-2 fixed top-0 left-0 animated-gradient">
         </div>
-        <div class="col-start-1 row-start-1 mt-3">
-            <ArticleCard
-                url="https://images.tagesschau.de/image/36e09173-873a-44e7-8422-c8a7621ee13a/AAABi9YFCHM/AAABibBx3ic/20x9-960/biden-pk-san-francisco-100.webp" />
-        </div>
-        <div class="col-start-1 row-start-1 mt-6">
-            <ArticleCard url="https://www.buchreport.de/wp-content/uploads/2020/11/Papst-Franziskus_550x415.jpg" />
-        </div>
+        <ArticleCard class="col-start-1 row-start-1" v-for="(article, index) in store.articles.slice(0, 3).reverse()"
+            :key="article.id" :index="Math.min(store.articles.length - 1, 2) - index" :article="article" />
+    </div>
+    <div v-else-if="store.status === ArticleStatus.LOADING && store.articles.length === 0"
+        class="flex items-center justify-center">
+        <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-600"></div>
+    </div>
+    <div v-else-if="store.status === ArticleStatus.ERROR" class="flex items-center justify-center">
+        <p class="text-red-500">Error</p>
+    </div>
+    <div v-else-if="store.status === ArticleStatus.OUT_OF_ARTICLES" class="flex items-center justify-center flex-col">
+        <img src="/images/MeditatingDoodle.svg" alt="Reading" class="w-[60%]" />
+        <h2 class="text-secondary-500">All caught up</h2>
+    </div>
+    <div v-else class="flex items-center justify-center">
+        <p class="text-red-500">Unknown error</p>
     </div>
 </template>
+
+
+<style scoped>
+.animated-gradient {
+    background: linear-gradient(270deg, #CF6A31 0%, #4E2915 50%, #CF6A31 50%, #4E2915 100%);
+    background-size: 200% 100%;
+    animation: gradient 1s ease infinite;
+}
+
+@keyframes gradient {
+    0% {
+        background-position: 100% 0%;
+    }
+
+    100% {
+        background-position: 0% 0%;
+    }
+}
+</style>

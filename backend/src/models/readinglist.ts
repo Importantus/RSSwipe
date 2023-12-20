@@ -4,7 +4,7 @@ import { updateArticle } from './articles';
 const prisma = new PrismaClient();
 
 export async function getReadingList(userId: string) {
-    return await prisma.articleList.findMany({
+    const readingList = await prisma.articleList.findMany({
         where: { userId, saved: true },
         select: {
             article: {
@@ -15,6 +15,7 @@ export async function getReadingList(userId: string) {
                     link: true,
                     publishedAt: true,
                     createdAt: true,
+                    category: true,
                     feed: {
                         select: {
                             id: true,
@@ -27,6 +28,8 @@ export async function getReadingList(userId: string) {
             },
         },
     });
+
+    return readingList.map((article) => article.article);
 }
 
 export async function addArticleToReadingList(userId: string, articleId: string) {
