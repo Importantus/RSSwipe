@@ -76,3 +76,25 @@
 .shareelement-hide-leave-active {
   transition: all 1s ease;
 }
+
+.readerelement-hide-enter-active,
+.readerelement-hide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.readerbar-hide-enter-from,
+.readerbar-hide-leave-to {
+  margin-top: -72px;
+}
+
+.readerbar-hide-enter-active,
+.readerbar-hide-leave-active {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.readerelement-hide-enter-from,
+.readerelement-hide-leave-to {
+  opacity: 0;
+  margin-bottom: -80px;
+}
