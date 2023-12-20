@@ -51,6 +51,9 @@ export const useCategoriesStore = defineStore({
             for (const category of this.categories) {
                 category.selected = false
             }
+
+            const startPageStore = useStartPageStore()
+            startPageStore.reload()
         },
         toggleCategory(id: string) {
             const category = this.categories.find(c => c.id === id)
