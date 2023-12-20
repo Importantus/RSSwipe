@@ -101,7 +101,7 @@ function calculateUIHide() {
 
 <template>
     <div>
-        <Transition name="titlebar-hide">
+        <Transition name="readerbar-hide">
             <TitleNavigationBar v-if="!hideUi" class="mx-5" :title="store.storedArticles[0].articleInfo.title"
                 :backNavigationPath="backNavigationPath" />
         </Transition>
@@ -146,7 +146,7 @@ function calculateUIHide() {
                 <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-600"></div>
             </div>
         </div>
-        <Transition name="shareelement-hide">
+        <Transition name="readerelement-hide">
             <div v-if="!hideUi" class="w-full fixed right-0 bottom-11">
                 <ReaderFunctionElement />
             </div>
