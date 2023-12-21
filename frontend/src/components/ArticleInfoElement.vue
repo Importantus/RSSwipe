@@ -11,7 +11,7 @@ defineProps<{
     <div class="flex flex-col w-full p-4 gap-1 bg-gradient-to-t from-black to-transparent">
         <ArticleSource :article="article" />
         <div>
-            <h2 class="text-2xl">{{ article.title }}</h2>
+            <h2 class="text-2xl max-w-full break-words">{{ article.title }}</h2>
         </div>
     </div>
 </template>
