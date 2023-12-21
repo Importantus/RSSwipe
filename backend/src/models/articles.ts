@@ -29,16 +29,23 @@ export async function getArticles(userId: string, query: GetArticlesQueryType) {
         categories = categoryList?.map(category => category.id) ?? [];
     }
 
+    let categoryWhere = {}
+
+    if (categories.length === 0) {
+        categoryWhere = {};
+    } else {
+        categoryWhere = {
+            id: {
+                in: categories
+            }
+        }
+    }
 
     const articles = await prisma.article.findMany({
         where: {
             AND: [
                 {
-                    category: {
-                        id: {
-                            in: categories
-                        }
-                    }
+                    category: categoryWhere
                 },
                 {
                     feed: {

@@ -76,6 +76,8 @@ export async function categorizeArticles() {
     } finally {
         runningCategorization = false;
     }
+
+    runningCategorization = false;
 }
 
 async function categorizeArticle(url: string) {
