@@ -33,7 +33,6 @@ async function articleListtoArticle(starredArticles: any[]) {
             })
     );
 
-    console.log(articles);
     return articles;
 }
 

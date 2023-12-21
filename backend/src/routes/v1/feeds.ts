@@ -37,8 +37,6 @@ router.get("/:feedId", h(async (req, res) => {
     const id = res.locals.userId;
     const feedId = req.params.feedId;
 
-    console.log(feedId);
-
     try {
         assert(feedId, uuid)
     } catch (err: any) {
