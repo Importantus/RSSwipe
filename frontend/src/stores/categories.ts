@@ -42,6 +42,12 @@ export const useCategoriesStore = defineStore({
                     }
                 }
 
+                // Remove the category with the name "uncategorized"
+                const uncategorizedIndex = this.categories.findIndex(c => c.name === "Uncategorized")
+                if (uncategorizedIndex !== -1) {
+                    this.categories.splice(uncategorizedIndex, 1)
+                }
+
                 this.status = StoreStatus.READY
             } else {
                 this.status = StoreStatus.ERROR
