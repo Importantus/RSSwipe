@@ -47,6 +47,8 @@ export const useReadingListStore = defineStore({
                 const readingList = response.data as Article[]
                 for (const article of readingList) {
                     this.addArticleLocal(article)
+
+                    this.articles[this.articles.findIndex(a => a.articleInfo.id === article.id)].articleInfo = article
                 }
 
                 for (const article of [...this.articles]) {
