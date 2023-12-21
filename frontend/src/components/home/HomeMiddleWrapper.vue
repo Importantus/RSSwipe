@@ -2,7 +2,6 @@
 import { useStartPageStore, ArticleStatus } from '@/stores/startPage';
 import ArticleCard from '../ArticleCard.vue';
 import { onMounted } from 'vue';
-import router from '@/router';
 
 const store = useStartPageStore();
 
@@ -12,7 +11,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div v-if="store.status === ArticleStatus.READY || store.articles.length >= 3" class="grid">
+    <div v-if="store.status === ArticleStatus.READY || store.articles.length >= 0" class="grid">
         <div v-if="store.status === ArticleStatus.LOADING" class="w-full h-2 fixed top-0 left-0 animated-gradient">
         </div>
         <ArticleCard class="col-start-1 row-start-1" v-for="(article, index) in store.articles.slice(0, 3).reverse()"
