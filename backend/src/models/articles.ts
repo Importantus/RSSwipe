@@ -24,37 +24,43 @@ export async function getArticles(userId: string, query: GetArticlesQueryType) {
     }
 
     if (!categories) {
-        const categoryList = await prisma.category.findMany();
-
-        categories = categoryList?.map(category => category.id) ?? [];
+        categories = [];
     }
 
-    let categoryWhere = {}
+    let whereFeedsAndCategories = {}
 
     if (categories.length === 0) {
-        categoryWhere = {};
-    } else {
-        categoryWhere = {
-            id: {
-                in: categories
+        whereFeedsAndCategories = [
+            {
+                feed: {
+                    id: {
+                        in: feeds
+                    }
+                }
             }
-        }
+        ];
+    } else {
+        whereFeedsAndCategories = [
+            {
+                category: {
+                    id: {
+                        in: categories
+                    }
+                }
+            },
+            {
+                feed: {
+                    id: {
+                        in: feeds
+                    }
+                }
+            }
+        ]
     }
 
     const articles = await prisma.article.findMany({
         where: {
-            AND: [
-                {
-                    category: categoryWhere
-                },
-                {
-                    feed: {
-                        id: {
-                            in: feeds
-                        }
-                    }
-                }
-            ],
+            AND: whereFeedsAndCategories,
             OR: [
                 {
                     ArticleHasUser: {
