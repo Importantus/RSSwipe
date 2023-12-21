@@ -7,6 +7,14 @@ export async function getReadingList(userId: string) {
     const readingList = await prisma.articleList.findMany({
         where: { userId, saved: true },
         select: {
+            read: true,
+            saved: true,
+            seen: true,
+            starred: true,
+            dateRead: true,
+            dateSaved: true,
+            dateSeen: true,
+            dateStar: true,
             article: {
                 select: {
                     id: true,
@@ -29,7 +37,19 @@ export async function getReadingList(userId: string) {
         },
     });
 
-    return readingList.map((article) => article.article);
+    return readingList.map((article) => {
+        return {
+            ...article.article,
+            read: article.read,
+            saved: article.saved,
+            starred: article.starred,
+            seen: article.seen,
+            dateRead: article.dateRead,
+            dateSaved: article.dateSaved,
+            dateStarred: article.dateStar,
+            dateSeen: article.dateSeen
+        };
+    });
 }
 
 export async function addArticleToReadingList(userId: string, articleId: string) {
