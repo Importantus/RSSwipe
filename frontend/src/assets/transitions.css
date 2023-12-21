@@ -77,6 +77,59 @@
   transition: all 1s ease;
 }
 
+
+
+.discardbutton-enter-active {
+  animation: hide-right 0.3s ease reverse;
+
+}
+
+.discardbutton-leave-active {
+  animation: hide-right 0.5s ease;
+}
+
+@keyframes hide-right {
+  0% {
+    opacity: 1;
+    margin-right: 0px;
+  }
+
+  50% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+    margin-right: -55px;
+  }
+}
+
+
+.savebutton-enter-active {
+  animation: hide-left 0.3s ease reverse;
+
+}
+
+.savebutton-leave-active {
+  animation: hide-left 0.5s ease;
+}
+
+@keyframes hide-left {
+  0% {
+    opacity: 1;
+    margin-left: 0px;
+  }
+
+  50% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+    margin-left: -55px;
+  }
+}
+
 .readerelement-hide-enter-active,
 .readerelement-hide-leave-active {
   transition: all 0.3s ease;
