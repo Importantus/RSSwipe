@@ -2,6 +2,7 @@
 import TitleNavigationBar from '@/components/TitleNavigationBar.vue';
 import { onBeforeMount, onMounted, onUpdated, ref } from 'vue';
 import DOMPurify from 'dompurify';
+import ArticleSource from '@/components/ArticleSource.vue';
 import FeedFilterItem from '@/components/FeedFilterItem.vue';
 import ReaderFunctionElement from '@/components/ReaderFunctionElement.vue';
 import { ReaderContext, ReaderStatus, useReaderStore } from '@/stores/reader';
@@ -21,6 +22,14 @@ let lastScrollTop = 0;
 let hideUi = ref(true);
 let scrollFinshed = ref(false);
 let backNavigationPath = ref("/");
+
+let templateArr: string[] =
+    ["/images/articles/placeholder01.png",
+        "/images/articles/placeholder02.png",
+        "/images/articles/placeholder03.png",
+        "/images/articles/placeholder04.png"]
+
+let url = ref("")
 
 onBeforeMount(async () => {
     console.log("current store: " + store.storedArticles.length)
@@ -51,6 +60,16 @@ onMounted(async () => {
     }
 
 });
+
+onUpdated(() => {
+    if (!store.storedArticles[1].articleInfo.imageUrl) {
+        console.log("image url: " + store.storedArticles[1].articleInfo.imageUrl)
+        url.value = templateArr[Math.floor(Math.random() * templateArr.length)];
+        console.log("image url: " + url.value)
+    } else {
+        url.value = store.storedArticles[1].articleInfo.imageUrl
+    }
+})
 
 function nextArticle() {
     const FADEOUT_TIME = 200;
@@ -124,15 +143,14 @@ function calculateUIHide() {
                     <div class="border-b-2 w-full mb-5"></div>
                     <h1 class="text-lg font-bold text-white my-2">Next Article:</h1>
                     <div class="bg-cover bg-black bg-opacity-80 bg-blend-overlay p-5 rounded-2xl" :style="{
-                        backgroundImage: 'url(' + store.storedArticles[1].articleInfo.imageUrl + ')',
+                        backgroundImage: 'url(' + url + ')',
                     }">
                         <div class="flex flex-row items-center">
                             <div class="">
                                 <h1 class="text-lg font-bold text-white w-fit line-clamp-2 overflow-ellipsis">
                                     {{
                                         store.storedArticles[1].articleInfo.title }}</h1>
-                                <FeedFilterItem class="mt-2" :favicon="store.storedArticles[1].articleInfo.feed.faviconUrl"
-                                    :title="store.storedArticles[1].articleInfo.feed.title" :noTruncate="true" />
+                                <ArticleSource class="mt-2" :article="store.storedArticles[1].articleInfo" />
                             </div>
                             <MoveRight size="38" class="w-1/3 ml-5 text-white" />
                         </div>
