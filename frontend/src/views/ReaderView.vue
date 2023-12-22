@@ -3,7 +3,6 @@ import TitleNavigationBar from '@/components/TitleNavigationBar.vue';
 import { onBeforeMount, onMounted, onUpdated, ref } from 'vue';
 import DOMPurify from 'dompurify';
 import ArticleSource from '@/components/ArticleSource.vue';
-import FeedFilterItem from '@/components/FeedFilterItem.vue';
 import ReaderFunctionElement from '@/components/ReaderFunctionElement.vue';
 import { ReaderContext, ReaderStatus, useReaderStore } from '@/stores/reader';
 import { MoveRight } from 'lucide-vue-next';
@@ -131,8 +130,7 @@ function calculateUIHide() {
             <div v-if="articleStatus === ReaderStatus.READY">
                 <div class="pt-5 border-b-2">
                     <img :src="store.storedArticles[0].articleInfo.imageUrl" class="pb-5">
-                    <FeedFilterItem class="mt-2" :favicon="store.storedArticles[0].articleInfo.feed.faviconUrl"
-                        :title="store.storedArticles[0].articleInfo.feed.title" :noTruncate="true" />
+                    <ArticleSource class="pt-2" :article="store.storedArticles[0].articleInfo" />
                     <div v-html="DOMPurify.sanitize(store.storedArticles[0].articleInfo.title)"
                         class="text-3xl font-bold text-white py-5"></div>
                 </div>
