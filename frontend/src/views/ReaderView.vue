@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import TitleNavigationBar from '@/components/TitleNavigationBar.vue';
 import { onBeforeMount, onMounted, onUpdated, ref } from 'vue';
 import DOMPurify from 'dompurify';
 import ArticleSource from '@/components/ArticleSource.vue';
