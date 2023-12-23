@@ -145,7 +145,7 @@ function calculateUIHide() {
                 'border-black text-black bg-white': store.settings.colorScheme.id === colorSchemes.light.id,
                 'border-white text-white bg-background-950': store.settings.colorScheme.id === colorSchemes.dark.id,
             }">
-            <div v-if="articleStatus === ReaderStatus.READY" class="border-inherit">
+            <div v-if="store.storedArticles[0].content" class="border-inherit">
                 <div class="pt-5 border-b-2 border-inherit">
                     <img :src="store.storedArticles[0].articleInfo.imageUrl" class="pb-5 rounded-md">
                     <ArticleSource class="pt-2 text-white" :article="store.storedArticles[0].articleInfo" />
@@ -180,8 +180,7 @@ function calculateUIHide() {
                     </div>
                 </div>
             </div>
-            <div v-else-if="articleStatus === ReaderStatus.LOADING"
-                class="flex items-center justify-center h-full pb-[20vw]">
+            <div v-else class="flex items-center justify-center h-full pb-[20vw]">
                 <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-600"></div>
             </div>
         </div>
