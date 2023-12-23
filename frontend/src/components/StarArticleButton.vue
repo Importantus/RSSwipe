@@ -20,6 +20,7 @@ function toggleStar() {
 
 <template>
     <button class="" @click="toggleStar">
-        <Star size="28" class="m-3" :class="{ 'fill-primary-600 text-primary-600': starred, 'text-white': !starred }" />
+        <Star size="28" class="m-3"
+            :class="{ 'fill-primary-600 text-primary-600': starred, 'text-primary-600': !starred }" />
     </button>
 </template>
