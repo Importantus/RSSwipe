@@ -15,6 +15,108 @@ export enum ReaderContext {
     READINGLIST
 }
 
+export interface ColorScheme {
+    id: string;
+    name: string;
+    foreground: string;
+    background: string;
+}
+
+type ColorSchemeObject = {
+    [key in ColorScheme["id"]]: ColorScheme;
+}
+
+export interface Font {
+    id: string;
+    name: string;
+    font: string;
+}
+
+type FontObject = {
+    [key in Font["id"]]: Font;
+}
+
+export interface FontSize {
+    id: string;
+    name: string;
+}
+
+type FontSizeObject = {
+    [key in FontSize["id"]]: FontSize;
+}
+
+export const colorSchemes: ColorSchemeObject = {
+    light: {
+        id: "light",
+        name: "Light",
+        foreground: "black",
+        background: "white"
+    },
+    dark: {
+        id: "dark",
+        name: "Dark",
+        foreground: "white",
+        background: "black"
+    },
+    sepia: {
+        id: "sepia",
+        name: "Sepia",
+        foreground: "black",
+        background: "#f4ecd8"
+    }
+}
+
+export const fonts: FontObject = {
+    sans: {
+        id: "sans",
+        name: "Sans",
+        font: "Merriweather Sans, sans-serif"
+    },
+    serif: {
+        id: "serif",
+        name: "Serif",
+        font: "Merriweather, serif"
+    }
+}
+
+export const fontSizes: FontSizeObject = {
+    small: {
+        id: "small",
+        name: "Small"
+    },
+    medium: {
+        id: "medium",
+        name: "Medium"
+    },
+    large: {
+        id: "large",
+        name: "Large"
+    }
+}
+
+interface Settings {
+    colorScheme: ColorScheme;
+    font: Font;
+    fontSize: FontSize;
+}
+
+const defaultSettings: Settings = {
+    colorScheme: colorSchemes.dark,
+    font: fonts.sans,
+    fontSize: fontSizes.medium
+}
+
+function loadSettings(): Settings {
+    const savedSettings = JSON.parse(localStorage.getItem("readerSettings") || JSON.stringify(defaultSettings)) as Settings;
+
+    const loadedSettings: Settings = {
+        ...defaultSettings,
+        ...savedSettings
+    }
+
+    return loadedSettings;
+}
+
 export const useReaderStore = defineStore({
     id: 'reader',
     state: () => ({
@@ -22,10 +124,9 @@ export const useReaderStore = defineStore({
         status: ReaderStatus.LOADING,
         ReaderContext: ReaderContext.STARTPAGE,
         CurrentContent: "",
-        startIndex: 0
+        startIndex: 0,
+        settings: loadSettings()
     }),
-
-
     actions: {
         async openArticle(readerContext: ReaderContext, article: Article) {
             this.status = ReaderStatus.LOADING
@@ -177,6 +278,18 @@ export const useReaderStore = defineStore({
                 console.error(response)
             }
             return null;
+        },
+        async setColor(id: string) {
+            this.settings.colorScheme = colorSchemes[id]
+            localStorage.setItem("readerSettings", JSON.stringify(this.settings))
+        },
+        async setFont(id: string) {
+            this.settings.font = fonts[id]
+            localStorage.setItem("readerSettings", JSON.stringify(this.settings))
+        },
+        async setFontSize(id: string) {
+            this.settings.fontSize = fontSizes[id]
+            localStorage.setItem("readerSettings", JSON.stringify(this.settings))
         }
     }
 })
