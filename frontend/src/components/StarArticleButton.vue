@@ -20,7 +20,8 @@ function toggleStar() {
 
 <template>
     <button class="" @click="toggleStar">
-        <Star size="28" class="m-3"
+        <Star size="28" class="m-3 active:transform active:scale-125 transition-all ease-out duration-200 
+             active:bg-opacity-20 active:bg-primary-600 w-fit rounded-full"
             :class="{ 'fill-primary-600 text-primary-600': starred, 'text-primary-600': !starred }" />
     </button>
 </template>
