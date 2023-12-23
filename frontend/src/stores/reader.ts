@@ -134,10 +134,9 @@ export const useReaderStore = defineStore({
             switch (readerContext) {
                 case ReaderContext.STARTPAGE:
                     this.ReaderContext = ReaderContext.STARTPAGE
-                    const content = await this.getArticleContent(article)
+                    this.getArticleContent(article)
                     this.storedArticles.push({
-                        articleInfo: article,
-                        content: content
+                        articleInfo: article
                     })
                     this.markArticleAsRead(article)
                     router.push(`/article/${article.id}`)
@@ -170,10 +169,9 @@ export const useReaderStore = defineStore({
             try {
                 const article = await this.getArticleInfo(id)
                 if (article) {
-                    const content = await this.getArticleContent(article)
+                    this.getArticleContent(article)
                     this.storedArticles.push({
-                        articleInfo: article,
-                        content: content
+                        articleInfo: article
                     })
                     this.markArticleAsRead(article)
                     this.status = ReaderStatus.READY
@@ -201,7 +199,10 @@ export const useReaderStore = defineStore({
             const response = await axios.get(`/articles/${article.id}/content`)
 
             if (response.status === 200) {
-                return response.data
+                const storedArticle = this.storedArticles.find(a => a.articleInfo.id === article.id)
+                if (storedArticle) {
+                    storedArticle.content = response.data
+                }
             } else {
                 console.error(response)
             }
