@@ -31,7 +31,6 @@ let templateArr: string[] =
 let url = ref("")
 
 onBeforeMount(async () => {
-    console.log("current store: " + store.storedArticles.length)
     if (store.storedArticles.length === 0) {
         articleStatus.value = ReaderStatus.LOADING;
         await store.openArticleFromId(articleId);
@@ -63,7 +62,6 @@ onMounted(async () => {
 onUpdated(() => {
     if (!store.storedArticles[1] || !store.storedArticles[1].articleInfo.imageUrl) {
         url.value = templateArr[Math.floor(Math.random() * templateArr.length)];
-        console.log("image url: " + url.value)
     } else {
         url.value = store.storedArticles[1].articleInfo.imageUrl
     }
@@ -73,7 +71,6 @@ function nextArticle() {
     const FADEOUT_TIME = 200;
     const FADEIN_TIME = 100;
     if (scrollDiv) {
-        console.log("nextArticle")
         scrollDiv.scrollTo({ top: 0, behavior: 'smooth' });
         scrollDiv.style.transition = 'opacity ' + FADEOUT_TIME + 'ms';
         scrollDiv.style.opacity = '0';
@@ -145,7 +142,7 @@ function calculateUIHide() {
                 'border-black text-black bg-white': store.settings.colorScheme.id === colorSchemes.light.id,
                 'border-white text-white bg-background-950': store.settings.colorScheme.id === colorSchemes.dark.id,
             }">
-            <div v-if="store.storedArticles[0].content" class="border-inherit">
+            <div v-if="store.storedArticles[0] && store.storedArticles[0].content" class="border-inherit">
                 <div class="pt-5 border-b-2 border-inherit">
                     <img :src="store.storedArticles[0].articleInfo.imageUrl" class="pb-5 rounded-md">
                     <ArticleSource class="pt-2 text-white" :article="store.storedArticles[0].articleInfo" />

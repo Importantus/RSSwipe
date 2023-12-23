@@ -8,7 +8,6 @@ let starred = ref(false);
 
 onMounted(async () => {
     starred.value = (await store.getStarStatus(store.storedArticles[0].articleInfo)) ?? false;
-    console.log("Post is starred: " + starred.value)
 });
 
 function toggleStar() {
