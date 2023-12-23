@@ -139,11 +139,13 @@ function calculateUIHide() {
                 :style="`width: ${scrollpercent}%;`">
             </div>
         </div>
-        <div id="scroll" class="px-5 h-full overflow-y-scroll no-scrollbar pb-[10vh] pt-20" :class="{
-            'border-[#1C1204] text-[#1C1204] bg-[#C8A777]': store.settings.colorScheme.id === colorSchemes.sepia.id,
-            'border-black text-black bg-white': store.settings.colorScheme.id === colorSchemes.light.id,
-            'border-white text-white bg-background-950': store.settings.colorScheme.id === colorSchemes.dark.id,
-        }">
+        <div id="scroll"
+            class="px-5 h-full overflow-y-scroll no-scrollbar pb-[10vh] pt-20 transition-colors ease-out duration-500"
+            :class="{
+                'border-[#1C1204] text-[#1C1204] bg-[#C8A777]': store.settings.colorScheme.id === colorSchemes.sepia.id,
+                'border-black text-black bg-white': store.settings.colorScheme.id === colorSchemes.light.id,
+                'border-white text-white bg-background-950': store.settings.colorScheme.id === colorSchemes.dark.id,
+            }">
             <div v-if="articleStatus === ReaderStatus.READY" class="border-inherit">
                 <div class="pt-5 border-b-2 border-inherit">
                     <img :src="store.storedArticles[0].articleInfo.imageUrl" class="pb-5 rounded-md">
@@ -154,7 +156,7 @@ function calculateUIHide() {
                         }}
                     </div>
                 </div>
-                <div class="prose" :class="{
+                <div class="prose transition-all ease-linear duration-200" :class="{
                             'family': store.settings.font.id === fonts.serif.id,
                             'prose-invert': store.settings.colorScheme.id === colorSchemes.dark.id,
                             'prose-sm': store.settings.fontSize.id === fontSizes.small.id,
