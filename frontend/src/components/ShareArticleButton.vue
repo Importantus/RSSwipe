@@ -24,12 +24,12 @@ function shareArticle() {
 <template>
     <div v-if="canShare" class="flex items-center">
         <button @click="shareArticle">
-            <Share2 size=" 28" class="text-primary-600  m-3" />
+            <Share2 size=" 28" class="white  m-3" />
         </button>
     </div>
     <div v-else class="flex items-center">
-        <button disabled @hover="">
-            <Share2 size=" 28" class="text-primary-600 opacity-40 m-3" />
+        <button disabled>
+            <Share2 size=" 28" class="white opacity-40 m-3" />
         </button>
     </div>
 </template>
