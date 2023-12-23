@@ -27,9 +27,4 @@ function shareArticle() {
             <Share2 size=" 28" class="white  m-3" />
         </button>
     </div>
-    <div v-else class="flex items-center">
-        <button disabled>
-            <Share2 size=" 28" class="white opacity-40 m-3" />
-        </button>
-    </div>
 </template>
