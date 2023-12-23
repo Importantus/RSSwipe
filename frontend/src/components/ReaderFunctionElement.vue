@@ -5,7 +5,8 @@ import OpenExternalButton from './OpenExternalButton.vue';
 </script>
 
 <template>
-    <div class="flex flex-row items-center justify-between bg-secondary-900 rounded-[30px] w-56 m-auto p-4 px-6">
+    <div
+        class="flex flex-row items-center justify-between bg-secondary-900 rounded-[30px] gap-3 w-fit m-auto p-2 px-4 backdrop-blur-md bg-opacity-70">
         <ShareArticleButton />
         <StarArticleButton />
         <OpenExternalButton />

@@ -134,7 +134,7 @@ export const useReaderStore = defineStore({
             navigator
                 .share({
                     title: article.title,
-                    text: 'Check out this article!',
+                    text: article.title,
                     url: article.link,
                 })
                 .then(() => console.log('Successful share! 🎉'))
