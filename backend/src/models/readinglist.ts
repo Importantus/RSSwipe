@@ -59,3 +59,22 @@ export async function addArticleToReadingList(userId: string, articleId: string)
 export async function removeArticleFromReadingList(userId: string, articleId: string) {
     return await updateArticle(userId, articleId, { saved: false });
 }
+
+export async function removeArticlesFromReadingList(userId: string, onlyRead: boolean) {
+    if (onlyRead) {
+        return await prisma.articleList.deleteMany({
+            where: {
+                userId,
+                read: true,
+                saved: true,
+            }
+        });
+    } else {
+        return await prisma.articleList.deleteMany({
+            where: {
+                userId,
+                saved: true,
+            }
+        });
+    }
+}
