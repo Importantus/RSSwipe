@@ -764,6 +764,40 @@
             "$ref": "#/components/responses/UnauthorizedError"
           }
         }
+      },
+      "delete": {
+        "description": "Clear your readinglist",
+        "tags": [
+          "readinglist"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "onlyRead": {
+                    "type": "boolean",
+                    "description": "If set to true, only read articles will be cleared"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Readinglist cleared"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
       }
     },
     "/readinglist/articles": {
