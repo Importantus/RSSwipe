@@ -126,6 +126,19 @@ export const useReadingListStore = defineStore({
             } else {
                 console.log(response)
             }
+        },
+        async clear(onlyRead: boolean) {
+            const response = await axios.delete('/readinglist', {
+                data: {
+                    onlyRead
+                }
+            })
+
+            if (response.status === 200) {
+                this.update()
+            } else {
+                console.log(response)
+            }
         }
     }
 })
