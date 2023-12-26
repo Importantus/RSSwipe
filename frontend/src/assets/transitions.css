@@ -155,7 +155,7 @@
 .readersettings-enter-from,
 .readersettings-leave-to {
   opacity: 0;
-  transform: translate(-33%, -100%);
+  transform: translate(0%, -10%);
 }
 
 .readersettings-enter-active,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Settings2 } from 'lucide-vue-next'
+import { Settings2, X } from 'lucide-vue-next'
 import { ref } from 'vue';
 import ReaderSettings from '../ReaderSettings.vue';
 
@@ -19,8 +19,10 @@ window.addEventListener('click', (e) => {
 <template>
     <div class="relative ReaderSettings">
         <Transition name="readersettings">
-            <ReaderSettings v-if="showSettings" class="absolute top-0 left-0 -translate-x-1/3 -translate-y-[110%]" />
+            <ReaderSettings v-if="showSettings" class="fixed top-24 right-1" />
         </Transition>
-        <Settings2 @click="showSettings = !showSettings" :size="28" class="m-3" />
+        <Settings2 @click="showSettings = !showSettings" :size="28" class="m-3"
+            :class="{ 'hidden transform duration-200 ease-linear': showSettings }" />
+        <X v-if="showSettings" @click="showSettings = !showSettings" :size="28" class="m-3" />
     </div>
 </template>
