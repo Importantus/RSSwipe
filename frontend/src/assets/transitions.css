@@ -151,3 +151,14 @@
   opacity: 0;
   margin-bottom: -80px;
 }
+
+.readinglistsettings-enter-from,
+.readinglistsettings-leave-to {
+  opacity: 0;
+  transform: translateX(8px);
+}
+
+.readinglistsettings-enter-active,
+.readinglistsettings-leave-active {
+  transition: all 0.3s ease-out;
+}
