@@ -1,38 +1,44 @@
 <script setup lang="ts">
-import { defineProps,} from 'vue';
+import { defineProps,ref} from 'vue';
 import { userFeedItem } from '@/stores/feeds';
 import type { FeedItem } from '@/stores/feeds';
 import { ChevronDown } from 'lucide-vue-next';
 import { ChevronLeft } from 'lucide-vue-next';
-import { PlusCircle } from 'lucide-vue-next';
+import TitleNavigationBar from '@/components/TitleNavigationBar.vue'
+
 
 
 
 const store = userFeedItem();
+const showOptions = ref(false);
 const props = defineProps<{
-    feed: FeedItem
-}>()
+    feed: FeedItem;
+}>();
+ 
+const toggleOptions = () => {
+    showOptions.value = !showOptions.value;
+};
 
 const shareFeed = () => {
     navigator.share({
         title: props.feed.title,
-        url: props.feed.url
-    })
-}
+        url: props.feed.url,
+    });
+};
 </script>
 
 
 <template>
-    <div class="flex items-center">
-        <a href="/">
-            <ChevronLeft size="28" />
-        </a>
-        <h2 class="text-white font-semibold truncate ">Your Feeds</h2>
+    <div class="flex  items-center ">
+        
+        <TitleNavigationBar title="" backHomePath="/" />
+        <ChevronLeft size="28"/>
+        <h1 class="font-semibold">Your Feeds</h1>
     </div>
 
 
     <div>
-        <div class="flex items-center">
+        <div class="flex items-center ">
             <div class="flex justify-between items-center bg-secondary-800 text-white p-5 rounded-lg shadow-md">
 
                 <img class="w-10 h-10 mr-4" :src="props.feed.faviconUrl" alt="favicon" />
@@ -43,12 +49,12 @@ const shareFeed = () => {
                     </button>
                 </div>
                 <div class="flex items-center ml-auto">
-                    <ChevronDown size="35" />
+                    <ChevronDown @click="toggleOptions" size="35" class="{ active: isActive }" :class="{ 'rotate-180': showOptions }" />
                 </div>
             </div>
         </div>
 
-        <div class="rounded-lg bg-secondary-900 ">
+        <div v-if="showOptions" class="rounded-lg bg-secondary-900 ">
             <div class="px-4 py-2">
 
                 <div class="rounded-lg bg-secondary-900 ">
@@ -57,7 +63,7 @@ const shareFeed = () => {
                     </div>
                     <div class="flex justify-center items-center">
                         <div class="px-4 text-secondary-500">if the articles of this feed should be opened in the app or an
-                            external rab
+                            external tab
                         </div>
                         <div class="px 4">
                             <label class="relative inline-flex items-center me-3 cursor-pointer">
@@ -98,7 +104,5 @@ const shareFeed = () => {
 
 
 
-    <div>
-        <PlusCircle size="50" class="bg-orange-500 text-white  rounded-full h-12 w-12 absolute bottom-8 right-0 m-8 py-0" />
-    </div>
+    
 </template>
