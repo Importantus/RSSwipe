@@ -7,6 +7,7 @@ import { ReaderContext, ReaderStatus, useReaderStore } from '@/stores/reader';
 import { MoveRight, MoveLeft } from 'lucide-vue-next';
 import { useRoute } from 'vue-router';
 import { fontSizes, fonts, colorSchemes } from '@/stores/reader';
+import ReaderSettingsButton from '@/components/Reader/FunctionBar/ReaderSettingsButton.vue';
 
 const TOLERANCE = window.innerHeight * 0.1;
 const route = useRoute();
@@ -119,15 +120,15 @@ function calculateUIHide() {
             <Transition name="readerbar-hide">
                 <div v-if="!hideUi"
                     class="flex flex-row items-center justify-between py-5 px-5 z-10 bg-background-950 backdrop-blur-md bg-opacity-70">
-                    <div class="flex flex-row items-center w-full">
+                    <div class="flex flex-row items-center w-[80%]">
                         <router-link :to="backNavigationPath">
                             <MoveLeft size="24" class=" text-inherit" />
                         </router-link>
-                        <h1 class="truncate ... max-width-full text-2xl font-bold text-inherit ml-2">{{
+                        <h1 class="truncate ... text-2xl font-bold text-inherit ml-2">{{
                             store.storedArticles[0].articleInfo.title }}</h1>
                     </div>
-                    <div class="flex flex-row items-center">
-                        <slot></slot>
+                    <div class="flex flex-row items-center flex-shrink-0">
+                        <ReaderSettingsButton />
                     </div>
                 </div>
             </Transition>
@@ -162,9 +163,12 @@ function calculateUIHide() {
                 <div v-if="store.storedArticles.length > 1" @click="nextArticle" class="border-inherit">
                     <div class="border-b-2 border-inherit w-full mb-5"></div>
                     <h1 class="text-lg font-bold text-inherit my-2">Next Article:</h1>
-                    <div class="bg-cover bg-black bg-opacity-80 bg-blend-overlay p-5 rounded-2xl" :style="{
-                        backgroundImage: 'url(' + url + ')',
-                    }">
+                    <div :style="{ backgroundImage: 'url(' + url + ')' }" class="bg-cover bg-blend-overlay p-5 rounded-2xl"
+                        :class="{
+                            'bg-[#5c4e38] bg-opacity-80': store.settings.colorScheme.id === colorSchemes.sepia.id,
+                            'bg-black bg-opacity-20': store.settings.colorScheme.id === colorSchemes.light.id,
+                            'bg-background-950 bg-opacity-75': store.settings.colorScheme.id === colorSchemes.dark.id,
+                        }">
                         <div class="flex flex-row items-center">
                             <div class="">
                                 <h1 class="text-lg font-bold text-white w-fit line-clamp-2 overflow-ellipsis">
