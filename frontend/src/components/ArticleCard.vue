@@ -19,7 +19,7 @@ const elementRotateZ = computed(() => elementTransformX.value / 10);
 let posX = 0;
 
 const displayWidth = window.innerWidth;
-const swipeToTrigger = displayWidth / 5;
+const swipeToTrigger = displayWidth / 10;
 
 function openinReader() {
     readerStore.openArticle(ReaderContext.STARTPAGE, store.articles[0]);
