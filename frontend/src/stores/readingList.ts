@@ -16,6 +16,14 @@ export const useReadingListStore = defineStore({
         removedArticles: [] as Article[],
         settings: {} as Settings
     }),
+    getters: {
+        hasStarredArticles(): boolean {
+            return this.articles.some(a => a.articleInfo.starred)
+        },
+        getStarredArticles(): StoredArticle[] {
+            return this.articles.filter(a => a.articleInfo.starred)
+        },
+    },
     actions: {
         addArticleLocal(article: Article) {
             if (this.articles.findIndex(a => a.articleInfo.id === article.id) === -1) {
