@@ -4,6 +4,11 @@ import ReadinglistItem from './ReadinglistItem.vue';
 import { Trash2 } from 'lucide-vue-next';
 import { Star } from 'lucide-vue-next';
 
+defineProps<{
+    isStarred: boolean
+}>();
+
+
 const store = useReadingListStore();
 
 store.update();
@@ -20,7 +25,20 @@ store.update();
         </div>
         <div v-else>
             <TransitionGroup name="list" tag="div" class="flex flex-col gap-3">
-                <ReadinglistItem v-for="article in store.articles" :key="article.articleInfo.id"
+                <ReadinglistItem v-if="isStarred" v-for="article in store.getStarredArticles" :key="article.articleInfo.id"
+                    :article="article.articleInfo" @swipe-right="store.removeArticle(article.articleInfo)"
+                    :downloaded="article.content !== undefined" :swipe-right="{
+                        color: 'red',
+                        name: 'Remove',
+                        removeCard: true,
+                        icon: Trash2
+                    }" :swipe-left="{
+    color: 'orange',
+    removeCard: false,
+    name: 'Star',
+    icon: Star
+}" />
+                <ReadinglistItem v-if="!isStarred" v-for="article in store.articles" :key="article.articleInfo.id"
                     :article="article.articleInfo" @swipe-right="store.removeArticle(article.articleInfo)"
                     :downloaded="article.content !== undefined" :swipe-right="{
                         color: 'red',
