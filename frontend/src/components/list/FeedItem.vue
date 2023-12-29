@@ -29,32 +29,26 @@ const shareFeed = () => {
 
 
 <template>
-    <div class="flex  items-center ">
-        
-        <TitleNavigationBar title="" backHomePath="/" />
-        <ChevronLeft size="28"/>
-        <h1 class="font-semibold">Your Feeds</h1>
-    </div>
-
-
+    
     <div>
-        <div class="flex items-center ">
-            <div class="flex justify-between items-center bg-secondary-800 text-white p-5 rounded-lg shadow-md">
+        <div class="flex items-center text-center ">
+            <div class="flex justify-between items-center bg-secondary-800 text-white p-5 rounded-t-lg shadow-md w-full ">
 
                 <img class="w-10 h-10 mr-4" :src="props.feed.faviconUrl" alt="favicon" />
                 <div class="flex-grow mx-5">
-                    <button @click="store.toggleFeed(props.feed.id)" class="text-center">
+                    <button @click="toggleOptions" class="text-center">
                         {{ props.feed.title }}
-                        <span class="ml-2 text-xs text-secondary-500">(~34 Articles per day)</span>
+                        <br>
+                        <span class=" feed-item ml-2 text-xs text-secondary-500  items-center">(~34 Articles per day)</span> 
                     </button>
                 </div>
-                <div class="flex items-center ml-auto">
+                <div class="flex items-center ml-auto ">
                     <ChevronDown @click="toggleOptions" size="35" class="{ active: isActive }" :class="{ 'rotate-180': showOptions }" />
                 </div>
             </div>
         </div>
 
-        <div v-if="showOptions" class="rounded-lg bg-secondary-900 ">
+        <div v-if="showOptions" class=" rounded-b-lg bg-secondary-900 ">
             <div class="px-4 py-2">
 
                 <div class="rounded-lg bg-secondary-900 ">
@@ -86,20 +80,12 @@ const shareFeed = () => {
                     <div><button @click="shareFeed();"
                             class="bg-transparent hover:bg-secondary-500 text-secondary-300 font-semibold hover:text-white py-2 px-20 border border-scondary-500 rounded-lg">Share</button>
                     </div>
-                    <div @click="store.toggleFeed(feed.id)"
-                        class="fixed inset-0  bg-opacity-50 z-10 flex justify-center items-center">
-                        <div class="max-w-sm">
-
-
-                        </div>
-
-                    </div>
                 </div>
 
             </div>
         </div>
     </div>
-    <div class="flex justify-center text-secondary-500 py-4"> Swipe for more options</div>
+    
 
 
 
