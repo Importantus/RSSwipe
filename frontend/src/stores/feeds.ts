@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from '@/axios'
 
-//Schnittstelle, um einen Artikel in einem Benutzer-Feed anzuzeigen
 export interface FeedItem {
     id: string,
     title: string,
@@ -17,33 +16,10 @@ export const userFeedItem = defineStore("feedList", {
         feedList: [] as FeedItem[]
     }),
     actions: {
-        async addFeed(url: string, openInApp: boolean) {
-            const response = await axios.post('/feeds', {
-                url,
-                openInApp
-            })
-
-            // Check if response is valid
-            if (response.status !== 200) {
-                return
-            }
-
-            this.feedList.push({
-                id: response.data.id,
-                title: response.data.title,
-                faviconUrl: response.data.faviconUrl,
-                url: response.data.link,
-                openInApp: response.data.openInApp,
-                filtered: false
-            })
-        },
-        async deleteFeed(id: string) {
-            await axios.delete(`/feeds/${id}`)
-        },
         async getFeedList() {
             const response = await axios.get('/feeds')
 
-            // Check if response is valid
+            
             if (response.status !== 200) {
                 return
             }
@@ -59,6 +35,41 @@ export const userFeedItem = defineStore("feedList", {
                 filtered: false
             }))
         },
+        async addFeed(url: string, openInApp: boolean) {
+            const response = await axios.post('/feeds', {
+                url,
+                openInApp
+            })
+
+            if (response.status !== 200) {
+                console.log(response);
+            }
+
+            this.feedList.push({
+                id: response.data.id,
+                title: response.data.title,
+                faviconUrl: response.data.faviconUrl,
+                url: response.data.link,
+                openInApp: response.data.openInApp,
+                filtered: false
+            })
+        },
+        async deleteFeed(id: string) { 
+           // const response= 
+            await axios.delete(`/feeds/${id}`)
+            this.getFeedList()
+            //this.feedList.find  // lösche feed aus feedlist 
+
+           /* this.feedList.splice({
+                id: response.data.id,
+                title: response.data.title,
+                faviconUrl: response.data.faviconUrl,
+                url: response.data.link,
+                openInApp: response.data.openInApp,
+                filtered: false
+            })*/
+        },
+        
         async toggleOpenInApp(id: string) {
             const item = this.feedList.find(item => item.id === id)
             if (item) {
