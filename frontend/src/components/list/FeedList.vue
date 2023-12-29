@@ -2,11 +2,13 @@
 import { userFeedItem } from '@/stores/feeds';
 import FeedItem from './FeedItem.vue';
 
+
 const store = userFeedItem();
 
-store.addFeed("https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml", true)
+
 
 store.getFeedList();
+
 
 </script>
 <template>
