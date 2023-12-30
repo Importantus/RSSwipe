@@ -151,3 +151,15 @@
   opacity: 0;
   margin-bottom: -80px;
 }
+
+.readersettings-enter-from,
+.readersettings-leave-to {
+  opacity: 0;
+  transform: translate(0%, -10%);
+}
+
+.readersettings-enter-active,
+.readersettings-leave-active {
+  transition: all 0.3s ease;
+  -tw-backdrop-blur: blur(12px)
+}
