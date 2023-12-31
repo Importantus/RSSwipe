@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import FeedList from '@/components/list/FeedList.vue';
-import { PlusCircle } from 'lucide-vue-next';
+import { Plus } from 'lucide-vue-next';
 import { userFeedItem } from '@/stores/feeds';
 import { ref } from 'vue';
 import TitleNavigationBar from '@/components/TitleNavigationBar.vue'
-import FeedItem from '@/components/list/FeedItem.vue';
+import TextInputIcon from '@/components/TextInputIcon.vue'
+import { Link } from 'lucide-vue-next';
+
 
 const newFeedUrl = ref('');
 const openInApp = ref(true);
@@ -18,12 +20,8 @@ const toggleAddFeedPopup = () => {
 const addNewFeed = async () => {
   const shortenedURL = newFeedUrl.value.trim();
   if (shortenedURL) {
+    showModal.value = false;
     await store.addFeed(shortenedURL, openInApp.value);
-    
-    showModal.value = true;
-
-    //await store.addFeed(newFeedUrl.value, true);
-    
     newFeedTitle.value = '';
     newFeedUrl.value = '';
     
@@ -37,16 +35,18 @@ const addNewFeed = async () => {
 
 <template>
   <div>
-    <div class="px-5  pb-10 relative z-10">
+    <div class="px-5  pb-1 relative z-10">
     <TitleNavigationBar title="Your Feeds" backNavigationPath="/" />
   </div>
   
-    <div>
-      <div class="bg-primary-600 rounded-full h-13 w-13 absolute bottom-8 right-0 m-8 py-0"> 
-      <PlusCircle size="50" @click="showModal = true"
-        class=" text-white  " />
+    <div >
+      
+      <div class="bg-primary-600 rounded-full  absolute bottom-8 right-0 m-8 py-0 mr-8"> 
+        
+      <Plus :size="24"  @click="showModal = true"
+        class=" text-white m-3" />
       </div>
-
+      
       
       <div 
       v-if="showModal"
@@ -54,13 +54,20 @@ const addNewFeed = async () => {
     >
       <div  class="bg-secondary-900 p-4 rounded-lg shadow-lg justify-between">
         <h3 class="text-lg font-semibold mb-4">Add New Feed</h3>
-        <input v-model="newFeedUrl" type="text" placeholder="URL" 
-          class="p-2 border border-secondary-800 rounded mb-4 w-full text-black " />
+        <TextInputIcon
+          
+          v-model="newFeedUrl"
+          placeholder="URL"
+          :icon="Link" 
+          :required="true"
+        />
+          
         <button @click="addNewFeed"
-          class="hover:bg-secondary-500 border border-scondary-400 text-white font-semibold p-2 rounded ">Add
+          class="hover:bg-secondary-500 border border-scondary-400 text-white font-semibold p-2 rounded mb-4 mt-3">Add
           Feed</button>
         <button @click="toggleAddFeedPopup"
           class=" hover:bg-secondary-500 border border-scondary-400 text-white font-semibold p-2 rounded ml-3">Cancel</button>
+        
       </div>
     </div>
     </div>
