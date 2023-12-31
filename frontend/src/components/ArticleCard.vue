@@ -90,6 +90,15 @@ if (!props.article.imageUrl) {
                 backgroundImage: 'url(' + url + ')',
                 transform: 'translateX(' + elementTransformX + 'px) rotateZ(' + elementRotateZ + 'deg)',
             }">
+            <div
+                class="absolute font-text-detail top-3 left-3 bg-background-900 bg-opacity-50 px-2 py-1 text-xs rounded-lg">
+                {{ new Date(props.article.publishedAt).toLocaleString(undefined, {
+                    month: 'long',
+                    day: 'numeric',
+                    minute: 'numeric',
+                    hour: 'numeric'
+                }) }}
+            </div>
             <ArticleInfoElement :article="props.article" class="rounded-xl absolute bottom-0" />
         </div>
     </div>
