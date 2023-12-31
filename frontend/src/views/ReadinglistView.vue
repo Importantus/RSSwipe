@@ -44,7 +44,7 @@ watch(() => store.removedArticles.length, (newValue, oldValue) => {
                 </div>
             </div>
         </div>
-        <div class="px-5 overflow-y-scroll pb-10">
+        <div class="px-5 overflow-y-scroll pb-10 h-full">
             <TitleNavigationBar title="Reading List" backNavigationPath="/" class="mb-5">
                 <div class="flex gap-4">
                     <ListX v-if="store.articles.length > 0" size="24" class="text-white cursor-pointer"
