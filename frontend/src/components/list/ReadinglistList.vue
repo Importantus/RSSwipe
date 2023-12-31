@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { StoreStatus, useReadingListStore } from '@/stores/readingList';
 import ReadinglistItem from './ReadinglistItem.vue';
-import { Trash2 } from 'lucide-vue-next';
-import { Star } from 'lucide-vue-next';
 
 const store = useReadingListStore();
 
@@ -22,17 +20,8 @@ store.update();
             <TransitionGroup name="list" tag="div" class="flex flex-col gap-3">
                 <ReadinglistItem v-for="article in store.articles" :key="article.articleInfo.id"
                     :article="article.articleInfo" @swipe-right="store.removeArticle(article.articleInfo)"
-                    :downloaded="article.content !== undefined" :swipe-right="{
-                        color: 'red',
-                        name: 'Remove',
-                        removeCard: true,
-                        icon: Trash2
-                    }" :swipe-left="{
-    color: 'orange',
-    removeCard: false,
-    name: 'Star',
-    icon: Star
-}" />
+                    :downloaded="article.content !== undefined" :swipe-right="store.swipeRight"
+                    :swipe-left="store.swipeLeft" />
             </TransitionGroup>
         </div>
     </div>

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import TitleNavigationBar from '@/components/TitleNavigationBar.vue';
-import { useReadingListStore } from '@/stores/readingList';
+import SwipeDirectionItem from '@/components/list/settings/SwipeDirectionItem.vue';
+import { useReadingListStore, StoreStatus, possibleSwipeDirections } from '@/stores/readingList';
+import { ArrowLeftToLineIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const store = useReadingListStore();
@@ -50,7 +52,16 @@ store.loadSettings()
 
 <template>
     <div class="px-5 overflow-y-scroll pb-10">
-        <TitleNavigationBar title="Reading List Settings" backNavigationPath="/readinglist" class="mb-5" />
+        <TitleNavigationBar title="Reading List Settings" backNavigationPath="/readinglist" />
+        <div class="mb-5">
+            <div v-if="store.settingsStatus === StoreStatus.SUCCESS" class="w-full bg-green-500 rounded-lg p-3 z-10">
+                Settings saved successfully
+            </div>
+            <div v-if="store.settingsStatus === StoreStatus.ERROR" class="w-full bg-red-500 rounded-lg p-3 z-10">
+                Error saving settings
+            </div>
+        </div>
+
         <div class="flex flex-col gap-5">
             <div class="flex flex-col gap-2">
                 <div class="font-title text-xl">Time to expire</div>
@@ -60,18 +71,14 @@ store.loadSettings()
             </div>
             <div class="flex flex-col gap-2">
                 <div
-                    class="font-title flex justify-between h-16 p-3 px-5 items-center bg-background-900 bg-opacity-30 rounded-sm">
+                    class="font-title flex justify-between min-h-[4rem] gap-5 p-3 px-5 items-center bg-background-900 bg-opacity-30 rounded-sm">
                     Read Articles
-                    <div class="flex items-center gap-6 flex-wrap">
+                    <div class="flex items-center  justify-end gap-x-5 gap-y-3 flex-wrap-reverse ">
                         <Transition name="readinglistsettings">
                             <div v-if="!expTimeReadNever" class="flex gap-2 items-center">
                                 <input v-model="expTimeRead" type="number"
                                     class="w-10 text-center border-b-2 rounded-none bg-transparent text-lg" />
                                 <div>hours</div>
-                            </div>
-                        </Transition>
-                        <Transition name="fade">
-                            <div v-if="!expTimeReadNever" class="h-10 w-[2px] bg-background-600">
                             </div>
                         </Transition>
                         <div class="flex gap-3 items-center">
@@ -83,18 +90,14 @@ store.loadSettings()
 
                 </div>
                 <div
-                    class="font-title flex justify-between h-16 p-3 px-5 items-center bg-background-900 bg-opacity-30 rounded-sm">
+                    class="font-title flex justify-between min-h-[4rem]  gap-5 p-3 px-5 items-center bg-background-900 bg-opacity-30 rounded-sm">
                     Unread Articles
-                    <div class="flex items-center gap-6 flex-wrap">
+                    <div class="flex items-center justify-end gap-x-5 gap-y-3 flex-wrap-reverse">
                         <Transition name="readinglistsettings">
                             <div v-if="!expTimeUnreadNever" class="flex gap-2 items-center">
                                 <input v-model="expTimeUnread" type="number"
                                     class="w-10 text-center border-b-2 rounded-none bg-transparent text-lg" />
                                 <div>hours</div>
-                            </div>
-                        </Transition>
-                        <Transition name="fade">
-                            <div v-if="!expTimeUnreadNever" class="h-10 w-[2px] bg-background-600">
                             </div>
                         </Transition>
                         <div class="flex gap-3 items-center">
@@ -110,20 +113,50 @@ store.loadSettings()
                     class="w-full h-14 bg-primary-600 rounded-lg hover:bg-primary-800 transition">Save</button>
             </div>
         </div>
+
+        <div class="mt-14 flex flex-col gap-10">
+            <div class="flex flex-col gap-2">
+                <div class="font-title text-xl">Swipe gestures</div>
+                <div class="text-background-300 text-lg leading-tight">The actions that are performed when swiping an
+                    article
+                    to the left or right
+                </div>
+            </div>
+            <div>
+                <div class="flex font-title items-center gap-3 text-lg">
+                    <ArrowLeftToLineIcon size="30" class="text-white transform rotate-180" />
+                    Swipe right
+                </div>
+                <div class="mt-5 flex gap-3 h-fit">
+                    <SwipeDirectionItem v-for="direction in possibleSwipeDirections" :key="direction.id"
+                        :ownDirection="direction" :selected="direction.id === store.swipeRight.id"
+                        :onClick="() => store.setSwipeRight(direction.id)" />
+                </div>
+            </div>
+            <div>
+                <div class="flex font-title items-center gap-3 text-lg">
+                    <ArrowLeftToLineIcon size="30" class="text-white" />
+                    Swipe left
+                </div>
+                <div class="mt-5 flex gap-3">
+                    <SwipeDirectionItem v-for="direction in possibleSwipeDirections" :key="direction.id"
+                        :ownDirection="direction" :selected="direction.id === store.swipeLeft.id"
+                        :onClick="() => store.setSwipeLeft(direction.id)" />
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <style scoped>
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-    /* display: none; <- Crashes Chrome on hover */
     -webkit-appearance: none;
     margin: 0;
-    /* <-- Apparently some margin are still there even though it's hidden */
 }
 
 input[type=number] {
     -moz-appearance: textfield;
-    /* Firefox */
+    appearance: textfield;
 }
 </style>
