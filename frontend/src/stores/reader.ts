@@ -146,8 +146,9 @@ export const useReaderStore = defineStore({
                     this.ReaderContext = ReaderContext.READINGLIST
                     const readingListStore = useReadingListStore();
                     this.startIndex = readingListStore.articles.findIndex(a => a.articleInfo.id === article.id)
-                    this.storedArticles = readingListStore.articles.slice(this.startIndex, this.startIndex + 2)
+                    this.storedArticles = readingListStore.articles.slice(this.startIndex, this.startIndex + 1)
                     this.markArticleAsRead(article)
+                    this.getNextUnreadArticle()
                     router.push(`/article/${article.id}`)
                     this.status = ReaderStatus.READY
                     break;
@@ -186,13 +187,30 @@ export const useReaderStore = defineStore({
 
         }
         ,
-
         async nextArticle() {
+            this.storedArticles.shift()
+            this.markArticleAsRead(this.storedArticles[0].articleInfo)
             const readingListStore = useReadingListStore();
-            this.startIndex = this.startIndex + 1
-            this.storedArticles = readingListStore.articles.slice(this.startIndex, this.startIndex + 2)
-            console.log(this.storedArticles)
+            this.startIndex = readingListStore.articles.findIndex(a => a.articleInfo.id === this.storedArticles[0].articleInfo.id)
+            this.getNextUnreadArticle()
             router.push(`/article/${this.storedArticles[0].articleInfo.id}`)
+        },
+
+        async getNextUnreadArticle() {
+            const readingListStore = useReadingListStore();
+            const remainingArticles = readingListStore.articles.slice(this.startIndex + 1, readingListStore.articles.length)
+            let unreadArticles = remainingArticles.filter(a => !a.articleInfo.read)
+            if (unreadArticles.length > 0) {
+                //Unread Articles below the current one
+                this.storedArticles.push(unreadArticles[0])
+            } else {
+                //Any Unread Articles above or below the current one
+                unreadArticles = readingListStore.articles.filter(a => !a.articleInfo.read)
+                if (unreadArticles.length > 0) {
+                    this.storedArticles.push(unreadArticles[0])
+                }
+            }
+            return
         },
 
         async getArticleContent(article: Article) {
