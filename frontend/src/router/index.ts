@@ -7,7 +7,8 @@ import ReaderView from '@/views/ReaderView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 import { useAuthStore } from '@/stores/auth'
 import pinia from '@/stores/index'
-import ReadinglistViewVue from '@/views/ReadinglistView.vue'
+import ReadinglistView from '@/views/ReadinglistView.vue'
+import StarredlistView from '@/views/StarredlistView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -30,7 +31,12 @@ const router = createRouter({
     {
       path: '/readinglist',
       name: 'Reading List',
-      component: ReadinglistViewVue,
+      component: ReadinglistView,
+    },
+    {
+      path: '/starredlist',
+      name: 'Starred List',
+      component: StarredlistView,
     },
     {
       path: '/readinglist/settings',
