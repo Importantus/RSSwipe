@@ -29,12 +29,12 @@ watch(() => store.removedArticles.length, (newValue, oldValue) => {
             <div class="w-[90%] max-w-lg bg-background-950 rounded-xl p-5 relative">
                 <X class="absolute top-5 right-5 cursor-pointer" size="26" @click="showClearListModal = false" />
                 <div class="text-xl font-semibold">Clear List?</div>
-                <div class="text-background-600 mb-5">Which articles do you want to remove?</div>
+                <div class="text-background-400 mb-5">Which articles do you want to remove?</div>
                 <div class="flex flex-col gap-5">
                     <button @click="() => {
                         store.clear(false)
                         showClearListModal = false
-                    }" class="w-full h-14 bg-primary-950 rounded-lg transition">Remove all
+                    }" class="w-full h-14 bg-primary-950 rounded-lg transition font-semibold">Remove all
                         articles</button>
                     <button @click="() => {
                         store.clear(true)
