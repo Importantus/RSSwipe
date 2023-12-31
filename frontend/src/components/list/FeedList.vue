@@ -12,7 +12,7 @@ store.getFeedList();
 
 </script>
 <template>
-    <div class="container mx-auto p-4">
+    <div class="container  p-4">
         <div class="space-y-4">
             <FeedItem v-for="feed in store.feedList" :key="feed.id" :feed="feed"/>
         </div>
