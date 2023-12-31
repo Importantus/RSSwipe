@@ -46,7 +46,7 @@ export const useStartPageStore = defineStore({
 
             if (response.status === 200) {
                 for (const article of response.data) {
-                    if (!this.articles.find(a => a.id === article.id)) {
+                    if (!this.articles.find(a => a.id === article.id) && !this.lastActions.find(a => a.id === article.id)) {
                         this.articles.push(article)
                     }
                 }
@@ -84,8 +84,7 @@ export const useStartPageStore = defineStore({
             })
         },
         saveAction() {
-            this.lastActions.unshift(this.articles[0],
-            )
+            this.lastActions.unshift(this.articles[0])
 
             if (this.lastActions.length > 5) {
                 this.lastActions.pop()

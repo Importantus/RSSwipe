@@ -65,7 +65,21 @@ function releaseHandler() {
     }
 }
 
-const url = computed(() => `"${props.article.imageUrl}"`)
+
+let templateArr: string[] =
+    ["/images/articles/placeholder01.png",
+        "/images/articles/placeholder02.png",
+        "/images/articles/placeholder03.png",
+        "/images/articles/placeholder04.png"]
+
+let url = ref("")
+
+if (!props.article.imageUrl) {
+    url.value = templateArr[Math.floor(Math.random() * templateArr.length)];
+} else {
+    url = computed(() => `"${props.article.imageUrl}"`)
+}
+
 </script>
 
 <template>

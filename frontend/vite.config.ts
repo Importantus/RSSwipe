@@ -15,7 +15,9 @@ export default defineConfig({
       name: 'RSS Swiper',
       short_name: 'RSSS',
       description: "A card swpiping RSS reader",
+      background_color: '#0A0A0A',
       theme_color: '#0A0A0A',
+      orientation: 'portrait',
       icons: [
         {
           src: 'icons/Logo-Small.png',
