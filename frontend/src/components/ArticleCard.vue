@@ -14,7 +14,7 @@ const readerStore = useReaderStore();
 
 const hidden = ref(false);
 const elementTransformX = ref(0)
-const elementRotateZ = computed(() => elementTransformX.value / 10);
+const elementRotateZ = computed(() => elementTransformX.value / 8);
 
 let posX = 0;
 
