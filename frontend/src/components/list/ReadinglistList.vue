@@ -37,7 +37,7 @@ store.update();
     removeCard: false,
     name: 'Star',
     icon: Star
-}" />
+}" :star-style="isStarred" />
                 <ReadinglistItem v-if="!isStarred" v-for="article in store.articles" :key="article.articleInfo.id"
                     :article="article.articleInfo" @swipe-right="store.removeArticle(article.articleInfo)"
                     :downloaded="article.content !== undefined" :swipe-right="{
@@ -50,7 +50,7 @@ store.update();
     removeCard: false,
     name: 'Star',
     icon: Star
-}" />
+}" :star-style="isStarred" />
             </TransitionGroup>
         </div>
     </div>
