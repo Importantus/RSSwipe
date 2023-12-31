@@ -14,12 +14,12 @@ const readerStore = useReaderStore();
 
 const hidden = ref(false);
 const elementTransformX = ref(0)
-const elementRotateZ = computed(() => elementTransformX.value / 10);
+const elementRotateZ = computed(() => elementTransformX.value / 8);
 
 let posX = 0;
 
 const displayWidth = window.innerWidth;
-const swipeToTrigger = displayWidth / 4;
+const swipeToTrigger = displayWidth / 10;
 
 function openinReader() {
     readerStore.openArticle(ReaderContext.STARTPAGE, store.articles[0]);
@@ -45,19 +45,21 @@ function swipeHandler(event: TouchEvent | MouseEvent) {
 
     const diff = currentX - posX;
 
-    if (Math.abs(diff) > displayWidth / 20 || elementTransformX.value !== 0) {
-        elementTransformX.value = diff;
-    }
+    elementTransformX.value = diff;
 }
 
 function releaseHandler() {
     if (props.index !== 0) return;
     if (elementTransformX.value > swipeToTrigger) {
         elementTransformX.value = 500;
-        store.saveArticle();
+        setTimeout(() => {
+            store.saveArticle();
+        }, 100);
     } else if (elementTransformX.value < -swipeToTrigger) {
         elementTransformX.value = -500;
-        store.discardArticle()
+        setTimeout(() => {
+            store.discardArticle();
+        }, 100);
     } else {
         elementTransformX.value = 0;
     }

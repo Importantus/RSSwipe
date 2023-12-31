@@ -11,7 +11,7 @@ onMounted(async () => {
         navigator.canShare();
         canShare.value = true;
     } catch (error) {
-        console.log("Error: Sharing not supported")
+        canShare.value = false;
     }
 });
 
