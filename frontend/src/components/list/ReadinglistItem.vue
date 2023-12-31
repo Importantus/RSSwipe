@@ -17,6 +17,7 @@ const props = defineProps<{
     downloaded: boolean;
     swipeLeft: SwipeDirection,
     swipeRight: SwipeDirection
+    starStyle: boolean;
 }>();
 
 const readerStore = useReaderStore();
@@ -113,7 +114,7 @@ function releaseHandler() {
             <div @mouseenter="mouseover = true" @mouseleave="mouseover = false" v-touch:drag="swipeHandler"
                 v-touch:press="pressHandler" v-touch:release="releaseHandler"
                 class="w-full bg-[#222] py-4 px-5 flex flex-col gap-2 transition-transform ease-linear duration-100 relative"
-                :class="{ 'brightness-75': props.article.read }"
+                :class="{ 'brightness-75': props.article.read && !starStyle, 'border-4 rounded-xl border-primary-600': starStyle }"
                 :style="{ transform: 'translateX(' + elementTransformX + 'px)' }">
                 <Transition name="fade">
                     <div v-if="mouseover" class="absolute h-full right-2 top-0 bottom-0 flex flex-col justify-center gap-2">
