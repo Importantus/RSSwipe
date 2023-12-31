@@ -55,19 +55,10 @@ export const userFeedItem = defineStore("feedList", {
             })
         },
         async deleteFeed(id: string) { 
-           // const response= 
+           
             await axios.delete(`/feeds/${id}`)
             this.getFeedList()
-            //this.feedList.find  // lösche feed aus feedlist 
-
-           /* this.feedList.splice({
-                id: response.data.id,
-                title: response.data.title,
-                faviconUrl: response.data.faviconUrl,
-                url: response.data.link,
-                openInApp: response.data.openInApp,
-                filtered: false
-            })*/
+           
         },
         
         async toggleOpenInApp(id: string) {
@@ -78,6 +69,7 @@ export const userFeedItem = defineStore("feedList", {
                     openInApp: item.openInApp
                 })
             }
+            
         },
         toggleFeed(id: string) {
             const item = this.feedList.find(item => item.id === id)
