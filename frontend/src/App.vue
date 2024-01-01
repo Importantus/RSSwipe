@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import { useSettingsStore } from './stores/settings';
+
+const store = useSettingsStore();
+
+store.applySettings();
 </script>
 
 <template>
