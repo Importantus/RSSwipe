@@ -7,6 +7,33 @@ import { computed } from 'vue';
 
 const store = useReadingListStore();
 
+function onInput(event: Event) {
+    let target = event.target as HTMLInputElement;
+    let value = JSON.parse(JSON.stringify(target.value.replace(/[^0-9]/g, '')))
+
+    // If the input is empty, add a 0
+    if (value.length === 0) {
+        value = '0';
+    }
+
+    // If the value has trailing zeros, remove them
+    if (value.length > 1 && value[0] === '0') {
+        value = value.slice(1);
+    }
+
+    // If the value has more than 3 digits, remove the last one
+    if (value.length > 3) {
+        value = value.slice(0, 3);
+    }
+
+    target.value = value;
+
+    // Set the value again after the input has been updated because Firefox doesn't update the value immediately
+    setTimeout(() => {
+        target.value = value;
+    }, 0)
+}
+
 const expTimeUnread = computed({
     get: () => Math.floor(store.settings.expTimeUnread / 1000 / 60 / 60),
     set: (value) => {
@@ -76,8 +103,8 @@ store.loadSettings()
                     <div class="flex items-center  justify-end gap-x-5 gap-y-3 flex-wrap-reverse ">
                         <Transition name="readinglistsettings">
                             <div v-if="!expTimeReadNever" class="flex gap-2 items-center">
-                                <input v-model="expTimeRead" type="number"
-                                    class="w-10 text-center border-b-2 rounded-none bg-transparent text-lg" />
+                                <input @input="onInput" v-model="expTimeRead" type="number" max="999" min="0"
+                                    class="w-14 text-center border-b-2 rounded-none bg-transparent text-lg" />
                                 <div>hours</div>
                             </div>
                         </Transition>
@@ -95,8 +122,8 @@ store.loadSettings()
                     <div class="flex items-center justify-end gap-x-5 gap-y-3 flex-wrap-reverse">
                         <Transition name="readinglistsettings">
                             <div v-if="!expTimeUnreadNever" class="flex gap-2 items-center">
-                                <input v-model="expTimeUnread" type="number"
-                                    class="w-10 text-center border-b-2 rounded-none bg-transparent text-lg" />
+                                <input @input="onInput" v-model="expTimeUnread" type="number" max="999" min="0"
+                                    class="w-14 text-center border-b-2 rounded-none bg-transparent text-lg" />
                                 <div>hours</div>
                             </div>
                         </Transition>
@@ -110,7 +137,7 @@ store.loadSettings()
             </div>
             <div>
                 <button @click="updateSettings"
-                    class="w-full h-14 bg-primary-600 rounded-lg hover:bg-primary-800 transition">Save</button>
+                    class="w-full h-14 bg-primary-600 rounded-lg hover:bg-primary-800 transition font-semibold text-lg">Save</button>
             </div>
         </div>
 
