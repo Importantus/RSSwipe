@@ -121,6 +121,16 @@ async function addArticlesToDb(feed: Parser.Output<any>, feedId: string) {
 
     for (const article of articles) {
         try {
+            let publishedAt: Date | null = new Date(article.pubDate);
+                if (isNaN(publishedAt.getTime())) {
+                    publishedAt = null;
+                }
+            
+            if(publishedAt && publishedAt.getTime() < (new Date().getTime() - Number(environment.timeToDeleteOldArticles))) {
+                console.log("Skipping article " + article.title + " because it is too old: " + publishedAt)
+                continue;
+            }
+
             const existingArticle = await prisma.article.findUnique({
                 where: {
                     link: article.link
@@ -129,11 +139,6 @@ async function addArticlesToDb(feed: Parser.Output<any>, feedId: string) {
 
             if (!existingArticle) {
                 const imageUrl = await getImageUrl(article.link);
-
-                let publishedAt: Date | null = new Date(article.pubDate);
-                if (isNaN(publishedAt.getTime())) {
-                    publishedAt = null;
-                }
 
                 await prisma.article.create({
                     data: {
