@@ -126,7 +126,7 @@ async function addArticlesToDb(feed: Parser.Output<any>, feedId: string) {
                     publishedAt = null;
                 }
             
-            if(publishedAt && publishedAt.getTime() < (new Date().getTime() - Number(environment.timeToDeleteOldArticles))) {
+            if(publishedAt && publishedAt.getTime() < (new Date().getTime() - Number(environment.maxArticleAge))) {
                 console.log("Skipping article " + article.title + " because it is too old: " + publishedAt)
                 continue;
             }
