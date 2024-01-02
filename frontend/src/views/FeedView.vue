@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import FeedList from '@/components/list/FeedList.vue';
-import { Plus } from 'lucide-vue-next';
 import { userFeedItem } from '@/stores/feeds';
 import { ref } from 'vue';
 import TitleNavigationBar from '@/components/TitleNavigationBar.vue'
 import TextInputIcon from '@/components/TextInputIcon.vue'
-import { Link } from 'lucide-vue-next';
+import { Link, X ,Plus} from 'lucide-vue-next';
 
 
 const newFeedUrl = ref('');
@@ -52,8 +51,14 @@ const addNewFeed = async () => {
       v-if="showModal"
       class="fixed z-40 top-0 bottom-0 left-0 right-0 h-screen w-screen bg-opacity-40 bg-black flex justify-center items-center"
     >
-      <div  class="bg-secondary-900 p-4 rounded-lg shadow-lg justify-between">
-        <h3 class="text-lg font-semibold mb-4">Add New Feed</h3>
+    <div class="w-[90%] max-w-lg bg-secondary-900 rounded-xl p-5 relative  justify-between">
+        <X
+        class="absolute mb-3 top-5 right-5 cursor-pointer"
+          size="32"
+          @click="toggleAddFeedPopup" />
+      
+      
+        <h3 class="text-lg font-semibold mb-3 top-5">Add New Feed</h3>
         <TextInputIcon
           
           v-model="newFeedUrl"
@@ -61,19 +66,25 @@ const addNewFeed = async () => {
           :icon="Link" 
           :required="true"
         />
+        
+        
           
-        <button @click="addNewFeed"
-          class="hover:bg-secondary-500 border border-scondary-400 text-white font-semibold p-2 rounded mb-4 mt-3">Add
-          Feed</button>
-        <button @click="toggleAddFeedPopup"
-          class=" hover:bg-secondary-500 border border-scondary-400 text-white font-semibold p-2 rounded ml-3">Cancel</button>
+          
+          <button
+          @click="addNewFeed"
+          class="w-full h-14 bg-amber-600 rounded-lg hover:bg-amber-700 transition  mb-2 mt-4 "
+        >
+        Add Feed
+        </button>
         
       </div>
     </div>
     </div>
+    </div>
+   
 
     <FeedList />
-  </div>
+  
 </template>
 
 <style scoped>
