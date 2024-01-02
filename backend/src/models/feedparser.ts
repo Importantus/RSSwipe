@@ -24,7 +24,7 @@ export async function getFaviconUrl(url: string) {
     const dom = new JSDOM(html);
     const favicon = dom.window.document.querySelector("link[rel='icon']")?.getAttribute("href");
 
-    if (!favicon && (favicon?.length || 0) > environment.maxImageUrlLength) {
+    if (!favicon && (favicon?.length || 0) > Number(environment.maxImageUrlLength)) {
         return null;
     }
 
@@ -46,7 +46,7 @@ async function getImageUrl(url: string) {
     const html = res.data;
     const dom = new JSDOM(html);
     const image = dom.window.document.querySelector("meta[property='og:image']")?.getAttribute("content");
-    return (image?.length || 0) > environment.maxImageUrlLength ? undefined : image;
+    return (image?.length || 0) > Number(environment.maxImageUrlLength) ? undefined : image;
 }
 
 /**
@@ -192,7 +192,7 @@ async function updateAllFeeds() {
  * Initialize the feed parser
  * @param intervall The intervall in ms to update the feeds
  */
-export function initFeedParser(intervall = environment.feedUpdateInterval) {
+export function initFeedParser(intervall = Number(environment.feedUpdateInterval)) {
     console.log("Initializing Feed Parser with an intervall of " + intervall + "ms");
     setInterval(() => {
         try {
