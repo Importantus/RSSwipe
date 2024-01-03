@@ -49,8 +49,9 @@ onMounted(async () => {
     
     <div>
         <div class="flex items-center text-left">
-            <div class="flex justify-between  bg-secondary-800/50 text-white p-4 rounded-lg shadow-md w-full px-4 "  :class="{ 'rounded-b-none': showOptions }">
-
+            
+            <div v-if="props.feed.faviconUrl" class="flex justify-between  bg-secondary-800/50 text-white p-4 rounded-lg shadow-md w-full px-4 "  :class="{ 'rounded-b-none': showOptions }">
+                
                 <img class="w-10 h-10 me-auto" :src="props.feed.faviconUrl" alt="favicon" />
                 <div class="flex-grow flex justify-center items-center mx-2">
                     <button @click="toggleOptions" class=" font-semibold ">
@@ -63,8 +64,9 @@ onMounted(async () => {
                 </div>
                 
             </div>
+        
         </div>
-
+        <Transition> 
         <div v-if="showOptions" class=" rounded-lg bg-secondary-900/75 "  :class="{ 'rounded-t-none': showOptions }">
             <div class="px-4 py-2">
 
@@ -102,7 +104,9 @@ onMounted(async () => {
 
             </div>
         </div>
+        
     </div>
+</Transition>
 </div>
     
 
@@ -111,3 +115,14 @@ onMounted(async () => {
 
     
 </template>
+<style scoped>
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
+</style>
