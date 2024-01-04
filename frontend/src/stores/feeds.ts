@@ -9,8 +9,6 @@ export interface FeedItem {
     url: string,
     openInApp: boolean
 }
-
-
 export const userFeedItem = defineStore("feedList", {
     state: () => ({
         feedList: [] as FeedItem[]
@@ -18,14 +16,10 @@ export const userFeedItem = defineStore("feedList", {
     actions: {
         async getFeedList() {
             const response = await axios.get('/feeds')
-
-            
             if (response.status !== 200) {
                 return
             }
-
             console.log(response.data)
-
             this.feedList = response.data.map((feed: any) => ({
                 id: feed.id,
                 title: feed.title,
@@ -40,11 +34,9 @@ export const userFeedItem = defineStore("feedList", {
                 url,
                 openInApp
             })
-
             if (response.status !== 200) {
                 console.log(response);
             }
-
             this.feedList.push({
                 id: response.data.id,
                 title: response.data.title,
@@ -54,13 +46,12 @@ export const userFeedItem = defineStore("feedList", {
                 filtered: false
             })
         },
-        async deleteFeed(id: string) { 
-           
+        async deleteFeed(id: string) {
+
             await axios.delete(`/feeds/${id}`)
             this.getFeedList()
-           
+
         },
-        
         async toggleOpenInApp(id: string) {
             const item = this.feedList.find(item => item.id === id)
             if (item) {
@@ -69,7 +60,6 @@ export const userFeedItem = defineStore("feedList", {
                     openInApp: item.openInApp
                 })
             }
-            
         },
         toggleFeed(id: string) {
             const item = this.feedList.find(item => item.id === id)
