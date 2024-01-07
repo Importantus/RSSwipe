@@ -116,6 +116,10 @@ export const useReadingListStore = defineStore({
                     }
                 }
 
+                this.articles.sort((a, b) => {
+                    return new Date(b.articleInfo.dateSaved!).getTime() - new Date(a.articleInfo.dateSaved!).getTime()
+                })
+
                 this.status = StoreStatus.READY
 
                 localStorage.setItem('readinglist', JSON.stringify(this.articles))
