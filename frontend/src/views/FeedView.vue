@@ -33,7 +33,7 @@ const addNewFeed = async () => {
       <TitleNavigationBar title="Your Feeds" backNavigationPath="/" />
     </div>
     <div>
-      <div @click="showModal = true" class="bg-primary-600 rounded-full  absolute bottom-8 right-0 m-8 py-0 mr-8">
+      <div @click="showModal = true" class="bg-primary-600 rounded-full  absolute bottom-8 right-0 m-8 py-0 mr-8 cursor-pointer">
         <Plus :size="24"  class=" text-white m-3" />
       </div>
       <div v-if="showModal"
