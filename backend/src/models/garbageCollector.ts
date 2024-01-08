@@ -4,7 +4,7 @@ import { getPrismaClient } from "../prismaClient";
 
 const prisma = getPrismaClient();
 
-export function initGarbageCollector(intervall = environment.garbageCollectorInterval) {
+export function initGarbageCollector(intervall = Number(environment.garbageCollectorInterval)) {
     console.log("Initialising garbage collector with interval of " + intervall + "ms");
     setInterval(async () => {
         try {
@@ -64,7 +64,7 @@ async function deleteOldArticles() {
         const articles = await prisma.article.findMany({
             where: {
                 createdAt: {
-                    lt: new Date(Date.now() - environment.timeToDeleteOldArticles)
+                    lt: new Date(Date.now() - Number(environment.maxArticleAge))
                 }
             }
         });
