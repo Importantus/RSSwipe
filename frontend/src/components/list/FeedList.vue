@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { userFeedItem } from '@/stores/feeds';
+import { useFeedStore } from '@/stores/feeds';
 import FeedItem from './FeedItem.vue';
 
-const store = userFeedItem();
+const store = useFeedStore();
 store.getFeedList();
 </script>
 <template>

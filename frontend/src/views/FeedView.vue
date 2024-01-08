@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FeedList from '@/components/list/FeedList.vue';
-import { userFeedItem } from '@/stores/feeds';
+import { useFeedStore } from '@/stores/feeds';
 import { ref } from 'vue';
 import TitleNavigationBar from '@/components/TitleNavigationBar.vue'
 import TextInputIcon from '@/components/TextInputIcon.vue'
@@ -9,7 +9,7 @@ import { Link, X, Plus } from 'lucide-vue-next';
 const newFeedUrl = ref('');
 const openInApp = ref(true);
 const newFeedTitle = ref('');
-const store = userFeedItem();
+const store = useFeedStore();
 const showModal = ref(false);
 const toggleAddFeedPopup = () => {
   showModal.value = !showModal.value;
@@ -33,8 +33,9 @@ const addNewFeed = async () => {
       <TitleNavigationBar title="Your Feeds" backNavigationPath="/" />
     </div>
     <div>
-      <div @click="showModal = true" class="bg-primary-600 rounded-full  absolute bottom-8 right-0 m-8 py-0 mr-8 cursor-pointer">
-        <Plus :size="24"  class=" text-white m-3" />
+      <div @click="showModal = true"
+        class="bg-primary-600 rounded-full  absolute bottom-8 right-0 m-8 py-0 mr-8 cursor-pointer">
+        <Plus :size="24" class=" text-white m-3" />
       </div>
       <div v-if="showModal"
         class="fixed z-40 top-0 bottom-0 left-0 right-0 h-screen w-screen bg-opacity-40 bg-black flex justify-center items-center">
