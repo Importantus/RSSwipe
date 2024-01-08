@@ -69,10 +69,10 @@ onMounted(async () => {
                                 <label class="relative inline-flex items-center me-1 cursor-pointer">
                                     <input type="checkbox" class="sr-only peer" v-model="openInApp">
                                     <div
-                                        class="w-11 h-6 bg-primary-600 rounded-full peer dark:bg-background-900  dark:peer-focus:ring-orange-00 peer-checked:after:translate-x-full 
-                                        rtl:peer-checked:after:-translate-x-full peer-checked:after:border-primary-600 after:content-[''] after:absolute after:top-0.5 
-                                        after:start-[2px] after:bg-primary-600 after:border-primary-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all
-                                         dark:border-background-900  peer-checked:bg-orange-800">
+                                        class="w-11 h-6 bg-primary-500 rounded-full peer dark:bg-background-900  dark:peer-focus:ring-orange-00 peer-checked:after:translate-x-full 
+                                        rtl:peer-checked:after:-translate-x-full peer-checked:after:border-primary-500 after:content-[''] after:absolute after:top-0.5 
+                                        after:start-[2px] after:bg-primary-500 after:border-primary-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all
+                                         dark:border-background-900  peer-checked:bg-primary-700">
                                     </div>
                                 </label>
                             </div>
