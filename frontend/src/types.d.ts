@@ -44,3 +44,12 @@ export type Settings = {
     expTimeRead: number,
     expTimeUnread: number
 }
+
+interface SwipeDirection {
+    id: string,
+    name: string
+    color: string,
+    removeCard: boolean,
+    icon: typeof Icon,
+    action: (article: Article) => void
+}

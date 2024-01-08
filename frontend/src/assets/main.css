@@ -4,18 +4,21 @@
 
 
 @layer base {
+  :root {
+    -webkit-tap-highlight-color: transparent;
+  }
 
   h1,
   title {
-    @apply font-title text-white;
+    @apply font-title;
   }
 
   h2 {
-    @apply font-text text-white;
+    @apply font-text;
   }
 
   p {
-    @apply font-text text-white;
+    @apply font-text;
   }
 
   html {

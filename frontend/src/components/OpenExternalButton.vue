@@ -12,6 +12,6 @@ function openExternal() {
 
 <template>
     <button @click="openExternal">
-        <ExternalLink size=" 28" class=" text-primary-600  m-3" />
+        <ExternalLink size=" 28" class="m-3" />
     </button>
 </template>
