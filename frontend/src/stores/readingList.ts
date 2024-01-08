@@ -1,11 +1,66 @@
 import axios from "@/axios";
-import type { Article, Settings, StoredArticle } from "@/types";
+import type { Article, Settings, StoredArticle, SwipeDirection } from "@/types";
 import { defineStore } from "pinia";
+import { Trash2 } from 'lucide-vue-next';
+import { Star } from 'lucide-vue-next';
+import { BookOpenCheck } from "lucide-vue-next";
 
 export enum StoreStatus {
     LOADING,
     READY,
-    ERROR
+    ERROR,
+    SUCCESS
+}
+
+export interface ArticleUpdateInput {
+    read?: boolean;
+    saved?: boolean;
+    starred?: boolean;
+    seen?: boolean;
+}
+
+export const possibleSwipeDirections: SwipeDirection[] = [
+    {
+        id: 'read',
+        name: 'Toggle read',
+        color: 'green',
+        removeCard: false,
+        icon: BookOpenCheck,
+        action: (article: Article) => {
+            const store = useReadingListStore()
+            store.updateArticle(article, {
+                read: !article.read
+            })
+        }
+    },
+    {
+        id: 'starred',
+        name: 'Toggle starred',
+        color: 'orange',
+        removeCard: false,
+        icon: Star,
+        action: (article: Article) => {
+            const store = useReadingListStore()
+            store.updateArticle(article, {
+                starred: !article.starred
+            })
+        }
+    },
+    {
+        id: 'remove',
+        name: 'Remove',
+        color: 'red',
+        removeCard: true,
+        icon: Trash2,
+        action: (article: Article) => {
+            const store = useReadingListStore()
+            store.removeArticle(article)
+        }
+    }
+]
+
+function getSwipeDirection(id: string) {
+    return possibleSwipeDirections.find(d => d.id === id)!
 }
 
 export const useReadingListStore = defineStore({
@@ -13,8 +68,11 @@ export const useReadingListStore = defineStore({
     state: () => ({
         articles: JSON.parse(localStorage.getItem('readinglist') || '[]') as StoredArticle[],
         status: StoreStatus.LOADING,
+        settingsStatus: StoreStatus.LOADING,
         removedArticles: [] as Article[],
-        settings: {} as Settings
+        settings: {} as Settings,
+        swipeLeft: getSwipeDirection(JSON.parse(localStorage.getItem('swipeLeft') || JSON.stringify(possibleSwipeDirections[1].id))) as SwipeDirection,
+        swipeRight: getSwipeDirection(JSON.parse(localStorage.getItem('swipeRight') || JSON.stringify(possibleSwipeDirections[2].id))) as SwipeDirection
     }),
     getters: {
         hasStarredArticles(): boolean {
@@ -66,6 +124,10 @@ export const useReadingListStore = defineStore({
                     }
                 }
 
+                this.articles.sort((a, b) => {
+                    return new Date(b.articleInfo.dateSaved!).getTime() - new Date(a.articleInfo.dateSaved!).getTime()
+                })
+
                 this.status = StoreStatus.READY
 
                 localStorage.setItem('readinglist', JSON.stringify(this.articles))
@@ -104,6 +166,18 @@ export const useReadingListStore = defineStore({
             })
             this.removeArticleLocal(article)
         },
+        async updateArticle(article: Article, input: ArticleUpdateInput) {
+            const response = await axios.put(`/articles/` + article.id, {
+                ...input
+            })
+
+            if (response.status === 200) {
+                this.articles[this.articles.findIndex(a => a.articleInfo.id === article.id)].articleInfo = response.data
+                localStorage.setItem('readinglist', JSON.stringify(this.articles))
+            } else {
+                console.log(response)
+            }
+        },
         async undo() {
             if (this.removedArticles.length === 0) {
                 return
@@ -118,10 +192,12 @@ export const useReadingListStore = defineStore({
             })
         },
         async loadSettings() {
+            this.settingsStatus = StoreStatus.LOADING
             const response = await axios.get('/settings')
 
             if (response.status === 200) {
                 this.settings = response.data
+                this.settingsStatus = StoreStatus.READY
             } else {
                 console.log(response)
             }
@@ -131,9 +207,31 @@ export const useReadingListStore = defineStore({
 
             if (response.status === 200) {
                 this.settings = response.data
+                this.settingsStatus = StoreStatus.SUCCESS
             } else {
                 console.log(response)
             }
+        },
+        async clear(onlyRead: boolean) {
+            const response = await axios.delete('/readinglist', {
+                data: {
+                    onlyRead
+                }
+            })
+
+            if (response.status === 200) {
+                this.update()
+            } else {
+                console.log(response)
+            }
+        },
+        setSwipeLeft(id: string) {
+            this.swipeLeft = getSwipeDirection(id)
+            localStorage.setItem('swipeLeft', JSON.stringify(id))
+        },
+        setSwipeRight(id: string) {
+            this.swipeRight = getSwipeDirection(id)
+            localStorage.setItem('swipeRight', JSON.stringify(id))
         }
     }
 })

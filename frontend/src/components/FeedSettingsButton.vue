@@ -1,7 +1,8 @@
 <script setup lang="ts">
 function openFeedSettings() {
-    console.log("openFeedSettings");
+    router.push({ name: 'Feeds' });
 }
+import router from '@/router';
 import { Rss } from 'lucide-vue-next';
 </script>
 

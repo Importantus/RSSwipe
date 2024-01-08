@@ -1,16 +1,9 @@
 <script setup lang="ts">
-import type { Article } from '@/types';
+import type { Article, SwipeDirection } from '@/types';
 import ArticleSource from '../ArticleSource.vue';
 import { ref } from 'vue';
-import { Icon, FileDown, BookOpenCheck, Star } from 'lucide-vue-next';
+import { FileDown, BookOpenCheck, Star } from 'lucide-vue-next';
 import { ReaderContext, useReaderStore } from '@/stores/reader';
-
-interface SwipeDirection {
-    name: string
-    color: string,
-    removeCard: boolean,
-    icon: typeof Icon
-}
 
 const props = defineProps<{
     article: Article;
@@ -21,7 +14,6 @@ const props = defineProps<{
 }>();
 
 const readerStore = useReaderStore();
-const emit = defineEmits(['swipeLeft', 'swipeRight'])
 
 const elementTransformX = ref(0)
 let posX = 0;
@@ -72,7 +64,7 @@ function releaseHandler() {
                 elementTransformX.value = 0;
             }, 700);
         }
-        emit('swipeRight');
+        props.swipeRight.action(props.article);
     } else if (elementTransformX.value < -swipeToTrigger) {
         if (props.swipeLeft.removeCard) {
             elementTransformX.value = -1000;
@@ -82,8 +74,7 @@ function releaseHandler() {
                 elementTransformX.value = 0;
             }, 700);
         }
-
-        emit('swipeLeft')
+        props.swipeLeft.action(props.article);
     } else {
         elementTransformX.value = 0;
     }
@@ -92,7 +83,7 @@ function releaseHandler() {
 
 <template>
     <div @click="openInReader">
-        <div class="w-full rounded-xl bg-background-900 overflow-hidden transition-colors relative">
+        <div class="cursor-pointer w-full rounded-xl bg-background-900 overflow-hidden transition-colors relative">
             <div v-if="elementTransformX < 0" class="absolute z-0 top-0 bottom-0 w-full h-full transition-all"
                 :style="{ filter: 'saturate(' + Math.min((Math.abs(elementTransformX) / swipeToTrigger) ** 2, 1) + ')', background: props.swipeLeft.color }">
                 <props.swipeLeft.icon size="30"
@@ -118,12 +109,12 @@ function releaseHandler() {
                 :style="{ transform: 'translateX(' + elementTransformX + 'px)' }">
                 <Transition name="fade">
                     <div v-if="mouseover" class="absolute h-full right-2 top-0 bottom-0 flex flex-col justify-center gap-2">
-                        <button :title="props.swipeRight.name" @click.prevent="$emit('swipeRight')"
-                            class="backdrop-blur-sm bg-black/20 p-2 rounded-md hover:bg-black/40 transition-colors">
+                        <button :title="props.swipeRight.name" @click.stop="props.swipeRight.action(props.article)"
+                            class="cursor-pointer backdrop-blur-sm bg-black/20 p-2 rounded-md hover:bg-black/40 transition-colors">
                             <props.swipeRight.icon size="20" class="text-background-100" />
                         </button>
-                        <button :title="props.swipeLeft.name" @click.prevent="$emit('swipeLeft')"
-                            class="bg-background-900 backdrop-blur-sm bg-black/20 p-2 rounded-md hover:bg-black/40 transition-colors">
+                        <button :title="props.swipeLeft.name" @click.stop="props.swipeLeft.action(props.article)"
+                            class="cursor-pointer backdrop-blur-sm bg-black/20 p-2 rounded-md hover:bg-black/40 transition-colors">
                             <props.swipeLeft.icon size="20" class="text-background-100" />
                         </button>
                     </div>

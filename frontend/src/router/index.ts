@@ -44,7 +44,7 @@ const router = createRouter({
       component: () => import('@/views/ReadinglistSettingsView.vue')
     },
     {
-      path: '/account',
+      path: '/settings/account',
       name: 'Account',
       component: UserDataView
     },
@@ -54,10 +54,21 @@ const router = createRouter({
       component: ReaderView
     },
     {
+      path: '/settings',
+      name: 'Settings',
+      component: () => import('@/views/SettingsView.vue')
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'Not Found',
       component: NotFoundView
-    }
+    },
+    {
+      path: '/feeds',
+      name: 'Feeds',
+      component: () => import('@/views/FeedView.vue')
+    },
+
   ]
 })
 

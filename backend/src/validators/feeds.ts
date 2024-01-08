@@ -1,7 +1,7 @@
 import * as s from 'superstruct';
 import { environment } from '../helper/environment';
 
-const url = s.size(s.string(), 1, environment.maxUrlLength);
+const url = s.size(s.string(), 1, Number(environment.maxUrlLength));
 const openInApp = s.boolean();
 
 export const FeedCreateInput = s.object({

@@ -151,3 +151,46 @@
   opacity: 0;
   margin-bottom: -80px;
 }
+
+.slide-fade-enter-active {
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+.slide-fade-enter-to,
+.slide-fade-leave-from {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.readinglistsettings-enter-from,
+.readinglistsettings-leave-to {
+  opacity: 0;
+  transform: translateX(8px);
+}
+
+.readinglistsettings-enter-active,
+.readinglistsettings-leave-active {
+  transition: all 0.3s ease-out;
+}
+
+.readersettings-enter-from,
+.readersettings-leave-to {
+  opacity: 0;
+  transform: translate(0%, -10%);
+}
+
+.readersettings-enter-active,
+.readersettings-leave-active {
+  transition: all 0.3s ease;
+  -tw-backdrop-blur: blur(12px)
+}

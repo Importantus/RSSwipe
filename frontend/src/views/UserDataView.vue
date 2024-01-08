@@ -45,7 +45,7 @@ function handleLogout() {
       </div>
     </div>
     <div class="px-5 pb-10 z-10">
-      <TitleNavigationBar title="Account" backNavigationPath="/" />
+      <TitleNavigationBar title="Account" backNavigationPath="/settings" />
 
       <Transition name="fade">
         <div v-if="store.error || store.success">
