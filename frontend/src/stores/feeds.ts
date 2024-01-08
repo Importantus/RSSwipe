@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from '@/axios'
+import { useStartPageStore } from './startPage';
 
 export interface FeedItem {
     id: string,
@@ -9,7 +10,8 @@ export interface FeedItem {
     url: string,
     openInApp: boolean
 }
-export const userFeedItem = defineStore("feedList", {
+
+export const useFeedStore = defineStore("feedList", {
     state: () => ({
         feedList: [] as FeedItem[]
     }),
@@ -19,7 +21,6 @@ export const userFeedItem = defineStore("feedList", {
             if (response.status !== 200) {
                 return
             }
-            console.log(response.data)
             this.feedList = response.data.map((feed: any) => ({
                 id: feed.id,
                 title: feed.title,
@@ -47,10 +48,8 @@ export const userFeedItem = defineStore("feedList", {
             })
         },
         async deleteFeed(id: string) {
-
             await axios.delete(`/feeds/${id}`)
             this.getFeedList()
-
         },
         async toggleOpenInApp(id: string) {
             const item = this.feedList.find(item => item.id === id)
@@ -66,10 +65,33 @@ export const userFeedItem = defineStore("feedList", {
             if (item) {
                 item.filtered = !item.filtered
             }
+
+            const startPageStore = useStartPageStore()
+            startPageStore.reload()
+        },
+        unselectAll() {
+            for (const item of this.feedList) {
+                item.filtered = false
+            }
+
+            const startPageStore = useStartPageStore()
+            startPageStore.reload()
+        },
+        isFeedSelected(id: string): boolean {
+            const item = this.feedList.find(item => item.id === id)
+            return item ? item.filtered ? item.filtered : false : false
+        },
+        isFeedOpenedInApp(id: string): boolean {
+            const item = this.feedList.find(item => item.id === id)
+            let openInApp = true
+            if (item && item.openInApp !== undefined) {
+                openInApp = item.openInApp
+            }
+            return openInApp
         }
     },
     getters: {
-        getFilteredFeedList(): FeedItem[] {
+        filteredFeedList(): FeedItem[] {
             return this.feedList.filter(item => item.filtered)
         }
     }
