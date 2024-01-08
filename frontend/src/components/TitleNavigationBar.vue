@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { MoveLeft } from 'lucide-vue-next';
+import { ChevronLeft } from 'lucide-vue-next';
+import { RouterLink } from 'vue-router';
 
 defineProps({
     title: String,
-    backNavigationPath: String
+    backNavigationPath: String,
+    backHomePath: String
 })
 </script>
 
@@ -18,5 +21,12 @@ defineProps({
         <div class="flex flex-row items-center">
             <slot></slot>
         </div>
-    </div>
+        
+
+        </div>
+        <router-link  v-if="backNavigationPath" :to="backNavigationPath">
+               
+            </router-link>
+            
+    
 </template>
