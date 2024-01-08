@@ -72,7 +72,8 @@ export const useReadingListStore = defineStore({
         removedArticles: [] as Article[],
         settings: {} as Settings,
         swipeLeft: getSwipeDirection(JSON.parse(localStorage.getItem('swipeLeft') || JSON.stringify(possibleSwipeDirections[1].id))) as SwipeDirection,
-        swipeRight: getSwipeDirection(JSON.parse(localStorage.getItem('swipeRight') || JSON.stringify(possibleSwipeDirections[2].id))) as SwipeDirection
+        swipeRight: getSwipeDirection(JSON.parse(localStorage.getItem('swipeRight') || JSON.stringify(possibleSwipeDirections[2].id))) as SwipeDirection,
+        nextArticleSkipRead: JSON.parse(localStorage.getItem('nextArticleSkipRead') || 'true') as boolean
     }),
     actions: {
         addArticleLocal(article: Article) {
@@ -224,6 +225,10 @@ export const useReadingListStore = defineStore({
         setSwipeRight(id: string) {
             this.swipeRight = getSwipeDirection(id)
             localStorage.setItem('swipeRight', JSON.stringify(id))
+        },
+        setNextArticleSkipRead(skip: boolean) {
+            this.nextArticleSkipRead = skip
+            localStorage.setItem('nextArticleSkipRead', JSON.stringify(skip))
         }
     }
 })
