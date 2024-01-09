@@ -220,12 +220,21 @@ export const useReaderStore = defineStore({
         },
 
         async markArticleAsRead(id: string) {
-            const request = { "read": true }
-            const response = await axios.put(`/articles/${id}`, request)
-            if (response.status === 200) {
-                return response.data as Article
+            const readinglistStore = useReadingListStore()
+            const article = readinglistStore.getArticleById(id)
+
+            if (article) {
+                readinglistStore.updateArticle(article.articleInfo, {
+                    read: true
+                })
             } else {
-                console.error(response)
+                const request = { "read": true }
+                const response = await axios.put(`/articles/${id}`, request)
+                if (response.status === 200) {
+                    return response.data as Article
+                } else {
+                    console.error(response)
+                }
             }
         },
 
