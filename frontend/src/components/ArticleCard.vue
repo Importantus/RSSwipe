@@ -4,6 +4,7 @@ import { useStartPageStore } from '@/stores/startPage';
 import type { Article } from '@/types';
 import { computed, ref } from 'vue';
 import { ReaderContext, useReaderStore } from '@/stores/reader';
+import router from '@/router';
 const props = defineProps<{
     article: Article;
     index: number;
@@ -22,7 +23,7 @@ const displayWidth = window.innerWidth;
 const swipeToTrigger = displayWidth / 10;
 
 function openinReader() {
-    readerStore.openArticle(ReaderContext.STARTPAGE, store.articles[0]);
+    router.push(`/article/${props.article.id}`);
 }
 
 function pressHandler(event: TouchEvent | MouseEvent) {

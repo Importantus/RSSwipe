@@ -4,6 +4,7 @@ import ArticleSource from '../ArticleSource.vue';
 import { ref } from 'vue';
 import { FileDown, BookOpenCheck, Star } from 'lucide-vue-next';
 import { ReaderContext, useReaderStore } from '@/stores/reader';
+import router from '@/router';
 
 const props = defineProps<{
     article: Article;
@@ -22,7 +23,7 @@ const displayWidth = window.innerWidth;
 const swipeToTrigger = displayWidth / 3;
 
 function openInReader() {
-    readerStore.openArticle(ReaderContext.READINGLIST, props.article);
+    router.push(`/article/${props.article.id}`);
 }
 
 function pressHandler(event: TouchEvent | MouseEvent) {

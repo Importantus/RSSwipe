@@ -1,22 +1,21 @@
 <script setup lang="ts">
-import { onBeforeMount, onMounted, onUpdated, ref } from 'vue';
+import { onBeforeMount, onMounted, onUpdated, ref, watch } from 'vue';
 import DOMPurify from 'dompurify';
 import ArticleSource from '@/components/ArticleSource.vue';
 import ReaderFunctionElement from '@/components/ReaderFunctionElement.vue';
 import { ReaderContext, ReaderStatus, useReaderStore } from '@/stores/reader';
 import { MoveRight, MoveLeft } from 'lucide-vue-next';
-import { useRoute } from 'vue-router';
+import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from 'vue-router';
 import { fontSizes, fonts, colorSchemes } from '@/stores/reader';
 import ReaderSettingsButton from '@/components/Reader/FunctionBar/ReaderSettingsButton.vue';
+import router from '@/router';
 
 const TOLERANCE = window.innerHeight * 0.1;
 const route = useRoute();
-const articleId = route.params.id.toString();
 
 const store = useReaderStore()
 
 let scrollDiv: HTMLElement | null
-let articleStatus = ref(store.status);
 let scrollpercent = ref(0);
 let lastScrollTop = 0;
 let hideUi = ref(true);
@@ -31,13 +30,22 @@ let templateArr: string[] =
 
 let url = ref("")
 
-onBeforeMount(async () => {
-    if (store.storedArticles.length === 0) {
-        articleStatus.value = ReaderStatus.LOADING;
-        await store.openArticleFromId(articleId);
-        articleStatus.value = ReaderStatus.READY;
+onBeforeRouteUpdate(async (to, from, next) => {
+    if (to.params.id !== from.params.id) {
+        await store.openArticle(to.params.id.toString());
         hideUi.value = false;
+
+        // set window state to current article
+        window.history.replaceState({ back: from.path }, "");
+
+        next();
     }
+});
+
+onBeforeMount(async () => {
+    await store.openArticle(route.params.id.toString());
+    hideUi.value = false;
+    backNavigationPath.value = window.history.state?.back === "/readinglist" ? "/readinglist" : "/";
 });
 
 onMounted(async () => {
@@ -45,25 +53,18 @@ onMounted(async () => {
     if (scrollDiv) {
         scrollDiv.addEventListener('scroll', getScrollPercent);
     }
-    if (store.storedArticles.length > 0) {
+});
+
+watch(() => store.storedArticles, (newVal) => {
+    if (newVal.length > 0) {
         hideUi.value = false;
     }
-
     if (!store.storedArticles[1] || !store.storedArticles[1].articleInfo.imageUrl) {
         url.value = templateArr[Math.floor(Math.random() * templateArr.length)];
     } else {
         url.value = store.storedArticles[1].articleInfo.imageUrl
     }
-
-    switch (store.ReaderContext) {
-        case ReaderContext.STARTPAGE:
-            backNavigationPath.value = "/";
-            break;
-        case ReaderContext.READINGLIST:
-            backNavigationPath.value = "/readinglist";
-            break;
-    }
-});
+}, { deep: true });
 
 function nextArticle() {
     const FADEOUT_TIME = 200;
@@ -76,13 +77,12 @@ function nextArticle() {
             if (scrollDiv) {
                 scrollDiv.style.transition = 'opacity' + FADEIN_TIME + 'ms';
                 scrollDiv.style.opacity = '100';
-                store.nextArticle();
+                router.push(`/article/${store.storedArticles[1].articleInfo.id}`);
             }
         }, FADEOUT_TIME);
     }
 }
 
-//get scroll position
 function getScrollPercent() {
     if (scrollDiv) {
         calculateUIHide();
@@ -121,7 +121,7 @@ function calculateUIHide() {
                         <router-link :to="backNavigationPath">
                             <MoveLeft size="24" class=" text-inherit" />
                         </router-link>
-                        <h1 class="truncate ... text-2xl font-bold text-inherit ml-2">{{
+                        <h1 v-if="store.storedArticles[0]" class="truncate ... text-2xl font-bold text-inherit ml-2">{{
                             store.storedArticles[0].articleInfo.title }}</h1>
                     </div>
                     <div class="flex flex-row items-center flex-shrink-0">
@@ -169,8 +169,7 @@ function calculateUIHide() {
                         <div class="flex flex-row items-center">
                             <div class="">
                                 <h1 class="text-lg font-bold text-white w-fit line-clamp-2 overflow-ellipsis">
-                                    {{
-                                        store.storedArticles[1].articleInfo.title }}</h1>
+                                    {{ store.storedArticles[1].articleInfo.title }}</h1>
                                 <ArticleSource class="mt-2 text-white" :article="store.storedArticles[1].articleInfo" />
                             </div>
                             <MoveRight size="38" class="w-1/3 ml-5 text-white" />

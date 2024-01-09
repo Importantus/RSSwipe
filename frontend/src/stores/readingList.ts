@@ -218,6 +218,9 @@ export const useReadingListStore = defineStore({
                 console.log(response)
             }
         },
+        getArticleById(id: string) {
+            return this.articles.find(a => a.articleInfo.id === id)
+        },
         setSwipeLeft(id: string) {
             this.swipeLeft = getSwipeDirection(id)
             localStorage.setItem('swipeLeft', JSON.stringify(id))
