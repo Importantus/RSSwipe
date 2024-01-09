@@ -160,7 +160,7 @@ export const useReaderStore = defineStore({
                 this.storedArticles.push(unreadArticles[0])
             } else {
                 //Any Unread Articles above or below the current one
-                unreadArticles = readingListStore.articles.filter(a => !a.articleInfo.read)
+                unreadArticles = readingListStore.articles.filter(a => !a.articleInfo.read && a.articleInfo.id !== this.storedArticles[0].articleInfo.id)
                 if (unreadArticles.length > 0) {
                     this.storedArticles.push(unreadArticles[0])
                 }
