@@ -49,6 +49,12 @@ onMounted(async () => {
         hideUi.value = false;
     }
 
+    if (!store.storedArticles[1] || !store.storedArticles[1].articleInfo.imageUrl) {
+        url.value = templateArr[Math.floor(Math.random() * templateArr.length)];
+    } else {
+        url.value = store.storedArticles[1].articleInfo.imageUrl
+    }
+
     switch (store.ReaderContext) {
         case ReaderContext.STARTPAGE:
             backNavigationPath.value = "/";
@@ -57,16 +63,7 @@ onMounted(async () => {
             backNavigationPath.value = "/readinglist";
             break;
     }
-
 });
-
-onUpdated(() => {
-    if (!store.storedArticles[1] || !store.storedArticles[1].articleInfo.imageUrl) {
-        url.value = templateArr[Math.floor(Math.random() * templateArr.length)];
-    } else {
-        url.value = store.storedArticles[1].articleInfo.imageUrl
-    }
-})
 
 function nextArticle() {
     const FADEOUT_TIME = 200;
