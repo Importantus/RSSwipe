@@ -18,16 +18,18 @@ export const useFeedStore = defineStore("feedList", {
     actions: {
         async getFeedList() {
             const response = await axios.get('/feeds')
+
             if (response.status !== 200) {
                 return
             }
+
             this.feedList = response.data.map((feed: any) => ({
                 id: feed.id,
                 title: feed.title,
                 faviconUrl: feed.faviconUrl,
                 url: feed.link,
                 openInApp: feed.openInApp,
-                filtered: false
+                filtered: this.feedList.find(item => item.id === feed.id) ? this.feedList.find(item => item.id === feed.id)!.filtered : false
             }))
         },
         async addFeed(url: string, openInApp: boolean) {
