@@ -5,6 +5,9 @@ import RegisterView from '@/views/RegisterView.vue'
 import UserDataView from '@/views/UserDataView.vue'
 import ReaderView from '@/views/ReaderView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
+import FeedView from '@/views/FeedView.vue'
+import SettingsView from '@/views/SettingsView.vue'
+import ReadinglistSettingsView from '@/views/ReadinglistSettingsView.vue'
 import { useAuthStore } from '@/stores/auth'
 import pinia from '@/stores/index'
 import ReadinglistViewVue from '@/views/ReadinglistView.vue'
@@ -35,7 +38,7 @@ const router = createRouter({
     {
       path: '/readinglist/settings',
       name: 'Reading List Settings',
-      component: () => import('@/views/ReadinglistSettingsView.vue')
+      component: ReadinglistSettingsView
     },
     {
       path: '/settings/account',
@@ -50,7 +53,7 @@ const router = createRouter({
     {
       path: '/settings',
       name: 'Settings',
-      component: () => import('@/views/SettingsView.vue')
+      component: SettingsView
     },
     {
       path: '/:pathMatch(.*)*',
@@ -60,7 +63,7 @@ const router = createRouter({
     {
       path: '/feeds',
       name: 'Feeds',
-      component: () => import('@/views/FeedView.vue')
+      component: FeedView
     },
 
   ]
