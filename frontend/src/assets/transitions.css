@@ -152,24 +152,19 @@
   margin-bottom: -80px;
 }
 
-.slide-fade-enter-active {
-  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
-}
-
-.slide-fade-leave-active {
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-}
-
 .slide-fade-enter-from,
 .slide-fade-leave-to {
-  transform: translateY(-10px);
-  opacity: 0;
+  overflow: hidden;
+  margin-top: -136px;
 }
 
-.slide-fade-enter-to,
-.slide-fade-leave-from {
-  transform: translateY(0);
-  opacity: 1;
+.slide-fade-enter-to {
+  height: fit-content;
+}
+
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.3s ease;
 }
 
 .readinglistsettings-enter-from,

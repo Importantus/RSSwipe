@@ -8,7 +8,7 @@ feedStore.getFeedList()
 </script>
 
 <template>
-    <div class="flex flex-row gap-2 overflow-scroll no-scrollbar">
+    <div v-if="feedStore.feedList.length > 0" class="flex flex-row gap-2 overflow-scroll no-scrollbar">
         <button class="flex flex-row rounded-xl p-2 px-4 bg-primary-600" @click="feedStore.unselectAll()"
             :class="{ 'bg-primary-600 text-white': feedStore.filteredFeedList.length === 0, 'bg-secondary-900 text-secondary-300': !(feedStore.filteredFeedList.length === 0) }">
 
