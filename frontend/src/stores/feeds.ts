@@ -103,7 +103,9 @@ export const useFeedStore = defineStore("feedList", {
             const item = this.feedList.find(item => item.id === id)
             return item ? item.filtered ? item.filtered : false : false
         },
-        isFeedOpenedInApp(id: string): boolean {
+        async isFeedOpenedInApp(id: string): Promise<boolean> {
+            if (this.feedList.length === 0) await this.getFeedList()
+
             const item = this.feedList.find(item => item.id === id)
             let openInApp = true
             if (item && item.openInApp !== undefined) {

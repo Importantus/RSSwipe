@@ -9,6 +9,7 @@ import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from 'vue-router';
 import { fontSizes, fonts, colorSchemes } from '@/stores/reader';
 import ReaderSettingsButton from '@/components/Reader/FunctionBar/ReaderSettingsButton.vue';
 import router from '@/router';
+import { StoreStatus } from '@/stores/readingList';
 
 const TOLERANCE = window.innerHeight * 0.1;
 const route = useRoute();
@@ -35,6 +36,10 @@ onBeforeRouteUpdate(async (to, from, next) => {
         await store.openArticle(to.params.id.toString());
         hideUi.value = false;
 
+        if (!store.openInApp) {
+            window.open(store.storedArticles[0].articleInfo.link, '_blank');
+        }
+
         // set window state to current article
         window.history.replaceState({ back: from.path }, "");
 
@@ -44,6 +49,11 @@ onBeforeRouteUpdate(async (to, from, next) => {
 
 onBeforeMount(async () => {
     await store.openArticle(route.params.id.toString());
+
+    if (!store.openInApp) {
+        window.open(store.storedArticles[0].articleInfo.link, '_blank');
+    }
+
     hideUi.value = false;
     backNavigationPath.value = window.history.state?.back === "/readinglist" ? "/readinglist" : "/";
 });
@@ -141,7 +151,12 @@ function calculateUIHide() {
                 'border-black text-black bg-white': store.settings.colorScheme.id === colorSchemes.light.id,
                 'border-white text-white bg-background-950': store.settings.colorScheme.id === colorSchemes.dark.id,
             }">
-            <div v-if="store.storedArticles[0] && store.storedArticles[0].content && store.storedArticles[0].articleInfo"
+            <div v-if="!store.openInApp"
+                class="flex w-full h-[60vh] justify-center items-center flex-col text-background-500">
+                <img src="/images/SitReadingDoodle.svg" class="w-1/2">
+                Article was opened in a new tab.
+            </div>
+            <div v-else-if="store.storedArticles[0] && store.storedArticles[0].content && store.storedArticles[0].articleInfo"
                 class="border-inherit">
                 <div class="pt-5 border-b-2 border-inherit">
                     <div v-if="store.storedArticles[0].articleInfo.imageUrl"
@@ -163,29 +178,32 @@ function calculateUIHide() {
                             'prose-lg': store.settings.fontSize.id === fontSizes.large.id
                         }" v-html="DOMPurify.sanitize(store.storedArticles[0].content?.content.content ?? '')">
                 </div>
-                <div v-if="store.storedArticles.length > 1" @click="nextArticle" class="border-inherit">
-                    <div class="border-b-2 border-inherit w-full my-5"></div>
-                    <h1 class="text-lg font-bold text-inherit my-2">Next Article:</h1>
-                    <div :style="{ backgroundImage: 'url(' + url + ')' }"
-                        class="cursor-pointer bg-cover bg-blend-overlay p-5 rounded-2xl" :class="{
-                            'bg-[#5c4e38] bg-opacity-80': store.settings.colorScheme.id === colorSchemes.sepia.id,
-                            'bg-black bg-opacity-20': store.settings.colorScheme.id === colorSchemes.light.id,
-                            'bg-background-950 bg-opacity-75': store.settings.colorScheme.id === colorSchemes.dark.id,
-                        }">
-                        <div class="flex flex-row items-center">
-                            <div class="">
-                                <h1 class="text-lg font-bold text-white w-fit line-clamp-2 overflow-ellipsis">
-                                    {{ store.storedArticles[1].articleInfo.title }}</h1>
-                                <ArticleSource class="mt-2 text-white" :article="store.storedArticles[1].articleInfo" />
-                            </div>
-                            <MoveRight size="38" class="w-1/3 ml-5 text-white" />
-                        </div>
-                    </div>
-                </div>
+                <div class="border-b-2 border-inherit w-full my-5"></div>
             </div>
             <div v-else class="flex items-center justify-center h-full pb-[20vw]">
                 <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-600"></div>
             </div>
+            <div v-if="store.storedArticles.length > 1 && (!store.openInApp || store.storedArticles[0] && store.storedArticles[0].content && store.storedArticles[0].articleInfo)"
+                @click="nextArticle" class="border-inherit">
+
+                <h1 class="text-lg font-bold text-inherit my-2">Next Article:</h1>
+                <div :style="{ backgroundImage: 'url(' + url + ')' }"
+                    class="cursor-pointer bg-cover bg-blend-overlay p-5 rounded-2xl" :class="{
+                        'bg-[#5c4e38] bg-opacity-80': store.settings.colorScheme.id === colorSchemes.sepia.id,
+                        'bg-black bg-opacity-20': store.settings.colorScheme.id === colorSchemes.light.id,
+                        'bg-background-950 bg-opacity-75': store.settings.colorScheme.id === colorSchemes.dark.id,
+                    }">
+                    <div class="flex flex-row items-center">
+                        <div class="">
+                            <h1 class="text-lg font-bold text-white w-fit line-clamp-2 overflow-ellipsis">
+                                {{ store.storedArticles[1].articleInfo.title }}</h1>
+                            <ArticleSource class="mt-2 text-white" :article="store.storedArticles[1].articleInfo" />
+                        </div>
+                        <MoveRight size="38" class="w-1/3 ml-5 text-white" />
+                    </div>
+                </div>
+            </div>
+
         </div>
         <Transition name="readerelement-hide">
             <div v-if="!hideUi" class="w-full fixed right-0 bottom-11">
