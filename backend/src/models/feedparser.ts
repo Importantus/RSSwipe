@@ -122,18 +122,19 @@ async function addArticlesToDb(feed: Parser.Output<any>, feedId: string) {
     for (const article of articles) {
         try {
             let publishedAt: Date | null = new Date(article.pubDate);
-                if (isNaN(publishedAt.getTime())) {
-                    publishedAt = null;
-                }
-            
-            if(publishedAt && publishedAt.getTime() < (new Date().getTime() - Number(environment.maxArticleAge))) {
+            if (isNaN(publishedAt.getTime())) {
+                publishedAt = null;
+            }
+
+            if (publishedAt && publishedAt.getTime() < (new Date().getTime() - Number(environment.maxArticleAge))) {
                 console.log("Skipping article " + article.title + " because it is too old: " + publishedAt)
                 continue;
             }
 
-            const existingArticle = await prisma.article.findUnique({
+            const existingArticle = await prisma.article.findFirst({
                 where: {
-                    link: article.link
+                    link: article.link,
+                    feedId: feedId
                 }
             });
 
