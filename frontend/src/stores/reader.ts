@@ -3,6 +3,7 @@ import axios from "@/axios";
 import router from "@/router";
 import { useReadingListStore } from '@/stores/readingList';
 import type { Article, StoredArticle } from "@/types";
+import { useFeedStore } from "./feeds";
 
 export enum ReaderStatus {
     LOADING,
@@ -122,6 +123,7 @@ export const useReaderStore = defineStore({
     state: () => ({
         storedArticles: [] as StoredArticle[],
         status: ReaderStatus.LOADING,
+        openInApp: true,
         settings: loadSettings()
     }),
     actions: {
@@ -199,6 +201,8 @@ export const useReaderStore = defineStore({
             const readingListStore = useReadingListStore();
             let article = readingListStore.getArticleById(id)
 
+            const feedStore = useFeedStore();
+
             if (!article) {
                 let articleInfo
 
@@ -213,8 +217,12 @@ export const useReaderStore = defineStore({
                     articleInfo: articleInfo as Article
                 }
 
-                this.getArticleContent(article.articleInfo)
+                if (await feedStore.isFeedOpenedInApp(article.articleInfo.feed.id)) {
+                    this.getArticleContent(article.articleInfo)
+                }
             }
+
+            this.openInApp = await feedStore.isFeedOpenedInApp(article.articleInfo.feed.id)
 
             return article
         },

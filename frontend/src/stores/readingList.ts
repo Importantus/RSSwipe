@@ -4,6 +4,7 @@ import { defineStore } from "pinia";
 import { Trash2 } from 'lucide-vue-next';
 import { Star } from 'lucide-vue-next';
 import { BookOpenCheck } from "lucide-vue-next";
+import { useFeedStore } from "./feeds";
 
 export enum StoreStatus {
     LOADING,
@@ -76,14 +77,17 @@ export const useReadingListStore = defineStore({
         nextArticleSkipRead: JSON.parse(localStorage.getItem('nextArticleSkipRead') || 'true') as boolean
     }),
     actions: {
-        addArticleLocal(article: Article) {
+        async addArticleLocal(article: Article) {
             if (this.articles.findIndex(a => a.articleInfo.id === article.id) === -1) {
                 this.articles.unshift({
                     articleInfo: article
                 })
             }
 
-            this.addContentToArticle(article)
+            const feedStore = useFeedStore()
+            if (await feedStore.isFeedOpenedInApp(article.feed.id)) {
+                this.addContentToArticle(article)
+            }
         },
         removeArticleLocal(article: Article, undo = true) {
             const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
