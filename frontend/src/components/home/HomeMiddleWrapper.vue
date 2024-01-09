@@ -2,6 +2,7 @@
 import { useStartPageStore, ArticleStatus } from '@/stores/startPage';
 import ArticleCard from '../ArticleCard.vue';
 import { onMounted } from 'vue';
+import NonBlockingLoadingIndicator from '../NonBlockingLoadingIndicator.vue';
 
 const store = useStartPageStore();
 
@@ -12,8 +13,7 @@ onMounted(async () => {
 
 <template>
     <div v-if="store.status === ArticleStatus.READY || store.articles.length > 0" class="grid">
-        <div v-if="store.status === ArticleStatus.LOADING" class="w-full h-2 fixed top-0 left-0 animated-gradient">
-        </div>
+        <NonBlockingLoadingIndicator :show="store.status === ArticleStatus.LOADING" />
         <ArticleCard class="col-start-1 row-start-1" v-for="(article, index) in store.articles.slice(0, 3).reverse()"
             :key="article.id" :index="Math.min(store.articles.length - 1, 2) - index" :article="article" />
     </div>
@@ -32,22 +32,3 @@ onMounted(async () => {
         <p class="text-red-500">Unknown error</p>
     </div>
 </template>
-
-
-<style scoped>
-.animated-gradient {
-    background: linear-gradient(270deg, #CF6A31 0%, #4E2915 50%, #CF6A31 50%, #4E2915 100%);
-    background-size: 200% 100%;
-    animation: gradient 1s ease infinite;
-}
-
-@keyframes gradient {
-    0% {
-        background-position: 100% 0%;
-    }
-
-    100% {
-        background-position: 0% 0%;
-    }
-}
-</style>
