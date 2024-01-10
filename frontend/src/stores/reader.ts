@@ -130,6 +130,7 @@ export const useReaderStore = defineStore({
         async openArticle(articleId: string) {
             this.status = ReaderStatus.LOADING
             this.storedArticles = []
+            this.openInApp = true
 
             const article = await this.getArticle(articleId)
             this.storedArticles.push(article)
