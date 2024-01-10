@@ -2,8 +2,7 @@
 import TitleNavigationBar from '@/components/TitleNavigationBar.vue';
 import ReadinglistList from '@/components/list/ReadinglistList.vue';
 import { useReadingListStore } from '@/stores/readingList';
-import { Settings } from 'lucide-vue-next';
-import { ListX, X, Star } from 'lucide-vue-next';
+import { X } from 'lucide-vue-next';
 import { Undo2 } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 
@@ -44,9 +43,8 @@ watch(() => store.removedArticles.length, (newValue, oldValue) => {
                 </div>
             </div>
         </div>
-        <div class="px-5 overflow-y-scroll pb-10 h-full">
-            <TitleNavigationBar title="Starred List" backNavigationPath="/readinglist" class="mb-5">
-            </TitleNavigationBar>
+        <div class="px-5 overflow-y-scroll pb-10 h-full relative z-20">
+            <TitleNavigationBar title="Starred List" backNavigationPath="/readinglist" class="" />
             <ReadinglistList :starred="true" />
             <Transition name="fade">
                 <div :onclick="() => {
@@ -61,5 +59,7 @@ watch(() => store.removedArticles.length, (newValue, oldValue) => {
                 </div>
             </Transition>
         </div>
+        <img src="/images/starredlistbg.svg" alt="Person laying on the ground and scrolling trough their phone"
+            class="absolute bottom-0 right-0 h-54  w-[80vw] object-cover pointer-events-none">
     </div>
 </template>
