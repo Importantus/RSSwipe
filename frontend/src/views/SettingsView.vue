@@ -29,12 +29,12 @@ userStore.fetchUserData();
                     <p class="font-title font-light text-background-300">{{ userStore.userdata.email }}</p>
                 </div>
                 <router-link to="/settings/account"
-                    class="bg-background-900 py-2 px-4 rounded-md opacity-70 hover:shadow-lg flex gap-2 items-center">
+                    class="bg-background-900 py-2 px-4 rounded-md opacity-70 hover:shadow-lg flex gap-2 items-center" title="Account Editing">
                     Edit
                     <MoveRight :size="16" class="mt-[1px]" />
                 </router-link>
             </div>
-            <div class="flex flex-col gap-5">
+            <div class="flex flex-col gap-5" title="change the Font Size">
                 <div class="flex flex-col gap-2">
                     <div class="font-title text-xl">Font Size</div>
                     <div class="text-background-300 text-lg leading-tight">Adjust the font size of all UI elements troughout

@@ -71,13 +71,13 @@ const openFeedPage = () => {
                     </div>
                     <div class="truncate block max-w-full text-background-500 text-sm">{{ props.feed.url }}</div>
                 </div>
-                <div class="flex items-center flex-shrink-0 aspect-square">
-                    <ChevronDown :stroke-width="1.25" size="35" class="transition" :class="{ 'rotate-180': showOptions }" />
+                <div class="flex items-center flex-shrink-0 aspect-square" title="open Feed Option">
+                    <ChevronDown :stroke-width="1.25" size="35" class="transition" :class="{ 'rotate-180': showOptions }"  />
                 </div>
             </div>
         </div>
-        <Transition name="slide-fade">
-            <div v-if="showOptions" class="px-4 py-4 rounded-lg bg-[#282828] flex flex-col gap-4 z-0"
+        <Transition name="slide-fade" >
+            <div v-if="showOptions" class="px-4 py-4 rounded-lg bg-[#282828] flex flex-col gap-4 z-0" 
                 :class="{ 'rounded-t-none': showOptions }">
                 <div class="flex justify-between items-center gap-2">
                     <div>
@@ -85,7 +85,7 @@ const openFeedPage = () => {
                         <p class="text-secondary-500 text-left font-thin text-sm">Should Feed Articles Open In App?
                         </p>
                     </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
+                    <label class="relative inline-flex items-center cursor-pointer" title="open Feed with App">
                         <input type="checkbox" class="sr-only peer" v-model="openInApp">
                         <div class="w-11 h-6 bg-primary-600 rounded-full peer dark:bg-background-900  dark:peer-focus:ring-orange-00 peer-checked:after:translate-x-full 
                                         rtl:peer-checked:after:-translate-x-full peer-checked:after:border-primary-600 after:content-[''] after:absolute after:top-0.5 
@@ -95,11 +95,11 @@ const openFeedPage = () => {
                     </label>
                 </div>
                 <div class="flex gap-3">
-                    <button v-if="canShare" @click="shareFeed();"
+                    <button v-if="canShare" @click="shareFeed();" title="share Feed"
                         class=" w-full h-11 bg-primary-600 rounded-lg hover:bg-amber-700 transition">Share</button>
-                    <button @click="openFeedPage();"
+                    <button @click="openFeedPage();" title="open Feed with new Tap"
                         class=" w-full h-11 bg-primary-600 rounded-lg hover:bg-amber-700 transition">Open</button>
-                    <button @click="store.deleteFeed(props.feed.id)"
+                    <button @click="store.deleteFeed(props.feed.id)" title="remove"
                         class="w-11 h-11 flex-shrink-0 bg-black/30 rounded-lg hover:bg-red-900 transition flex justify-center items-center">
                         <Trash2 size="20" class="text-background-300" />
                     </button>

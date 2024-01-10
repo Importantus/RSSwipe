@@ -207,7 +207,7 @@ function calculateUIHide() {
         </div>
         <Transition name="readerelement-hide">
             <div v-if="!hideUi" class="w-full fixed right-0 bottom-11">
-                <ReaderFunctionElement />
+                <ReaderFunctionElement/>
             </div>
         </Transition>
     </div>

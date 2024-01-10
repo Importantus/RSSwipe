@@ -13,7 +13,7 @@ const props = defineProps({
 </script>
 
 <template>
-    <div @click="store.setFontSize(props.fontSize.id)"
+    <div @click="store.setFontSize(props.fontSize.id)" title="Font size"
         class="rounded-lg w-12 h-10 flex items-center justify-center bg-background-950 cursor-pointer"
         :class="{ 'border-primary-600 border-solid border-2': store.settings.fontSize.id === props.fontSize.id }">
         <div class="w-full h-1/2 flex items-center justify-center border-t-[0.5px] border-b-[0.5px] border-solid border-tertiary-700"

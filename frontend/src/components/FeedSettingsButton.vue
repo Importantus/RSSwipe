@@ -7,7 +7,7 @@ import { Rss } from 'lucide-vue-next';
 </script>
 
 <template>
-    <button @click="openFeedSettings">
+    <button @click="openFeedSettings" title="Your Feed">
         <Rss size="24" class=" text-white" />
     </button>
 </template>

@@ -7,8 +7,8 @@ function openUserSettings() {
 </script>
 
 <template>
-    <button @click="openUserSettings">
-        <Settings size="24" class=" text-white" />
+    <button @click="openUserSettings" title="User setting">
+        <Settings size="24" class=" text-white"/>
     </button>
 </template>
 

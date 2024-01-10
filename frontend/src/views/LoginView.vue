@@ -39,17 +39,17 @@ async function handleLogin() {
             <div v-if="error" class="w-full bg-red-500 rounded-lg p-3 z-10">{{ error }}</div>
             <form @submit.prevent="handleLogin" class="w-full z-10">
                 <div class="flex flex-col gap-5">
-                    <TextInputIcon v-model="email" placeholder="Email" :icon="Mail" :required="true" />
+                    <TextInputIcon v-model="email" placeholder="Email" :icon="Mail" :required="true" title="Enter email" />
                     <TextInputIcon v-model="password" placeholder="Password" type="password" :icon="KeyRound"
-                        :required="true" />
+                        :required="true" title="Enter password" />
                 </div>
                 <button type="submit"
-                    class="w-full h-14 bg-amber-600 rounded-lg mt-10 hover:bg-amber-700 transition">Login</button>
+                    class="w-full h-14 bg-amber-600 rounded-lg mt-10 hover:bg-amber-700 transition" title="Account login">Login</button>
             </form>
 
             <div>
                 Don't have an account?
-                <router-link to="/register" class="underline z-10">Register</router-link>
+                <router-link to="/register" class="underline z-10" title="Create account">Register</router-link>
             </div>
         </div>
     </div>

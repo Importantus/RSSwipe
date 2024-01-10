@@ -7,7 +7,7 @@ import { List } from 'lucide-vue-next';
 </script>
 
 <template>
-    <button @click="openReadinglist">
+    <button @click="openReadinglist" title="Reading list">
         <List size="24" class=" text-white m-3" />
     </button>
 </template>

@@ -13,9 +13,9 @@ feedStore.getFeedList()
             :class="{ 'bg-primary-600 text-white': feedStore.filteredFeedList.length === 0, 'bg-secondary-900 text-secondary-300': !(feedStore.filteredFeedList.length === 0) }">
 
             <div class="align-middle">
-                <p class="font-text-detail text-xs">All</p>
+                <p class="font-text-detail text-xs" title="All feeds">All</p>
             </div>
         </button>
-        <FeedFilterItem v-for="feed in feedStore.feedList" :key="feed.id" :feed="feed" />
+        <FeedFilterItem v-for="feed in feedStore.feedList" :key="feed.id" :feed="feed" title="Feed"/>
     </div>
 </template>
