@@ -3,11 +3,12 @@ import TitleNavigationBar from '@/components/TitleNavigationBar.vue';
 import ReadinglistList from '@/components/list/ReadinglistList.vue';
 import { useReadingListStore } from '@/stores/readingList';
 import { Settings } from 'lucide-vue-next';
-import { ListX, X } from 'lucide-vue-next';
+import { ListX, X, Star } from 'lucide-vue-next';
 import { Undo2 } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 
 const store = useReadingListStore();
+
 const showTile = ref(false)
 
 const showClearListModal = ref(false);
@@ -20,9 +21,6 @@ watch(() => store.removedArticles.length, (newValue, oldValue) => {
         }, 5000);
     }
 });
-
-console.log(store.hasStarredArticles)
-
 </script>
 <template>
     <div>
@@ -49,6 +47,9 @@ console.log(store.hasStarredArticles)
         <div class="px-5 overflow-y-scroll pb-10 h-full">
             <TitleNavigationBar title="Reading List" backNavigationPath="/" class="mb-5">
                 <div class="flex gap-4">
+                    <RouterLink to="/starredlist" class="text-white">
+                        <Star size="24" class="text-white" />
+                    </RouterLink>
                     <ListX v-if="store.articles.length > 0" size="24" class="text-white cursor-pointer"
                         @click="showClearListModal = true" />
                     <RouterLink to="/readinglist/settings" class="text-white">
@@ -56,7 +57,7 @@ console.log(store.hasStarredArticles)
                     </RouterLink>
                 </div>
             </TitleNavigationBar>
-            <ReadinglistList />
+            <ReadinglistList :starred="false" />
             <Transition name="fade">
                 <div :onclick="() => {
                     showTile = false
