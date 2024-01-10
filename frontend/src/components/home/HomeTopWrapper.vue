@@ -7,15 +7,15 @@ import CategoryList from '../categories/CategoryList.vue';
 </script>
 
 <template>
-    <div class=" flex flex-col">
-        <div class="flex flex-row items-center">
-            <UserSettingsButton class="flex-none basis 1/4" />
-            <GreetingBanner class="flex-1 basis 2/4" greeting="Let's Choose" />
-            <FeedSettingsButton class="flex-none basis 1/4" />
-        </div>
-        <div class="mt-5 mb-8 flex flex-col gap-2">
-            <CategoryList />
-            <FeedFilterList />
-        </div>
+  <div class="flex flex-col">
+    <div class="flex flex-row items-center">
+      <UserSettingsButton class="flex-none basis 1/4" />
+      <GreetingBanner class="flex-1 basis 2/4" />
+      <FeedSettingsButton class="flex-none basis 1/4" />
     </div>
+    <div class="mt-5 mb-8 flex flex-col gap-2">
+      <CategoryList />
+      <FeedFilterList />
+    </div>
+  </div>
 </template>
