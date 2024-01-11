@@ -21,7 +21,26 @@ export async function getFaviconUrl(url: string) {
     url = urlObj.origin;
 
     const dom = await getDomFromUrl(url);
-    const favicon = dom.window.document.querySelector("link[rel='icon']")?.getAttribute("href");
+
+    const queries = [
+        'link[rel="apple-touch-icon-precomposed"]',
+        'link[rel="shortcut icon"]',
+        'link[rel="icon"]',
+    ]
+
+    let favicon: string | null | undefined = null;
+
+    for (const query of queries) {
+        try {
+            favicon = dom.window.document.querySelector(query)?.getAttribute("href");
+            if (favicon) {
+                break;
+            }
+        } catch (err) {
+            console.error("Error while parsing favicon: " + err);
+            break;
+        }
+    }
 
     if (!favicon && (favicon?.length || 0) > Number(environment.maxImageUrlLength)) {
         return null;
@@ -29,7 +48,8 @@ export async function getFaviconUrl(url: string) {
 
     // Check if favicon is a relative path
     if (favicon?.startsWith("/")) {
-        return url + favicon;
+        const urlObj = new URL(url);
+        return urlObj.origin + favicon;
     } else {
         return favicon;
     }
