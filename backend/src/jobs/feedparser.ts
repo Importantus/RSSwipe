@@ -4,7 +4,7 @@ import { JSDOM } from "jsdom";
 import { Feed, PrismaClient } from "@prisma/client";
 import { environment } from "../helper/environment";
 import { getPrismaClient } from "../prismaClient";
-import { categorizeArticles } from "./categorizer";
+import { categorizeArticles } from "../models/categorizer";
 
 const parser = new Parser();
 const prisma = getPrismaClient();

@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { FeedCreateInputType, FeedUpdateInputType } from "../validators/feeds";
-import { getFaviconUrl, parseFeed, parseFeedAndAddToDb } from "./feedparser";
+import { getFaviconUrl, parseFeed, parseFeedAndAddToDb } from "../jobs/feedparser";
 import APIError from "../helper/apiError";
 import { getPrismaClient } from "../prismaClient";
 

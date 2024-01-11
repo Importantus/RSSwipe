@@ -16,7 +16,7 @@ import v1categoriesRouter from "./routes/v1/categories";
 import { auth, notFound, errorHandler } from "./middleware";
 
 import { environment } from "./helper/environment";
-import { initFeedParser } from "./models/feedparser";
+import { initFeedParser } from "./jobs/feedparser";
 import { initGarbageCollector } from "./models/garbageCollector";
 
 const app = express();
