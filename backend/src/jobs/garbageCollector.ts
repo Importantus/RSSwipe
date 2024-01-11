@@ -63,9 +63,19 @@ async function deleteOldArticles() {
 
         const articles = await prisma.article.findMany({
             where: {
-                createdAt: {
-                    lt: new Date(Date.now() - Number(environment.maxArticleAge))
-                }
+                OR: [
+                    {
+                        publishedAt: {
+                            lt: new Date(Date.now() - Number(environment.maxArticleAge))
+                        }
+                    },
+                    {
+                        createdAt: {
+                            lt: new Date(Date.now() - Number(environment.maxArticleAge))
+                        }
+                    }
+                ]
+
             }
         });
 

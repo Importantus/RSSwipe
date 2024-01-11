@@ -1,10 +1,11 @@
 import Parser from "rss-parser";
 import axios from "axios";
-import { JSDOM } from "jsdom";
+import { JSDOM, VirtualConsole } from "jsdom";
 import { Feed, PrismaClient } from "@prisma/client";
 import { environment } from "../helper/environment";
 import { getPrismaClient } from "../prismaClient";
 import { categorizeArticles } from "./categorizer";
+import { getDomFromUrl } from "../helper/htmlParsing";
 
 const parser = new Parser();
 const prisma = getPrismaClient();
@@ -19,9 +20,7 @@ export async function getFaviconUrl(url: string) {
     const urlObj = new URL(url);
     url = urlObj.origin;
 
-    const res = await axios.get(url);
-    const html = res.data;
-    const dom = new JSDOM(html);
+    const dom = await getDomFromUrl(url);
     const favicon = dom.window.document.querySelector("link[rel='icon']")?.getAttribute("href");
 
     if (!favicon && (favicon?.length || 0) > Number(environment.maxImageUrlLength)) {
@@ -37,16 +36,63 @@ export async function getFaviconUrl(url: string) {
 }
 
 /**
- * Get image url from html
- * @param url The url to get the image from
+ * Get image url from dom
+ * @param dom The dom to get the image from
  * @returns The image url
  */
-async function getImageUrl(url: string) {
-    const res = await axios.get(url);
-    const html = res.data;
-    const dom = new JSDOM(html);
+function getImageUrl(dom: JSDOM) {
     const image = dom.window.document.querySelector("meta[property='og:image']")?.getAttribute("content");
     return (image?.length || 0) > Number(environment.maxImageUrlLength) ? undefined : image;
+}
+
+function getPublishedAt(dom: JSDOM) {
+    const queries = [
+        {
+            query: "time[itemprop='datePublished']",
+            attribute: "datetime"
+        },
+        {
+            query: "meta[property='article:published_time']",
+            attribute: "content"
+        },
+        {
+            query: "meta[property='og:article:published_time']",
+            attribute: "content"
+        },
+        {
+            query: "meta[property='og:published_time']",
+            attribute: "content"
+        },
+        {
+            query: "meta[property='og:release_date']",
+            attribute: "content"
+        },
+        {
+            query: "meta[property='article:release_date']",
+            attribute: "content"
+        },
+        {
+            query: "meta[property='article:published']",
+            attribute: "content"
+        }
+    ]
+
+    let publishedAt: Date | null = null;
+
+    for (const query of queries) {
+        try {
+            const date = dom.window.document.querySelector(query.query)?.getAttribute(query.attribute);
+            if (date && !isNaN(new Date(date).getTime())) {
+                publishedAt = new Date(date);
+                break;
+            }
+        } catch (err) {
+            console.error("Error while parsing date: " + err);
+            break;
+        }
+    }
+
+    return publishedAt;
 }
 
 /**
@@ -121,16 +167,6 @@ async function addArticlesToDb(feed: Parser.Output<any>, feedId: string) {
 
     for (const article of articles) {
         try {
-            let publishedAt: Date | null = new Date(article.pubDate);
-            if (isNaN(publishedAt.getTime())) {
-                publishedAt = null;
-            }
-
-            if (publishedAt && publishedAt.getTime() < (new Date().getTime() - Number(environment.maxArticleAge))) {
-                console.log("Skipping article " + article.title + " because it is too old: " + publishedAt)
-                continue;
-            }
-
             const existingArticle = await prisma.article.findFirst({
                 where: {
                     link: article.link,
@@ -139,7 +175,19 @@ async function addArticlesToDb(feed: Parser.Output<any>, feedId: string) {
             });
 
             if (!existingArticle) {
-                const imageUrl = await getImageUrl(article.link);
+                const dom = await getDomFromUrl(article.link);
+                let publishedAt: Date | null = new Date(article.pubDate);
+
+                if (isNaN(publishedAt.getTime())) {
+                    publishedAt = getPublishedAt(dom);
+                }
+
+                if (publishedAt && publishedAt.getTime() < (new Date().getTime() - Number(environment.maxArticleAge))) {
+                    console.log("Skipping article " + article.title + " because it is too old: " + publishedAt)
+                    continue;
+                }
+
+                const imageUrl = getImageUrl(dom);
 
                 await prisma.article.create({
                     data: {
