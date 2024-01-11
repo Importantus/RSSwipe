@@ -145,7 +145,7 @@ function calculateUIHide() {
             </div>
         </div>
         <div id="scroll"
-            class="px-5 h-full overflow-y-scroll no-scrollbar pb-[10vh] pt-20 transition-colors ease-out duration-500"
+            class="px-5 h-full overflow-y-scroll no-scrollbar pb-[10vh] pt-20 transition-colors ease-out duration-500 overflow-x-hidden"
             :class="{
                 'border-[#1C1204] text-[#1C1204] bg-[#C8A777]': store.settings.colorScheme.id === colorSchemes.sepia.id,
                 'border-black text-black bg-white': store.settings.colorScheme.id === colorSchemes.light.id,
@@ -165,7 +165,7 @@ function calculateUIHide() {
                             class="min-h-full min-w-full after:content-none before:content-none">
                     </div>
                     <ArticleSource class="pt-2 text-white" :article="store.storedArticles[0].articleInfo" />
-                    <div class="text-3xl font-semibold text-inherit py-5"
+                    <div class="text-3xl font-semibold text-inherit py-5 break-words"
                         :class="{ 'font-title': store.settings.font.id === fonts.serif.id }">{{
                             store.storedArticles[0].articleInfo.title
                         }}
@@ -207,7 +207,7 @@ function calculateUIHide() {
         </div>
         <Transition name="readerelement-hide">
             <div v-if="!hideUi" class="w-full fixed right-0 bottom-11">
-                <ReaderFunctionElement/>
+                <ReaderFunctionElement />
             </div>
         </Transition>
     </div>
