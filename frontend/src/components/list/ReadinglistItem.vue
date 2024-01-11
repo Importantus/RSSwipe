@@ -122,7 +122,7 @@ function releaseHandler() {
                     <div class="h-full flex flex-row gap-1 items-center flex-shrink-0">
                         <FileDown v-if="props.downloaded" size="16" />
                         <BookOpenCheck v-if="props.article.read" size="16" />
-                        <Star v-if="props.article.starred" size="16" />
+                        <Star v-if="props.article.starred" size="16"  />
                     </div>
                 </div>
                 <h2 class="text-lg">{{ props.article.title }}</h2>

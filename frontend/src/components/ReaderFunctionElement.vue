@@ -7,8 +7,8 @@ import OpenExternalButton from './OpenExternalButton.vue';
 <template>
     <div
         class="flex flex-row items-center justify-between bg-secondary-900 rounded-[30px] gap-3 w-fit m-auto p-2 px-4 backdrop-blur-md bg-opacity-70">
-        <ShareArticleButton />
-        <StarArticleButton />
-        <OpenExternalButton />
+        <ShareArticleButton title="Article sharred"/>
+        <StarArticleButton title="Article favorite"/>
+        <OpenExternalButton  title="Article open in new Tap"/>
     </div>
 </template>

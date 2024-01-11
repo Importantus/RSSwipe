@@ -23,9 +23,9 @@ const addNewFeed = async () => {
 
 <template>
   <div class="px-5 overflow-y-scroll pb-10 h-full">
-    <TitleNavigationBar title="Your Feeds" backNavigationPath="/" class="z-20" />
-    <div @click="showModal = true" class="bg-primary-600 rounded-full fixed bottom-10 right-5 p-2 cursor-pointer z-20">
-      <Plus :size="28" class=" text-white m-3" />
+    <TitleNavigationBar title="Your Feeds" backNavigationPath="/" class="z-20"/>
+    <div @click="showModal = true" class="bg-primary-600 rounded-full fixed bottom-10 right-5 p-2 cursor-pointer z-20" title="add new Feed">
+      <Plus :size="28" class=" text-white m-3"  />
     </div>
 
     <div v-if="showModal"
