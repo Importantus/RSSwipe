@@ -62,19 +62,25 @@ export async function removeArticleFromReadingList(userId: string, articleId: st
 
 export async function removeArticlesFromReadingList(userId: string, onlyRead: boolean) {
     if (onlyRead) {
-        return await prisma.articleList.deleteMany({
+        return await prisma.articleList.updateMany({
             where: {
                 userId,
                 read: true,
                 saved: true,
-            }
+            },
+            data: {
+                saved: false,
+            },
         });
     } else {
-        return await prisma.articleList.deleteMany({
+        return await prisma.articleList.updateMany({
             where: {
                 userId,
                 saved: true,
-            }
+            },
+            data: {
+                saved: false,
+            },
         });
     }
 }
