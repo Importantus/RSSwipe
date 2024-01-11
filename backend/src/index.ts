@@ -17,7 +17,7 @@ import { auth, notFound, errorHandler } from "./middleware";
 
 import { environment } from "./helper/environment";
 import { initFeedParser } from "./jobs/feedparser";
-import { initGarbageCollector } from "./models/garbageCollector";
+import { initGarbageCollector } from "./jobs/garbageCollector";
 
 const app = express();
 const port = environment.backendPort;
