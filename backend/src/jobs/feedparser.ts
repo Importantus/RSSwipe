@@ -1,13 +1,12 @@
-import Parser from "rss-parser";
-import axios from "axios";
-import { JSDOM, VirtualConsole } from "jsdom";
-import { Feed, PrismaClient } from "@prisma/client";
+import type { JSDOM } from "jsdom";
+import { Feed } from "@prisma/client";
 import { environment } from "../helper/environment";
 import { getPrismaClient } from "../prismaClient";
 import { categorizeArticles } from "./categorizer";
 import { getDomFromUrl } from "../helper/htmlParsing";
+import { parseFeedFromUrl } from "../helper/feedParsing";
+import FeedParser from "feedparser";
 
-const parser = new Parser();
 const prisma = getPrismaClient();
 
 /**
@@ -16,12 +15,27 @@ const prisma = getPrismaClient();
  * @returns The favicon url
  */
 export async function getFaviconUrl(url: string) {
-    // Use only base url
-    const urlObj = new URL(url);
-    url = urlObj.origin;
-
     const dom = await getDomFromUrl(url);
-    const favicon = dom.window.document.querySelector("link[rel='icon']")?.getAttribute("href");
+
+    const queries = [
+        'link[rel="apple-touch-icon-precomposed"]',
+        'link[rel="shortcut icon"]',
+        'link[rel="icon"]',
+    ]
+
+    let favicon: string | null | undefined = null;
+
+    for (const query of queries) {
+        try {
+            favicon = dom.window.document.querySelector(query)?.getAttribute("href");
+            if (favicon) {
+                break;
+            }
+        } catch (err) {
+            console.error("Error while parsing favicon: " + err);
+            break;
+        }
+    }
 
     if (!favicon && (favicon?.length || 0) > Number(environment.maxImageUrlLength)) {
         return null;
@@ -29,7 +43,8 @@ export async function getFaviconUrl(url: string) {
 
     // Check if favicon is a relative path
     if (favicon?.startsWith("/")) {
-        return url + favicon;
+        const urlObj = new URL(url);
+        return urlObj.origin + favicon;
     } else {
         return favicon;
     }
@@ -101,7 +116,7 @@ function getPublishedAt(dom: JSDOM) {
  * @returns The parsed feed
  */
 export async function parseFeed(url: string) {
-    const feed = await parser.parseURL(url);
+    const feed = await parseFeedFromUrl(url);
     return feed;
 }
 
@@ -115,18 +130,25 @@ export async function parseFeedAndAddToDb(feed: Feed) {
     const parsedFeed = await parseFeed(feed.link);
 
     // Update feed title and favicon if changed
-    if (parsedFeed.title !== feed.title) {
+    if (parsedFeed.meta.title !== feed.title) {
         await prisma.feed.update({
             where: {
                 id: feed.id
             },
             data: {
-                title: parsedFeed.title
+                title: parsedFeed.meta.title
             }
         });
     }
 
-    const favicon = await getFaviconUrl(feed.link);
+    // Get Favicon
+    let link = parsedFeed.meta.link;
+    if (!link) {
+        // Use only base url
+        const urlObj = new URL(feed.link);
+        link = urlObj.origin;
+    }
+    const favicon = await getFaviconUrl(link);
 
     if (favicon !== feed.faviconUrl) {
         await prisma.feed.update({
@@ -150,7 +172,7 @@ export async function parseFeedAndAddToDb(feed: Feed) {
     });
 
     try {
-        await addArticlesToDb(parsedFeed, feed.id);
+        await addArticlesToDb(parsedFeed.items, feed.id);
     } catch (err) {
         console.error("\nError while adding articles of feed " + feed.title + " to database: \n" + err);
     }
@@ -161,8 +183,7 @@ export async function parseFeedAndAddToDb(feed: Feed) {
  * @param feed A parsed feed
  * @param feedId The id of the feed
  */
-async function addArticlesToDb(feed: Parser.Output<any>, feedId: string) {
-    const articles = feed.items;
+async function addArticlesToDb(articles: FeedParser.Item[], feedId: string) {
     let newArticles = 0;
 
     for (const article of articles) {
@@ -176,10 +197,13 @@ async function addArticlesToDb(feed: Parser.Output<any>, feedId: string) {
 
             if (!existingArticle) {
                 const dom = await getDomFromUrl(article.link);
-                let publishedAt: Date | null = new Date(article.pubDate);
 
-                if (isNaN(publishedAt.getTime())) {
+                let publishedAt: Date | null = null;
+
+                if (!article.pubdate && !article.date) {
                     publishedAt = getPublishedAt(dom);
+                } else {
+                    publishedAt = new Date(article.pubdate ? article.pubdate : article.date!);
                 }
 
                 if (publishedAt && publishedAt.getTime() < (new Date().getTime() - Number(environment.maxArticleAge))) {

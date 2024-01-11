@@ -185,7 +185,7 @@ async function createFeed(feedInput: FeedCreateInputType) {
     const parsedFeed = await parseFeed(feedInput.url);
     return await prisma.feed.create({
         data: {
-            title: parsedFeed.title || feedInput.url,
+            title: parsedFeed.meta.title || feedInput.url,
             link: feedInput.url,
             faviconUrl: favicon
         }
