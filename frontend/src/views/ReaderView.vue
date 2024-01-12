@@ -162,7 +162,7 @@ function calculateUIHide() {
                     <div v-if="store.storedArticles[0].articleInfo.imageUrl"
                         class="w-full aspect-video bg-background-900 mb-5 rounded-md overflow-hidden">
                         <img :src="store.storedArticles[0].articleInfo.imageUrl"
-                            class="min-h-full min-w-full after:content-none before:content-none">
+                            class="min-h-full min-w-full after:content-none before:content-none object-cover">
                     </div>
                     <ArticleSource class="pt-2 text-white" :article="store.storedArticles[0].articleInfo" />
                     <div class="text-3xl font-semibold text-inherit py-5 break-words"
