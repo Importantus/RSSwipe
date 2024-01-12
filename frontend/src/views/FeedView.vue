@@ -24,9 +24,11 @@ const addNewFeed = async () => {
 <template>
   <div class="px-5 overflow-y-scroll pb-10 h-full">
     <TitleNavigationBar title="Your Feeds" backNavigationPath="/" class="z-20" />
-    <div @click="showModal = true" name="popup"
-      class="bg-primary-600 rounded-full fixed bottom-10 right-5 p-2 cursor-pointer z-20" title="add new Feed ">
-      <Plus :size="28" class=" text-white m-3" />
+    <div class="fixed bottom-0 left-0 right-0 max-w-xl m-auto">
+      <div @click="showModal = true" name="popup"
+        class="bg-primary-600 rounded-full absolute bottom-10 right-5 p-2 cursor-pointer z-20" title="add new Feed ">
+        <Plus :size="28" class=" text-white m-3" />
+      </div>
     </div>
     <Transition name="popup-fade">
       <div v-if="showModal"
