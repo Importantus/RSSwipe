@@ -8,7 +8,7 @@ store.applySettings();
 </script>
 
 <template>
-  <div class="max-w-xl m-auto overflow-hidden h-[100dvh] relative">
+  <div class="max-w-xl m-auto overflow-hidden h-[100svh] relative">
     <router-view v-slot="{ Component, route }">
       <transition :name="(route.meta.transition as string)">
         <component class="absolute w-full h-full bg-background-950" :is="Component" />
