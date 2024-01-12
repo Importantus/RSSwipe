@@ -228,7 +228,9 @@ export async function getArticleContent(articleId: string) {
         throw APIError.notFound();
     }
 
-    const dom = await getDomFromUrl(article.link);
+    const dom = await getDomFromUrl(article.link, {
+        correctUrls: true
+    });
 
     const reader = new Readability(dom.window.document);
     const articleContent = reader.parse();
