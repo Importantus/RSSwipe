@@ -189,3 +189,19 @@
   transition: all 0.3s ease;
   -tw-backdrop-blur: blur(12px)
 }
+
+.popup {
+  opacity: 0;
+  transition: all 0.1s ease-out;
+}
+
+.popup-fade-enter-active,
+.popup-fade-leave-active {
+  transition: opacity 0.3s ease-out;
+}
+
+.popup-fade-enter-from,
+.popup-fade-leave-to {
+  opacity: 0;
+  transition: all 0.1s ease-out;
+}
