@@ -11,7 +11,7 @@ store.applySettings();
   <div class="max-w-xl m-auto overflow-hidden h-[100svh] relative">
     <router-view v-slot="{ Component, route }">
       <transition :name="(route.meta.transition as string)">
-        <component class="absolute w-full h-full bg-background-950" :is="Component" />
+        <component class="absolute w-full h-full bg-background-950" :is="Component" :key="route.fullPath" />
       </transition>
     </router-view>
   </div>

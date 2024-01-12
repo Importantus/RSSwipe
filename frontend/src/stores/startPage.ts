@@ -20,7 +20,9 @@ export const useStartPageStore = defineStore({
     state: () => ({
         articles: [] as Article[],
         status: ArticleStatus.LOADING,
-        lastActions: [] as Article[]
+        lastActions: [] as Article[],
+        swipeLeftPercentage: 0,
+        swipeRightPercentage: 0
     }),
     actions: {
         async reload() {

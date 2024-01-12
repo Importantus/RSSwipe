@@ -62,8 +62,8 @@ const openFeedPage = () => {
             <div
                 class="flex justify-between bg-[#222] text-white px-4 py-3 rounded-t-lg shadow-md w-full transition items-center gap-3">
 
-                <div class="w-10 h-10 flex-shrink-0 overflow-hidden rounded-sm">
-                    <img class="min-w-full min-h-full" :src="faviconUrl" alt="favicon" />
+                <div class="w-10 h-10 flex-shrink-0 overflow-hidden rounded">
+                    <img class="min-w-full min-h-full object-cover" :src="faviconUrl" alt="favicon" />
                 </div>
                 <div class="flex flex-col w-full overflow-hidden">
                     <div class="text-lg font-semibold truncate block max-w-full">
@@ -72,12 +72,12 @@ const openFeedPage = () => {
                     <div class="truncate block max-w-full text-background-500 text-sm">{{ props.feed.url }}</div>
                 </div>
                 <div class="flex items-center flex-shrink-0 aspect-square" title="open Feed Option">
-                    <ChevronDown :stroke-width="1.25" size="35" class="transition" :class="{ 'rotate-180': showOptions }"  />
+                    <ChevronDown :stroke-width="1.25" size="35" class="transition" :class="{ 'rotate-180': showOptions }" />
                 </div>
             </div>
         </div>
-        <Transition name="slide-fade" >
-            <div v-if="showOptions" class="px-4 py-4 rounded-lg bg-[#282828] flex flex-col gap-4 z-0" 
+        <Transition name="slide-fade">
+            <div v-if="showOptions" class="px-4 py-4 rounded-lg bg-[#282828] flex flex-col gap-4 z-0"
                 :class="{ 'rounded-t-none': showOptions }">
                 <div class="flex justify-between items-center gap-2">
                     <div>

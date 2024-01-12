@@ -3,7 +3,7 @@ import { useStartPageStore, ArticleStatus } from '@/stores/startPage';
 import ArticleCard from '../ArticleCard.vue';
 import { onMounted } from 'vue';
 import NonBlockingLoadingIndicator from '../NonBlockingLoadingIndicator.vue';
-import { Plus } from 'lucide-vue-next';
+import { Rss } from 'lucide-vue-next';
 import { useFeedStore } from '@/stores/feeds';
 import router from '@/router';
 
@@ -39,7 +39,7 @@ onMounted(async () => {
                 name: 'Feeds'
             })" v-if="feedStore.feedList.length === 0"
                 class="flex items-center px-5 py-2 bg-primary-600 rounded-lg gap-2 mt-5 cursor-pointer font-semibold">
-                <Plus class="white" size="20" />
+                <Rss class="white" :size="20" />
                 Add your first feed
             </button>
         </div>

@@ -33,6 +33,9 @@ function pressHandler(event: TouchEvent | MouseEvent) {
     } else {
         posX = (event as TouchEvent).touches[0].clientX;
     }
+
+    store.swipeLeftPercentage = 0;
+    store.swipeRightPercentage = 0;
 }
 
 function swipeHandler(event: TouchEvent | MouseEvent) {
@@ -46,6 +49,14 @@ function swipeHandler(event: TouchEvent | MouseEvent) {
 
     const diff = currentX - posX;
 
+    if (diff > 0) {
+        store.swipeRightPercentage = Math.round((Math.abs(diff) / swipeToTrigger) * 100);
+        store.swipeLeftPercentage = 0;
+    } else {
+        store.swipeLeftPercentage = Math.round((Math.abs(diff) / swipeToTrigger) * 100);
+        store.swipeRightPercentage = 0;
+    }
+
     elementTransformX.value = diff;
 }
 
@@ -53,17 +64,27 @@ function releaseHandler() {
     if (props.index !== 0) return;
     if (elementTransformX.value > swipeToTrigger) {
         elementTransformX.value = 500;
+        store.swipeRightPercentage = 500;
         setTimeout(() => {
+            store.swipeRightPercentage = 0;
             store.saveArticle();
         }, 100);
     } else if (elementTransformX.value < -swipeToTrigger) {
         elementTransformX.value = -500;
+        store.swipeLeftPercentage = 500;
         setTimeout(() => {
+            store.swipeLeftPercentage = 0;
             store.discardArticle();
         }, 100);
     } else {
         elementTransformX.value = 0;
     }
+
+    setTimeout(() => {
+        store.swipeLeftPercentage = 0;
+        store.swipeRightPercentage = 0;
+    }, 100);
+
 }
 
 
