@@ -23,16 +23,29 @@ userStore.fetchUserData();
     <div class="px-5 overflow-y-scroll pb-10">
         <TitleNavigationBar title="Settings" backNavigationPath="/" />
         <div class="flex flex-col gap-10">
-            <div class="flex py-5 px-5 justify-between items-center bg-background-900 bg-opacity-20 rounded-md">
-                <div class="flex flex-col gap-1">
-                    <h2 class="font-title text-2xl">{{ userStore.userdata.name }}</h2>
-                    <p class="font-title font-light text-background-300">{{ userStore.userdata.email }}</p>
+            <div class="flex flex-col gap-3">
+                <div class="flex py-5 px-5 justify-between items-center bg-background-900 bg-opacity-20 rounded-md">
+                    <div class="flex flex-col gap-1">
+                        <h2 class="font-title text-2xl">{{ userStore.userdata.name }}</h2>
+                        <p class="font-title font-light text-background-300">{{ userStore.userdata.email }}</p>
+                    </div>
+                    <router-link to="/settings/account"
+                        class="bg-background-900 py-2 px-4 rounded-md opacity-70 hover:shadow-lg flex gap-2 items-center"
+                        title="Account Editing">
+                        Edit
+                        <MoveRight :size="16" class="mt-[1px]" />
+                    </router-link>
                 </div>
-                <router-link to="/settings/account"
-                    class="bg-background-900 py-2 px-4 rounded-md opacity-70 hover:shadow-lg flex gap-2 items-center" title="Account Editing">
-                    Edit
-                    <MoveRight :size="16" class="mt-[1px]" />
-                </router-link>
+                <div class="flex py-5 px-5 justify-between items-center bg-background-900 bg-opacity-20 rounded-md">
+                    <div class="flex flex-col gap-1">
+                        <h2 class="text-lg">Statistics</h2>
+                    </div>
+                    <router-link to="/settings/statistics"
+                        class="bg-background-900 py-2 px-4 rounded-md opacity-70 hover:shadow-lg flex gap-2 items-center"
+                        title="Statistics">
+                        <MoveRight :size="16" class="mt-[1px]" />
+                    </router-link>
+                </div>
             </div>
             <div class="flex flex-col gap-5" title="change the Font Size">
                 <div class="flex flex-col gap-2">

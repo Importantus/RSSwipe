@@ -11,6 +11,7 @@ import ReadinglistSettingsView from '@/views/ReadinglistSettingsView.vue'
 import { useAuthStore } from '@/stores/auth'
 import pinia from '@/stores/index'
 import ReadinglistViewVue from '@/views/ReadinglistView.vue'
+import StatisticsView from '@/views/StatisticsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,6 +45,11 @@ const router = createRouter({
       path: '/settings/account',
       name: 'Account',
       component: UserDataView
+    },
+    {
+      path: '/settings/statistics',
+      name: 'Statistics',
+      component: StatisticsView
     },
     {
       path: '/article/:id',
