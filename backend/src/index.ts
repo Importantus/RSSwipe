@@ -12,6 +12,7 @@ import v1userRouter from "./routes/v1/user";
 import v1registerRouter from "./routes/v1/register";
 import v1starredRouter from "./routes/v1/starred";
 import v1categoriesRouter from "./routes/v1/categories";
+import v1statisticsRouter from "./routes/v1/statistics";
 
 import { auth, notFound, errorHandler } from "./middleware";
 
@@ -92,6 +93,12 @@ const versions: APIVersion[] = [
                 path: "/categories",
                 router: v1categoriesRouter,
                 name: "categories",
+                auth: true
+            },
+            {
+                path: "/statistics",
+                router: v1statisticsRouter,
+                name: "statistics",
                 auth: true
             }
         ]
