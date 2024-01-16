@@ -78,25 +78,25 @@ export async function getNumbersSinceMaxAge(userId: string) {
 
     // For each article, increment the corresponding day's counters
     for (const article of allArticles) {
-        if (article.seen) {
+        if (article.seen && article.dateSeen) {
             const day = days.find(day => day.date.getDate() === article.dateSeen!.getDate());
             if (day) {
                 day.seen++;
             }
         }
-        if (article.read) {
+        if (article.read && article.dateRead) {
             const day = days.find(day => day.date.getDate() === article.dateRead!.getDate());
             if (day) {
                 day.read++;
             }
         }
-        if (article.starred) {
+        if (article.starred && article.dateStar) {
             const day = days.find(day => day.date.getDate() === article.dateStar!.getDate());
             if (day) {
                 day.starred++;
             }
         }
-        if (article.saved) {
+        if (article.saved && article.dateSaved) {
             const day = days.find(day => day.date.getDate() === article.dateSaved!.getDate());
             if (day) {
                 day.saved++;

@@ -70,6 +70,7 @@ export async function removeArticlesFromReadingList(userId: string, onlyRead: bo
             },
             data: {
                 saved: false,
+                dateSaved: null,
             },
         });
     } else {
@@ -80,6 +81,7 @@ export async function removeArticlesFromReadingList(userId: string, onlyRead: bo
             },
             data: {
                 saved: false,
+                dateSaved: null,
             },
         });
     }
