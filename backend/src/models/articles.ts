@@ -208,8 +208,8 @@ export async function updateArticle(userId: string, articleId: string, input: Ar
                 starred: input.starred ?? articleList.starred,
                 saved: input.saved ?? articleList.saved,
                 dateRead: input.read ? new Date() : articleList.dateRead,
-                dateSaved: input.saved ? new Date() : articleList.saved ? null : articleList.dateSaved,
-                dateStar: input.starred ? new Date() : articleList.starred ? null : articleList.dateStar,
+                dateSaved: input.saved ? new Date() : articleList.dateSaved,
+                dateStar: input.starred ? new Date() : articleList.dateStar,
                 dateSeen: input.seen ? new Date() : articleList.dateSeen
             }
         });
