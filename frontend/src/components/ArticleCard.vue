@@ -105,10 +105,13 @@ if (!props.article.imageUrl) {
 </script>
 
 <template>
-    <div @click="openinReader">
+    <div @click="openinReader" class="absolute w-full transitions" :style="{
+        top: 1.5 - (props.index * 0.75) + 'rem',
+        bottom: (props.index * 0.75) + 'rem',
+    }">
         <div v-if="!hidden" v-touch:drag="swipeHandler" v-touch:press="pressHandler" v-touch:release="releaseHandler"
-            class="transitions h-full max-h-[70vh] drop-shadow-lg rounded-xl bg-center bg-cover bg-background-800" :style="{
-                marginTop: 1.5 - (props.index * 0.75) + 'rem',
+            class="transition-all duration-100 ease-linear h-full drop-shadow-lg rounded-xl bg-center bg-cover bg-background-800"
+            :style="{
                 backgroundImage: 'url(' + url + ')',
                 transform: 'translateX(' + elementTransformX + 'px) rotateZ(' + elementRotateZ + 'deg)',
             }">
@@ -128,6 +131,6 @@ if (!props.article.imageUrl) {
 
 <style scoped>
 .transitions {
-    transition: transform 0.1s linear, margin-top 0.5s ease-out;
+    transition: top 0.3s ease-in-out, bottom 0.3s ease-in-out;
 }
 </style>
