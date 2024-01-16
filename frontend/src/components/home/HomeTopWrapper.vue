@@ -13,7 +13,7 @@ import CategoryList from '../categories/CategoryList.vue';
       <GreetingBanner class="flex-1 basis 2/4" />
       <FeedSettingsButton class="flex-none basis 1/4" />
     </div>
-    <div class="mt-5 mb-8 flex flex-col gap-2">
+    <div class="mt-5 flex flex-col gap-2">
       <CategoryList />
       <FeedFilterList />
     </div>
