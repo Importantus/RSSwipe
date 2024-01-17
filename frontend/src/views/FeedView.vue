@@ -10,6 +10,9 @@ const newFeedUrl = ref('');
 const openInApp = ref(true);
 const store = useFeedStore();
 const showModal = ref(false);
+const vFocus = {
+  mounted: (el:HTMLElement) => el.querySelector("input")?.focus()
+}
 const toggleAddFeedPopup = () => {
   showModal.value = !showModal.value;
 };
@@ -19,6 +22,8 @@ const addNewFeed = async () => {
   await store.addFeed(shortenedURL, openInApp.value);
   newFeedUrl.value = '';
 };
+
+
 </script>
 
 <template>
@@ -37,8 +42,8 @@ const addNewFeed = async () => {
         <div class="w-[90%] max-w-lg bg-secondary-900 rounded-xl p-5 relative  justify-between">
           <X class="absolute mb-3 top-5 right-5 cursor-pointer" size="32" @click="toggleAddFeedPopup" />
           <h3 class="text-lg font-semibold mb-3 top-5">Add New Feed</h3>
-          <form @submit.prevent="addNewFeed">
-            <TextInputIcon v-model="newFeedUrl" placeholder="URL" :icon="Link" :required="true" />
+          <form @submit.prevent="addNewFeed" >
+            <TextInputIcon v-focus  v-model="newFeedUrl" placeholder="URL" :icon="Link" :required="true"  />
             <button type="submit"
               class="w-full h-14 bg-amber-600 rounded-lg hover:bg-amber-700 transition mb-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
               :disabled="newFeedUrl.length === 0">
