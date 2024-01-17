@@ -12,10 +12,16 @@ onMounted(() => {
         store.discardArticle();
            return false;
     });
+
+    hotkeys('h', () => {
+        store.discardArticle();
+        return false;
+    });
 });
 
 onBeforeUnmount(() => {
        hotkeys.unbind('left');
+       hotkeys.unbind('h');
 });
 </script>
 
