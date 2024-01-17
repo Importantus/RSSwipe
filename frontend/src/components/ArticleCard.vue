@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ArticleInfoElement from '@/components/ArticleInfoElement.vue';
+import ArticleDate from '@/components/ArticleDate.vue';
 import { useStartPageStore } from '@/stores/startPage';
 import type { Article } from '@/types';
 import { computed, ref } from 'vue';
@@ -115,15 +116,7 @@ if (!props.article.imageUrl) {
                 backgroundImage: 'url(' + url + ')',
                 transform: 'translateX(' + elementTransformX + 'px) rotateZ(' + elementRotateZ + 'deg)',
             }">
-            <div
-                class="absolute font-text-detail top-3 left-3 bg-background-900 bg-opacity-50 px-2 py-1 text-xs rounded-lg">
-                {{ new Date(props.article.publishedAt).toLocaleString(undefined, {
-                    month: 'long',
-                    day: 'numeric',
-                    minute: 'numeric',
-                    hour: 'numeric'
-                }) }}
-            </div>
+            <ArticleDate :article="props.article" class="absolute top-3 left-3" />
             <ArticleInfoElement :article="props.article" class="rounded-xl absolute bottom-0" />
         </div>
     </div>
