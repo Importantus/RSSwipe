@@ -57,7 +57,7 @@ watch(() => store.removedArticles.length, (newValue, oldValue) => {
                     </RouterLink>
                 </div>
             </TitleNavigationBar>
-            <ReadinglistList :starred="false" />
+            <ReadinglistList />
             <Transition name="fade">
                 <div :onclick="() => {
                     showTile = false
