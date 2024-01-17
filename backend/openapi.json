@@ -606,7 +606,7 @@
           {
             "name": "endDate",
             "in": "query",
-            "description": "The date until which (entDate excluded) articles should be returned. If not set, articles from all dates are returned",
+            "description": "The date until which (endDate excluded) articles should be returned. If not set, articles from all dates are returned",
             "required": false,
             "schema": {
               "type": "string",
