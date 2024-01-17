@@ -21,7 +21,7 @@ store.update();
                 <ReadinglistItem v-for="article in store.articles" :key="article.articleInfo.id"
                     :article="article.articleInfo" @swipe-right="store.removeArticle(article.articleInfo)"
                     :downloaded="article.content !== undefined" :swipe-right="store.swipeRight"
-                    :swipe-left="store.swipeLeft" :starredList="false" />
+                    :swipe-left="store.swipeLeft" :starredList="false" list="reading" />
             </TransitionGroup>
         </div>
     </div>

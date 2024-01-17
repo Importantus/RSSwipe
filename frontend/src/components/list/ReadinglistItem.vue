@@ -7,6 +7,7 @@ import { ReaderContext, useReaderStore } from '@/stores/reader';
 import router from '@/router';
 
 const props = defineProps<{
+    list: 'reading' | 'starred',
     article: Article;
     downloaded: boolean;
     swipeLeft: SwipeDirection,
@@ -22,7 +23,7 @@ const displayWidth = window.innerWidth;
 const swipeToTrigger = displayWidth / 3;
 
 function openInReader() {
-    router.push(`/article/${props.article.id}`);
+    router.push(`/${props.list === 'reading' ? 'readinglist' : 'starredlist'}/article/${props.article.id}`);
 }
 
 function pressHandler(event: TouchEvent | MouseEvent) {

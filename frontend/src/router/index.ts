@@ -58,7 +58,7 @@ const router = createRouter({
       component: StatisticsView
     },
     {
-      path: '/article/:id',
+      path: '/:list?/article/:id',
       name: 'Article',
       component: ReaderView
     },

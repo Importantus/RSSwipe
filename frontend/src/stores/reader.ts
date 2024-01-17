@@ -129,7 +129,7 @@ export const useReaderStore = defineStore({
         settings: loadSettings()
     }),
     actions: {
-        async openArticle(articleId: string) {
+        async openArticle(articleId: string, list: 'reading' | 'starred' | 'none') {
             this.status = ReaderStatus.LOADING
             this.storedArticles = []
             this.openInApp = true
@@ -142,40 +142,40 @@ export const useReaderStore = defineStore({
             const readingListStore = useReadingListStore();
 
             if (readingListStore.nextArticleSkipRead) {
-                this.getNextUnreadArticle()
+                this.getNextUnreadArticle(list)
             } else {
-                this.getNextArticle()
+                this.getNextArticle(list)
             }
 
 
             this.status = ReaderStatus.READY
         },
-        async getNextUnreadArticle() {
-            const readingListStore = useReadingListStore();
-            const startIndex = readingListStore.articles.findIndex(a => a.articleInfo.id === this.storedArticles[0].articleInfo.id)
+        async getNextUnreadArticle(list: 'reading' | 'starred' | 'none') {
+            const listStore = list === 'reading' ? useReadingListStore() : useStarredListStore();
+            const startIndex = listStore.articles.findIndex(a => a.articleInfo.id === this.storedArticles[0].articleInfo.id)
 
             if (startIndex === -1) {
                 return
             }
 
-            const remainingArticles = readingListStore.articles.slice(startIndex + 1, readingListStore.articles.length)
+            const remainingArticles = listStore.articles.slice(startIndex + 1, listStore.articles.length)
             let unreadArticles = remainingArticles.filter(a => !a.articleInfo.read)
             if (unreadArticles.length > 0) {
                 //Unread Articles below the current one
                 this.storedArticles.push(unreadArticles[0])
             } else {
                 //Any Unread Articles above or below the current one
-                unreadArticles = readingListStore.articles.filter(a => !a.articleInfo.read && a.articleInfo.id !== this.storedArticles[0].articleInfo.id)
+                unreadArticles = listStore.articles.filter(a => !a.articleInfo.read && a.articleInfo.id !== this.storedArticles[0].articleInfo.id)
                 if (unreadArticles.length > 0) {
                     this.storedArticles.push(unreadArticles[0])
                 }
             }
         },
 
-        async getNextArticle() {
-            const readingListStore = useReadingListStore();
-            const startIndex = readingListStore.articles.findIndex(a => a.articleInfo.id === this.storedArticles[0].articleInfo.id)
-            const remainingArticles = readingListStore.articles.slice(startIndex + 1, readingListStore.articles.length)
+        async getNextArticle(list: 'reading' | 'starred' | 'none') {
+            const listStore = list === 'reading' ? useReadingListStore() : useStarredListStore();
+            const startIndex = listStore.articles.findIndex(a => a.articleInfo.id === this.storedArticles[0].articleInfo.id)
+            const remainingArticles = listStore.articles.slice(startIndex + 1, listStore.articles.length)
 
             if (startIndex === -1) {
                 return
