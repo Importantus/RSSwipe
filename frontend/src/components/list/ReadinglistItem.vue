@@ -9,7 +9,8 @@ const props = defineProps<{
     article: Article;
     downloaded: boolean;
     swipeLeft: SwipeDirection,
-    swipeRight: SwipeDirection
+    swipeRight: SwipeDirection,
+    starredList: boolean
 }>();
 
 const readerStore = useReaderStore();
@@ -22,7 +23,12 @@ const displayWidth = window.innerWidth;
 const swipeToTrigger = displayWidth / 3;
 
 function openInReader() {
-    readerStore.openArticle(ReaderContext.READINGLIST, props.article);
+    if (!props.starredList) {
+        readerStore.openArticle(ReaderContext.READINGLIST, props.article);
+    } else {
+        readerStore.openArticle(ReaderContext.STARREDLIST, props.article);
+    }
+
 }
 
 function pressHandler(event: TouchEvent | MouseEvent) {
