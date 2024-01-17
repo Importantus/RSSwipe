@@ -3,7 +3,7 @@ import { useStartPageStore, ArticleStatus } from '@/stores/startPage';
 import ArticleCard from '../ArticleCard.vue';
 import { onMounted } from 'vue';
 import NonBlockingLoadingIndicator from '../NonBlockingLoadingIndicator.vue';
-import { Rss } from 'lucide-vue-next';
+import { Rss, RotateCcw } from 'lucide-vue-next';
 import { useFeedStore } from '@/stores/feeds';
 import router from '@/router';
 
@@ -71,6 +71,9 @@ onMounted(async () => {
         <div v-if="feedStore.feedList.length > 0" class="w-full flex justify-center flex-col items-center">
             <img src="/images/MeditatingDoodle.svg" alt="Reading" class="w-[60%]" />
             <h2 class="text-secondary-500">All caught up</h2>
+            <button class="p-5" @click="store.fetchArticles()">
+                <RotateCcw></RotateCcw>
+            </button>
         </div>
         <div v-else class="w-full flex justify-center flex-col items-center">
             <img src="/images/ReadingDoodle.svg" alt="Reading" class="w-[80%]" />
