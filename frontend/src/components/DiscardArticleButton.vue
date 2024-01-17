@@ -1,8 +1,25 @@
 <script setup lang="ts">
+import { onMounted, onBeforeUnmount } from 'vue';
+import hotkeys from 'hotkeys-js';
 import { useStartPageStore } from '@/stores/startPage';
 import { X } from 'lucide-vue-next';
 
 const store = useStartPageStore();
+
+onMounted(() => {
+    // Binden Sie den Hotkey zum Verwerfen eines Artikels
+    hotkeys('left, h', () => {
+        store.discardArticle();
+           return false;
+    });
+
+   
+});
+
+onBeforeUnmount(() => {     
+       hotkeys.unbind('left, h');
+       
+});
 </script>
 
 <template>
