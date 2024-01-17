@@ -3,7 +3,7 @@ import TitleNavigationBar from '@/components/TitleNavigationBar.vue';
 import ReadinglistList from '@/components/list/ReadinglistList.vue';
 import { useReadingListStore } from '@/stores/readingList';
 import { Settings } from 'lucide-vue-next';
-import { ListX, X } from 'lucide-vue-next';
+import { ListX, X, Star } from 'lucide-vue-next';
 import { Undo2 } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 
@@ -52,6 +52,9 @@ watch(() => store.removedArticles.length, (newValue, oldValue) => {
         <div class="px-5 overflow-y-scroll pb-10 h-full">
             <TitleNavigationBar title="Reading List" backNavigationPath="/" class="mb-5">
                 <div class="flex gap-4">
+                    <RouterLink to="/starredlist" class="text-white">
+                        <Star size="24" class="text-white" />
+                    </RouterLink>
                     <div title="close window">
                         <ListX v-if="store.articles.length > 0" size="24" class="text-white cursor-pointer"
                             @click="showClearListModal = true" />
