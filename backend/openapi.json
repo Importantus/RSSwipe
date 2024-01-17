@@ -37,6 +37,10 @@
     {
       "name": "statistics",
       "description": "Statistics about your usage"
+    },
+    {
+      "name": "system",
+      "description": "System informations"
     }
   ],
   "servers": [
@@ -588,6 +592,26 @@
                 "type": "string"
               }
             }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "description": "The date from which (startDate included) articles should be returned. If not set, articles from all dates are returned",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "description": "The date until which (endDate excluded) articles should be returned. If not set, articles from all dates are returned",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
           }
         ],
         "responses": {
@@ -1054,6 +1078,26 @@
           }
         }
       }
+    },
+    "/system": {
+      "get": {
+        "description": "Get system informations",
+        "tags": [
+          "system"
+        ],
+        "responses": {
+          "200": {
+            "description": "System informations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemInformation"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1065,6 +1109,37 @@
       }
     },
     "schemas": {
+      "SystemInformation": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "uptime": {
+            "description": "Uptime in seconds",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "development",
+              "production"
+            ],
+            "type": "string"
+          },
+          "feedUpdateInterval": {
+            "description": "Feed update interval in miliseconds",
+            "type": "integer"
+          },
+          "garbageCollectionInterval": {
+            "description": "Garbage collection interval in miliseconds",
+            "type": "integer"
+          },
+          "maxArticleAge": {
+            "description": "Maximum age of an article in miliseconds",
+            "type": "integer"
+          }
+        }
+      },
       "RecentStatistics": {
         "type": "object",
         "properties": {

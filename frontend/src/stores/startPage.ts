@@ -23,6 +23,12 @@ export interface SwipeLimit {
     active: boolean
 }
 
+export interface DateFrame {
+    maxStart: number
+    start: number
+    end: number
+}
+
 export const useStartPageStore = defineStore({
     id: 'startPage',
     state: () => ({
@@ -37,7 +43,12 @@ export const useStartPageStore = defineStore({
         })) as SwipeLimit,
         lastActions: [] as Article[],
         swipeLeftPercentage: 0,
-        swipeRightPercentage: 0
+        swipeRightPercentage: 0,
+        dateFrame: JSON.parse(localStorage.getItem('dateFrame') ?? JSON.stringify({
+            maxStart: 0,
+            start: -1000,
+            end: 0
+        })) as DateFrame
     }),
     actions: {
         // Load Articles
@@ -55,12 +66,13 @@ export const useStartPageStore = defineStore({
 
             const categoriesStore = useCategoriesStore()
             const feedsStore = useFeedStore()
-
             const response = await axios.get('/articles', {
                 params: {
                     limit: STORED_ARTICLES + this.articles.length,
                     categories: categoriesStore.selectedCategories.map(c => c.id),
-                    feeds: feedsStore.filteredFeedList.map(f => f.id)
+                    feeds: feedsStore.filteredFeedList.map(f => f.id),
+                    startDate: this.toISO8601(this.getStartDate()),
+                    endDate: this.toISO8601(this.getEndDate())
                 }
             })
 
@@ -172,6 +184,45 @@ export const useStartPageStore = defineStore({
                 saved: false,
                 seen: false
             })
+        },
+
+        // Date Frame
+        setStartDay(day: number) {
+            this.dateFrame.start = day
+            this.reload()
+            localStorage.setItem('dateFrame', JSON.stringify(this.dateFrame))
+        },
+        setEndDay(day: number) {
+            this.dateFrame.end = day
+            this.reload()
+            localStorage.setItem('dateFrame', JSON.stringify(this.dateFrame))
+        },
+        getStartDate() {
+            const date = new Date()
+            date.setDate(date.getDate() + +this.dateFrame.start)
+            return date
+        },
+        getEndDate() {
+            const date = new Date()
+            // Add 1 day because the end date is exclusive
+            date.setDate(date.getDate() + +this.dateFrame.end + 1)
+            return date
+        },
+        getMaxStartDate() {
+            const date = new Date()
+            date.setDate(date.getDate() + this.dateFrame.maxStart)
+            return date
+        },
+        toISO8601(date: Date) {
+            return date.toISOString().split('T')[0]
+        },
+        async fetchMaxStartDate() {
+            const response = await axios.get('/system')
+            this.dateFrame.maxStart = -(response.data.maxArticleAge / 1000 / 60 / 60 / 24)
+            if (this.dateFrame.start < this.dateFrame.maxStart) {
+                this.dateFrame.start = this.dateFrame.maxStart
+            }
+            localStorage.setItem('dateFrame', JSON.stringify(this.dateFrame))
         }
     }
 })

@@ -64,6 +64,27 @@ function onInput(event: Event) {
     }, 0)
 }
 
+const startDate = computed({
+    get: () => startPageStore.dateFrame.start,
+    set: (value) => {
+        if (value >= +startPageStore.dateFrame.end) {
+            startPageStore.setEndDay(value);
+        }
+        startPageStore.setStartDay(value);
+    }
+});
+
+const endDate = computed({
+    get: () => startPageStore.dateFrame.end,
+    set: (value) => {
+        if (value <= +startPageStore.dateFrame.start) {
+            startPageStore.setStartDay(value);
+        }
+        startPageStore.setEndDay(value);
+    }
+});
+
+startPageStore.fetchMaxStartDate()
 userStore.fetchUserData();
 </script>
 
@@ -95,6 +116,37 @@ userStore.fetchUserData();
                     </router-link>
                 </div>
             </div>
+            <div class="flex flex-col gap-5" title="Set a time frame for fetching articles">
+                <div class="flex flex-col gap-2">
+                    <div class="font-title text-xl">Time Frame</div>
+                    <div class="text-background-300 text-lg leading-tight">
+                        Set a time frame for fetching articles. Articles will be fetched from the last {{
+                            Math.abs(startPageStore.dateFrame.maxStart) }} days by default.
+                    </div>
+                </div>
+                <div class="flex items-center justify-between gap-5">
+                    <span class="flex-shrink-0">{{ startPageStore.dateFrame.maxStart }} days</span>
+                    <div class="relative w-full bg-black/50 rounded overflow-hidden">
+                        <div class="slidecontainer flex justify-end">
+                            <div class="fill bg-primary-600 flex items-center text-sm px-1 pr-4 transition-all"
+                                :style="{ width: (startPageStore.dateFrame.end / startPageStore.dateFrame.maxStart) * 100 + '%' }">
+                                {{ startPageStore.dateFrame.end }}
+                            </div>
+                            <input type="range" :min="startPageStore.dateFrame.maxStart" max="0" v-model="endDate"
+                                class="w-full slider">
+                        </div>
+                        <div class="slidecontainer">
+                            <div class="fill bg-primary-600 flex items-center text-sm px-1 pl-4 transition-all justify-end"
+                                :style="{ width: (1 - startPageStore.dateFrame.start / startPageStore.dateFrame.maxStart) * 100 + '%' }">
+                                {{ startPageStore.dateFrame.start }}
+                            </div>
+                            <input type="range" :min="startPageStore.dateFrame.maxStart" max="0" v-model="startDate"
+                                class="w-full slider">
+                        </div>
+                    </div>
+                    <span>today</span>
+                </div>
+            </div>
             <div class="flex flex-col gap-5" title="change the Font Size">
                 <div class="flex flex-col gap-2">
                     <div class="font-title text-xl">Font Size</div>
@@ -124,7 +176,8 @@ userStore.fetchUserData();
                         <div :class="{
                             'opacity-50': swipeLimitInactive,
                             'pointer-events-none': swipeLimitInactive
-                        }"
+                        }
+                            "
                             class="flex gap-3 items-center w-full justify-between bg-background-900/20 p-4 rounded transition">
                             <label for="NumberSwipes">What's your limit?</label>
                             <div>
@@ -138,3 +191,65 @@ userStore.fetchUserData();
         </div>
     </div>
 </template>
+
+<style scoped>
+.slidecontainer {
+    width: 100%;
+    height: 30px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.icon {
+    position: absolute;
+    margin: auto;
+    z-index: 2;
+    pointer-events: none;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+.fill {
+    position: absolute;
+    background-size: cover;
+    height: 110%;
+    background-position: center;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* The slider itself */
+.slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 100%;
+    outline: none;
+    background: transparent;
+    z-index: 1;
+    position: relative;
+    cursor: pointer;
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+    width: 10px;
+    height: 100%;
+    background: transparent;
+    outline: none;
+    border: none;
+    visibility: hidden;
+    opacity: 0;
+}
+
+.slider::-moz-range-thumb {
+    width: 10px;
+    height: 100%;
+    background: transparent;
+    outline: none;
+    border: none;
+}
+</style>
