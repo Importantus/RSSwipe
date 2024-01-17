@@ -217,7 +217,7 @@ async function addArticlesToDb(articles: FeedParser.Item[], feedId: string) {
                     data: {
                         title: article.title,
                         link: article.link,
-                        imageUrl: imageUrl,
+                        imageUrl: imageUrl ? imageUrl : article.image?.url,
                         feedId: feedId,
                         publishedAt: publishedAt
                     }
