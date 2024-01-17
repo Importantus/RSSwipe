@@ -2,55 +2,55 @@ import { PrismaClient } from "@prisma/client";
 import APIError from "../helper/apiError";
 const prisma = new PrismaClient();
 
-async function articleListtoArticle(starredArticles: any[]) {
-    const articles = await Promise.all(
-        starredArticles
-            .filter(starArticle => starArticle !== null)
-            .map(async (starArticle) => {
-                const article = await prisma.article.findFirst({
-                    where: {
-                        id: starArticle.articleId
-                    },
-                    select: {
-                        id: true,
-                        title: true,
-                        imageUrl: true,
-                        link: true,
-                        publishedAt: true,
-                        createdAt: true,
-                        feed: {
-                            select: {
-                                id: true,
-                                title: true,
-                                link: true,
-                                faviconUrl: true
-                            }
-                        }
-                    },
-                });
-
-                return article;
-            })
-    );
-
-    return articles;
-}
-
-
 export async function getStarredArticles(userId: string) {
-
-    const starredArticles = await prisma.articleList.findMany({
-        where: {
-            userId: userId,
-            starred: true
-        }
+    const starredList = await prisma.articleList.findMany({
+        where: { userId, starred: true },
+        select: {
+            read: true,
+            saved: true,
+            seen: true,
+            starred: true,
+            dateRead: true,
+            dateSaved: true,
+            dateSeen: true,
+            dateStar: true,
+            article: {
+                select: {
+                    id: true,
+                    title: true,
+                    imageUrl: true,
+                    link: true,
+                    publishedAt: true,
+                    createdAt: true,
+                    category: true,
+                    feed: {
+                        select: {
+                            id: true,
+                            title: true,
+                            link: true,
+                            faviconUrl: true
+                        }
+                    }
+                },
+            },
+        },
     });
 
-    if (starredArticles.length === 0) {
-        throw APIError.badRequest("The User doesn't have any starred articles");
-    }
+    console.log(starredList)
 
-    return await articleListtoArticle(starredArticles);
+    return starredList.map((article) => {
+        return {
+            ...article.article,
+            read: article.read,
+            saved: article.saved,
+            starred: article.starred,
+            seen: article.seen,
+            dateRead: article.dateRead,
+            dateSaved: article.dateSaved,
+            dateStarred: article.dateStar,
+            dateSeen: article.dateSeen
+        };
+    });
 }
 
 export async function getStarredArticle(articleId: string, userId: string) {
