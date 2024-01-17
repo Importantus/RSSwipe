@@ -23,7 +23,7 @@ onMounted(async () => {
                 class="absolute bottom-0 top-0 left-0 right-0 w-full h-full rounded-xl bg-background-950 backdrop-blur bg-opacity-50 z-50 flex justify-center items-center">
                 <div class="flex flex-col bg-background-900 w-3/4 p-5 rounded-lg gap-3">
                     <div>
-                        <h2>
+                        <h2 class="pb-2">
                             Swipe Limit Reached
                         </h2>
                         <p class="text-sm font-light text-background-200">
@@ -33,11 +33,11 @@ onMounted(async () => {
                     </div>
                     <div class="flex gap-2 flex-wrap">
                         <div @click="store.setSwipeLimit(store.swipeLimit.swipeLimit + 5)"
-                            class="bg-primary-800 px-5 py-2 rounded-lg cursor-pointer w-full flex justify-center">
-                            + 5 Swipes
+                            class="bg-primary-600 px-5 py-2 rounded-lg cursor-pointer w-full flex justify-center font-semibold hover:bg-amber-700 transition active:bg-primary-500">
+                            +5 Swipes
                         </div>
-                        <router-link to="/readinglist"
-                            class="bg-primary-600 px-5 py-2 rounded-lg cursor-pointer w-full flex justify-center">
+                        <router-link to="readinglist"
+                            class="bg-primary-800 px-5 py-2 rounded-lg cursor-pointer w-full flex justify-center font-semibold hover:bg-amber-900 transition active:bg-primary-500">
                             Readinglist
                         </router-link>
                     </div>
