@@ -8,20 +8,17 @@ const store = useStartPageStore();
 
 onMounted(() => {
     // Binden Sie den Hotkey zum Verwerfen eines Artikels
-    hotkeys('left', () => {
+    hotkeys('left, h', () => {
         store.discardArticle();
            return false;
     });
 
-    hotkeys('h', () => {
-        store.discardArticle();
-        return false;
-    });
+   
 });
 
-onBeforeUnmount(() => {
-       hotkeys.unbind('left');
-       hotkeys.unbind('h');
+onBeforeUnmount(() => {     
+       hotkeys.unbind('left, h');
+       
 });
 </script>
 

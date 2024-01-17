@@ -8,21 +8,15 @@ const store = useStartPageStore();
 
 onMounted(() => {
     
-    hotkeys('right', () => {
+    hotkeys('right, l', () => {
         store.saveArticle();
                return false;
-    });
-
-    hotkeys('l', () => {
-        store.saveArticle();
-        return false;
     });
 });
 
 onBeforeUnmount(() => {
-        hotkeys.unbind('right');
-        hotkeys.unbind('l');
-});
+        hotkeys.unbind('right, l');   
+});     
 </script>
 
 <template>
