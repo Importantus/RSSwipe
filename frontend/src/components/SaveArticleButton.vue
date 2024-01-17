@@ -20,7 +20,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <button class="bg-primary-600 rounded-full" @click="store.saveArticle">
-        <BookOpenCheck size="24" class="text-white m-3" />
+    <button class="bg-primary-600 rounded-full" @click="store.saveArticle" title="Save Article">
+        <BookOpenCheck size="24" class=" text-white m-3" />
     </button>
 </template>

@@ -3,6 +3,7 @@ import { Readability } from '@mozilla/readability';
 import axios from "axios";
 import { JSDOM, VirtualConsole } from 'jsdom';
 import natural from 'natural'
+import { getDomFromUrl } from "../helper/htmlParsing";
 
 const classifierJSONDe = require('../../static/classifierTrainedDe.json')
 const classifierDe = natural.BayesClassifier.restore(classifierJSONDe, natural.PorterStemmerDe);
@@ -72,20 +73,18 @@ export async function categorizeArticles() {
             console.log("Categorized article " + article.title + " as " + category);
         }
     } catch (err) {
-        console.error(err);
+        console.error("Error while categorizing Article: " + err);
     } finally {
         runningCategorization = false;
     }
 
+    console.log("Finished categorizing articles");
     runningCategorization = false;
 }
 
 async function categorizeArticle(url: string) {
-    const res = await axios.get(url);
-    const html = res.data;
-    const virtualConsole = new VirtualConsole();
-    const doc = new JSDOM(html, { virtualConsole });
-    const article = new Readability(doc.window.document).parse();
+    const dom = await getDomFromUrl(url);
+    const article = new Readability(dom.window.document).parse();
 
     if (article && article.lang === "de") {
         return classifierDe.classify(article.textContent);
@@ -94,4 +93,5 @@ async function categorizeArticle(url: string) {
     } else {
         return null;
     }
+
 }

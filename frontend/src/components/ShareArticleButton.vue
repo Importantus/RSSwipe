@@ -23,7 +23,7 @@ function shareArticle() {
 
 <template>
     <div v-if="canShare" class="flex items-center">
-        <button @click="shareArticle">
+        <button @click="shareArticle" >
             <Share2 size=" 28" class="white  m-3" />
         </button>
     </div>

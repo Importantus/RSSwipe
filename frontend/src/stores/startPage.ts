@@ -15,14 +15,30 @@ export enum ArticleStatus {
     OUT_OF_ARTICLES
 }
 
+export interface SwipeLimit {
+    swipes: number
+    lastSwiped: Date
+    swipeLimit: number
+    active: boolean
+}
+
 export const useStartPageStore = defineStore({
     id: 'startPage',
     state: () => ({
         articles: [] as Article[],
         status: ArticleStatus.LOADING,
-        lastActions: [] as Article[]
+        swipeLimit: JSON.parse(localStorage.getItem('swipeLimit') ?? JSON.stringify({
+            swipes: 0,
+            lastSwiped: new Date(),
+            swipeLimit: 10,
+            active: false
+        })) as SwipeLimit,
+        lastActions: [] as Article[],
+        swipeLeftPercentage: 0,
+        swipeRightPercentage: 0
     }),
     actions: {
+        // Load Articles
         async reload() {
             this.articles = []
             await this.fetchArticles()
@@ -70,8 +86,37 @@ export const useStartPageStore = defineStore({
             await axios.put(`/articles/${article.id}`, params)
             this.fetchArticles()
         },
+
+        // Digital Wellbeing: Swipe Limit
+        addSwipe() {
+            if (new Date(this.swipeLimit.lastSwiped).getDate() !== new Date().getDate()) {
+                this.swipeLimit.swipes = 0
+            }
+            this.swipeLimit.swipes++
+            this.swipeLimit.lastSwiped = new Date()
+            localStorage.setItem('swipeLimit', JSON.stringify(this.swipeLimit))
+        },
+        removeSwipe() {
+            this.swipeLimit.swipes--
+            localStorage.setItem('swipeLimit', JSON.stringify(this.swipeLimit))
+        },
+        setSwipeLimit(swipeLimit: number) {
+            this.swipeLimit.swipeLimit = swipeLimit
+            localStorage.setItem('swipeLimit', JSON.stringify(this.swipeLimit))
+        },
+        enableSwipeLimit() {
+            this.swipeLimit.active = true
+            localStorage.setItem('swipeLimit', JSON.stringify(this.swipeLimit))
+        },
+        disableSwipeLimit() {
+            this.swipeLimit.active = false
+            localStorage.setItem('swipeLimit', JSON.stringify(this.swipeLimit))
+        },
+
+        // Swipe Actions
         async saveArticle() {
             this.saveAction()
+            this.addSwipe()
             await this._updateArticle({
                 saved: true,
                 seen: true
@@ -81,10 +126,13 @@ export const useStartPageStore = defineStore({
         },
         async discardArticle() {
             this.saveAction()
+            this.addSwipe()
             this._updateArticle({
                 seen: true
             })
         },
+
+        // Revert Actions
         saveAction() {
             this.lastActions.unshift(this.articles[0])
 
@@ -93,6 +141,8 @@ export const useStartPageStore = defineStore({
             }
         },
         revertAction() {
+            this.removeSwipe()
+
             if (this.lastActions.length === 0) {
                 return
             }
