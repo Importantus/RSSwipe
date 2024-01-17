@@ -2,6 +2,7 @@ import { defineStore } from "pinia"; ""
 import axios from "@/axios";
 import router from "@/router";
 import { useReadingListStore } from '@/stores/readingList';
+import { useStarredListStore } from '@/stores/starredList';
 import type { Article, StoredArticle } from "@/types";
 
 export enum ReaderStatus {
@@ -12,7 +13,8 @@ export enum ReaderStatus {
 
 export enum ReaderContext {
     STARTPAGE,
-    READINGLIST
+    READINGLIST,
+    STARREDLIST
 }
 
 export interface ColorScheme {
@@ -147,6 +149,15 @@ export const useReaderStore = defineStore({
                     const readingListStore = useReadingListStore();
                     this.startIndex = readingListStore.articles.findIndex(a => a.articleInfo.id === article.id)
                     this.storedArticles = readingListStore.articles.slice(this.startIndex, this.startIndex + 2)
+                    this.markArticleAsRead(article)
+                    router.push(`/article/${article.id}`)
+                    this.status = ReaderStatus.READY
+                    break;
+                case ReaderContext.STARREDLIST:
+                    this.ReaderContext = ReaderContext.STARREDLIST
+                    const starredListStore = useStarredListStore();
+                    this.startIndex = starredListStore.articles.findIndex(a => a.articleInfo.id === article.id)
+                    this.storedArticles = starredListStore.articles.slice(this.startIndex, this.startIndex + 2)
                     this.markArticleAsRead(article)
                     router.push(`/article/${article.id}`)
                     this.status = ReaderStatus.READY
