@@ -56,6 +56,9 @@ onMounted(async () => {
         case ReaderContext.READINGLIST:
             backNavigationPath.value = "/readinglist";
             break;
+        case ReaderContext.STARREDLIST:
+            backNavigationPath.value = "/starredlist";
+            break;
     }
 
 });
