@@ -19,6 +19,7 @@ export interface SwipeLimit {
     swipes: number
     lastSwiped: Date
     swipeLimit: number
+    overSwipes: number
     active: boolean
 }
 
@@ -31,6 +32,7 @@ export const useStartPageStore = defineStore({
             swipes: 0,
             lastSwiped: new Date(),
             swipeLimit: 10,
+            overSwipes: 0,
             active: false
         })) as SwipeLimit,
         lastActions: [] as Article[],
@@ -91,6 +93,7 @@ export const useStartPageStore = defineStore({
         addSwipe() {
             if (new Date(this.swipeLimit.lastSwiped).getDate() !== new Date().getDate()) {
                 this.swipeLimit.swipes = 0
+                this.swipeLimit.overSwipes = 0
             }
             this.swipeLimit.swipes++
             this.swipeLimit.lastSwiped = new Date()
@@ -111,6 +114,23 @@ export const useStartPageStore = defineStore({
         disableSwipeLimit() {
             this.swipeLimit.active = false
             localStorage.setItem('swipeLimit', JSON.stringify(this.swipeLimit))
+        },
+        addOverSwipes() {
+            if ((this.swipeLimit.swipes - (this.swipeLimit.swipeLimit + this.swipeLimit.overSwipes)) > 5) {
+                this.swipeLimit.overSwipes = (this.swipeLimit.swipes + 5) - this.swipeLimit.swipeLimit
+            } else {
+                this.swipeLimit.overSwipes = this.swipeLimit.overSwipes + 5
+            }
+            localStorage.setItem('swipeLimit', JSON.stringify(this.swipeLimit))
+        },
+        resetOverSwipes() {
+            this.swipeLimit.overSwipes = 0
+            localStorage.setItem('swipeLimit', JSON.stringify(this.swipeLimit))
+        },
+        updateSwipeLimit() {
+            if (this.swipeLimit.swipes < this.swipeLimit.swipeLimit) {
+                this.resetOverSwipes()
+            }
         },
 
         // Swipe Actions
