@@ -127,16 +127,16 @@ userStore.fetchUserData();
                     <span class="flex-shrink-0">{{ startPageStore.dateFrame.maxStart }} days</span>
                     <div class="relative w-full bg-black/50 rounded overflow-hidden">
                         <div class="slidecontainer flex justify-end">
-                            <div class="fill bg-primary-600 flex items-center text-sm px-1 transition-all"
-                                :style="{ width: 3 + (startPageStore.dateFrame.end / startPageStore.dateFrame.maxStart) * 100 + '%' }">
+                            <div class="fill bg-primary-600 flex items-center text-sm px-1 pr-4 transition-all"
+                                :style="{ width: (startPageStore.dateFrame.end / startPageStore.dateFrame.maxStart) * 100 + '%' }">
                                 {{ startPageStore.dateFrame.end }}
                             </div>
                             <input type="range" :min="startPageStore.dateFrame.maxStart" max="0" v-model="endDate"
                                 class="w-full slider">
                         </div>
                         <div class="slidecontainer">
-                            <div class="fill bg-primary-600 flex items-center text-sm px-1 transition-all justify-end"
-                                :style="{ width: 3 + (1 - startPageStore.dateFrame.start / startPageStore.dateFrame.maxStart) * 100 + '%' }">
+                            <div class="fill bg-primary-600 flex items-center text-sm px-1 pl-4 transition-all justify-end"
+                                :style="{ width: (1 - startPageStore.dateFrame.start / startPageStore.dateFrame.maxStart) * 100 + '%' }">
                                 {{ startPageStore.dateFrame.start }}
                             </div>
                             <input type="range" :min="startPageStore.dateFrame.maxStart" max="0" v-model="startDate"

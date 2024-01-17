@@ -64,7 +64,6 @@ export const useStartPageStore = defineStore({
 
             const categoriesStore = useCategoriesStore()
             const feedsStore = useFeedStore()
-            console.log(this.getStartDate(), this.getEndDate())
             const response = await axios.get('/articles', {
                 params: {
                     limit: STORED_ARTICLES + this.articles.length,
