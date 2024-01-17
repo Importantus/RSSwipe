@@ -116,7 +116,7 @@ if (!props.article.imageUrl) {
                 backgroundImage: 'url(' + url + ')',
                 transform: 'translateX(' + elementTransformX + 'px) rotateZ(' + elementRotateZ + 'deg)',
             }">
-           <ArticleDate :article="props.article" class="rounded-xl absolute" />
+            <ArticleDate :article="props.article" class="absolute top-3 left-3" />
             <ArticleInfoElement :article="props.article" class="rounded-xl absolute bottom-0" />
         </div>
     </div>

@@ -3,43 +3,44 @@ import type { Article } from '@/types';
 
 const props = defineProps<{
     article: Article;
-
 }>()
+
 const date = new Date(props.article.publishedAt);
 let dateString = isTodayOrYesterday(date);
 
-
-
 function isTodayOrYesterday(dateToCheck: Date): string {
     const today = new Date();
-    const yesterday = new Date();
-    const tempdate = new Date(dateToCheck);
-    yesterday.setDate(today.getDate() - 1);
-    console.log(dateToCheck);
-    // Set hours, minutes, seconds, and milliseconds to 0 for both dates
-    today.setHours(0, 0, 0, 0);
-    yesterday.setHours(0, 0, 0, 0);
-    tempdate.setHours(0, 0, 0, 0);
-    console.log(dateToCheck);
+    const yesterday = new Date(today.getDate() - 1);
 
-    if (tempdate.getDate() === today.getDate()) {
-        return 'Today at ' + dateToCheck.toTimeString().slice(0,5);
-    } else if (tempdate.getDate() === yesterday.getDate()) {
-        return 'Yesterday at '+ dateToCheck.toTimeString().slice(0,5);
+    if (dateToCheck.getDate() === today.getDate()) {
+        const diff = Math.floor((today.getTime() - dateToCheck.getTime()) / 1000 / 60);
+        if (diff < 1) {
+            return 'Just now';
+        }
+        if (diff < 60) {
+            return diff + ' minutes ago';
+        } else {
+            return Math.floor(diff / 60) + ' hours ago';
+        }
+    } else if (dateToCheck.getDate() === yesterday.getDate()) {
+        return 'Yesterday at ' + dateToCheck.toLocaleTimeString(undefined, {
+            hour: 'numeric',
+            minute: 'numeric',
+        });
     } else {
         return date.toLocaleString(undefined, {
-          month: 'long',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: 'numeric',
-    });
-}
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+        });
+    }
 }
 
 
 </script>
 <template>
-    <div class=" font-text-detail top-3 left-3 bg-background-900 bg-opacity-50 px-2 py-1 text-xs rounded-lg">
+    <div class="font-text-detail bg-background-900 bg-opacity-50 px-2 py-1 text-xs rounded-lg w-fit">
         {{ dateString }}
     </div>
 </template>
