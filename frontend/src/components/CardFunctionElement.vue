@@ -12,7 +12,7 @@ watch(() => store.swipeLeftPercentage, (newValue) => {
 });
 
 const showButtons = computed(() => {
-    return store.articles.length > 0 && !(store.swipeLimit.active && store.swipeLimit.swipes >= store.swipeLimit.swipeLimit);
+    return store.articles.length > 0 && !(store.swipeLimit.active && store.swipeLimit.swipes >= store.swipeLimit.swipeLimit + store.swipeLimit.overSwipes);
 });
 </script>
 
