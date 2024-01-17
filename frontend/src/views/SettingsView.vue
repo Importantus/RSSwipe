@@ -33,6 +33,7 @@ const swipeLimit = computed({
     get: () => startPageStore.swipeLimit.swipeLimit,
     set: (value) => {
         startPageStore.setSwipeLimit(value);
+        startPageStore.resetOverSwipes();
     }
 });
 
