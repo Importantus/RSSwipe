@@ -74,14 +74,6 @@ export const useReadingListStore = defineStore({
         swipeLeft: getSwipeDirection(JSON.parse(localStorage.getItem('swipeLeft') || JSON.stringify(possibleSwipeDirections[1].id))) as SwipeDirection,
         swipeRight: getSwipeDirection(JSON.parse(localStorage.getItem('swipeRight') || JSON.stringify(possibleSwipeDirections[2].id))) as SwipeDirection
     }),
-    getters: {
-        hasStarredArticles(): boolean {
-            return this.articles.some(a => a.articleInfo.starred)
-        },
-        getStarredArticles(): StoredArticle[] {
-            return this.articles.filter(a => a.articleInfo.starred)
-        },
-    },
     actions: {
         addArticleLocal(article: Article) {
             if (this.articles.findIndex(a => a.articleInfo.id === article.id) === -1) {
