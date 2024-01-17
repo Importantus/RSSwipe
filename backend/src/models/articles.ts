@@ -5,6 +5,7 @@ import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
 import axios from "axios";
 import { getPrismaClient } from "../prismaClient";
+import { getDomFromUrl } from "../helper/htmlParsing";
 
 
 const prisma = getPrismaClient();
@@ -158,7 +159,7 @@ export async function getArticle(userId: string, articleId: string) {
     };
 }
 
-export async function updateArticle(userId: string, articleId: string, input: ArticleUpdateInputType) {    // Check if article exists
+export async function updateArticle(userId: string, articleId: string, input: ArticleUpdateInputType) {
     const article = await prisma.article.findUnique({
         where: {
             id: articleId
@@ -169,7 +170,7 @@ export async function updateArticle(userId: string, articleId: string, input: Ar
         throw APIError.notFound();
     }
 
-    const articleList = await prisma.articleList.findUnique({
+    let articleList = await prisma.articleList.findUnique({
         where: {
             articleId_userId: {
                 userId,
@@ -177,6 +178,17 @@ export async function updateArticle(userId: string, articleId: string, input: Ar
             }
         }
     });
+
+    if (input.read) {
+        const settings = await prisma.settings.findFirst({
+            where: {
+                userId: userId
+            }
+        });
+        if (settings?.expTimeRead === 0) {
+            input.saved = false;
+        }
+    }
 
     if (!articleList) {
         await prisma.articleList.create({
@@ -215,6 +227,7 @@ export async function updateArticle(userId: string, articleId: string, input: Ar
     }
 }
 
+
 export async function getArticleContent(articleId: string) {
     const article = await prisma.article.findUnique({
         where: {
@@ -227,12 +240,11 @@ export async function getArticleContent(articleId: string) {
         throw APIError.notFound();
     }
 
-    const response = await axios.get(article.link);
-    const doc = new JSDOM(response.data, {
-        url: article.link
+    const dom = await getDomFromUrl(article.link, {
+        correctUrls: true
     });
 
-    const reader = new Readability(doc.window.document);
+    const reader = new Readability(dom.window.document);
     const articleContent = reader.parse();
 
     // Check if parsing was successful

@@ -4,6 +4,7 @@ import router from "@/router";
 import { useReadingListStore } from '@/stores/readingList';
 import { useStarredListStore } from '@/stores/starredList';
 import type { Article, StoredArticle } from "@/types";
+import { useFeedStore } from "./feeds";
 
 export enum ReaderStatus {
     LOADING,
@@ -124,86 +125,66 @@ export const useReaderStore = defineStore({
     state: () => ({
         storedArticles: [] as StoredArticle[],
         status: ReaderStatus.LOADING,
-        ReaderContext: ReaderContext.STARTPAGE,
-        CurrentContent: "",
-        startIndex: 0,
+        openInApp: true,
         settings: loadSettings()
     }),
     actions: {
-        async openArticle(readerContext: ReaderContext, article: Article) {
+        async openArticle(articleId: string) {
             this.status = ReaderStatus.LOADING
             this.storedArticles = []
-            switch (readerContext) {
-                case ReaderContext.STARTPAGE:
-                    this.ReaderContext = ReaderContext.STARTPAGE
-                    this.getArticleContent(article)
-                    this.storedArticles.push({
-                        articleInfo: article
-                    })
-                    this.markArticleAsRead(article)
-                    router.push(`/article/${article.id}`)
-                    this.status = ReaderStatus.READY
-                    break;
-                case ReaderContext.READINGLIST:
-                    this.ReaderContext = ReaderContext.READINGLIST
-                    const readingListStore = useReadingListStore();
-                    this.startIndex = readingListStore.articles.findIndex(a => a.articleInfo.id === article.id)
-                    this.storedArticles = readingListStore.articles.slice(this.startIndex, this.startIndex + 2)
-                    this.markArticleAsRead(article)
-                    router.push(`/article/${article.id}`)
-                    this.status = ReaderStatus.READY
-                    break;
-                case ReaderContext.STARREDLIST:
-                    this.ReaderContext = ReaderContext.STARREDLIST
-                    const starredListStore = useStarredListStore();
-                    this.startIndex = starredListStore.articles.findIndex(a => a.articleInfo.id === article.id)
-                    this.storedArticles = starredListStore.articles.slice(this.startIndex, this.startIndex + 2)
-                    this.markArticleAsRead(article)
-                    router.push(`/article/${article.id}`)
-                    this.status = ReaderStatus.READY
-                    break;
+            this.openInApp = true
+
+            const article = await this.getArticle(articleId)
+            this.storedArticles.push(article)
+
+            this.markArticleAsRead(article.articleInfo.id)
+
+            const readingListStore = useReadingListStore();
+
+            if (readingListStore.nextArticleSkipRead) {
+                this.getNextUnreadArticle()
+            } else {
+                this.getNextArticle()
             }
+
+
+            this.status = ReaderStatus.READY
         },
+        async getNextUnreadArticle() {
+            const readingListStore = useReadingListStore();
+            const startIndex = readingListStore.articles.findIndex(a => a.articleInfo.id === this.storedArticles[0].articleInfo.id)
 
-        async openArticleFromId(id: string) {
-            this.status = ReaderStatus.LOADING
-            this.storedArticles = []
-            this.ReaderContext = ReaderContext.STARTPAGE
-
-            if (id.length !== 36) {
-                this.status = ReaderStatus.ERROR
-                console.log("Invalid article id: " + id + " found!")
-                router.push("/404")
+            if (startIndex === -1) {
                 return
             }
 
-            try {
-                const article = await this.getArticleInfo(id)
-                if (article) {
-                    this.getArticleContent(article)
-                    this.storedArticles.push({
-                        articleInfo: article
-                    })
-                    this.markArticleAsRead(article)
-                    this.status = ReaderStatus.READY
-                    return
+            const remainingArticles = readingListStore.articles.slice(startIndex + 1, readingListStore.articles.length)
+            let unreadArticles = remainingArticles.filter(a => !a.articleInfo.read)
+            if (unreadArticles.length > 0) {
+                //Unread Articles below the current one
+                this.storedArticles.push(unreadArticles[0])
+            } else {
+                //Any Unread Articles above or below the current one
+                unreadArticles = readingListStore.articles.filter(a => !a.articleInfo.read && a.articleInfo.id !== this.storedArticles[0].articleInfo.id)
+                if (unreadArticles.length > 0) {
+                    this.storedArticles.push(unreadArticles[0])
                 }
             }
-            catch (error) {
-                this.status = ReaderStatus.ERROR
-                console.log("No article with id: " + id + " found!")
-                router.push("/404")
+        },
+
+        async getNextArticle() {
+            const readingListStore = useReadingListStore();
+            const startIndex = readingListStore.articles.findIndex(a => a.articleInfo.id === this.storedArticles[0].articleInfo.id)
+            const remainingArticles = readingListStore.articles.slice(startIndex + 1, readingListStore.articles.length)
+
+            if (startIndex === -1) {
+                return
             }
 
-        }
-        ,
-
-        async nextArticle() {
-            const readingListStore = useReadingListStore();
-            this.startIndex = this.startIndex + 1
-            this.storedArticles = readingListStore.articles.slice(this.startIndex, this.startIndex + 2)
-            console.log(this.storedArticles)
-            router.push(`/article/${this.storedArticles[0].articleInfo.id}`)
+            if (remainingArticles.length > 0) {
+                //Unread Articles below the current one
+                this.storedArticles.push(remainingArticles[0])
+            }
         },
 
         async getArticleContent(article: Article) {
@@ -219,23 +200,52 @@ export const useReaderStore = defineStore({
             }
         },
 
-        async getArticleInfo(id: string) {
-            const response = await axios.get(`/articles/${id}`)
-            if (response.status === 200) {
-                return response.data as Article
-            } else {
-                console.error(response)
+        async getArticle(id: string) {
+            const readingListStore = useReadingListStore();
+            let article = readingListStore.getArticleById(id)
+
+            const feedStore = useFeedStore();
+
+            if (!article) {
+                let articleInfo
+
+                const response = await axios.get(`/articles/${id}`)
+                if (response.status === 200) {
+                    articleInfo = response.data
+                } else {
+                    console.error(response)
+                }
+
+                article = {
+                    articleInfo: articleInfo as Article
+                }
+
+                if (await feedStore.isFeedOpenedInApp(article.articleInfo.feed.id)) {
+                    this.getArticleContent(article.articleInfo)
+                }
             }
 
+            this.openInApp = await feedStore.isFeedOpenedInApp(article.articleInfo.feed.id)
+
+            return article
         },
 
-        async markArticleAsRead(article: Article) {
-            const request = { "read": true }
-            const response = await axios.put(`/articles/${article.id}`, request)
-            if (response.status === 200) {
-                return response.data as Article
+        async markArticleAsRead(id: string) {
+            const readinglistStore = useReadingListStore()
+            const article = readinglistStore.getArticleById(id)
+
+            if (article) {
+                readinglistStore.updateArticle(article.articleInfo, {
+                    read: true
+                })
             } else {
-                console.error(response)
+                const request = { "read": true }
+                const response = await axios.put(`/articles/${id}`, request)
+                if (response.status === 200) {
+                    return response.data as Article
+                } else {
+                    console.error(response)
+                }
             }
         },
 
@@ -256,6 +266,11 @@ export const useReaderStore = defineStore({
 
         async setArticleStarred(article: Article, starred: boolean) {
             const request = { "id": article.id }
+
+            if (article.id === this.storedArticles[0].articleInfo.id) {
+                this.storedArticles[0].articleInfo.starred = starred
+            }
+
             if (starred) {
                 console.log("Starring:" + article.id)
                 const response = await axios.post(`/starred/articles`, request)
@@ -273,23 +288,9 @@ export const useReaderStore = defineStore({
                     console.error(response)
                 }
             }
-
         },
-
         async getStarStatus(article: Article) {
-            const response = await axios.get(`/starred`)
-            if (response.status === 200) {
-                const data: Article[] = response.data
-                const starred: Article | undefined = data.find(a => a.id === article.id)
-                if (starred) {
-                    return true;
-                } else {
-                    return false;
-                }
-            } else {
-                console.error(response)
-            }
-            return null;
+            return article.starred
         },
         async setColor(id: string) {
             this.settings.colorScheme = colorSchemes[id]

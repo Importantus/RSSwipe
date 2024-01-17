@@ -29,21 +29,26 @@ function handleLogout() {
 
 <template>
   <div class="overflow-y-scroll h-full">
-    <div v-if="showDeleteAccountModal"
-      class="fixed z-40 top-0 bottom-0 left-0 right-0 h-screen w-screen bg-opacity-40 bg-black flex justify-center items-center">
-      <div class="w-[90%] max-w-lg bg-background-950 rounded-xl p-5 relative">
-        <X class="absolute top-5 right-5 cursor-pointer" size="32" @click="showDeleteAccountModal = false" />
-        <div class="text-xl">Delete Account?</div>
-        <div class="text-background-600 mb-5">Please enter your password to confirm.</div>
-        <form @submit.prevent="store.deleteUser(deletionPassword)" class="flex flex-col gap-3">
-          <TextInputIcon type="password" v-model="deletionPassword" placeholder="Password" :icon="KeyRound"
-            :required="true" />
-          <button type="submit" class="w-full h-14 bg-red-500 rounded-lg hover:bg-red-600 transition">
-            Delete Account
-          </button>
-        </form>
+    <Transition name="popup-fade">
+      <div v-if="showDeleteAccountModal"
+        class="fixed z-40 top-0 bottom-0 left-0 right-0 h-screen w-screen bg-opacity-40 bg-black flex justify-center items-center">
+
+        <div class="w-[90%] max-w-lg bg-background-950 rounded-xl p-5 relative">
+
+          <X class="absolute top-5 right-5 cursor-pointer" size="32" @click="showDeleteAccountModal = false" />
+          <div class="text-xl">Delete Account?</div>
+          <div class="text-background-600 mb-5">Please enter your password to confirm.</div>
+          <form @submit.prevent="store.deleteUser(deletionPassword)" class="flex flex-col gap-3">
+            <TextInputIcon type="password" v-model="deletionPassword" placeholder="Password" :icon="KeyRound"
+              :required="true" />
+            <button type="submit" class="w-full h-14 bg-red-500 rounded-lg hover:bg-red-600 transition">
+              Delete Account
+            </button>
+          </form>
+        </div>
+
       </div>
-    </div>
+    </Transition>
     <div class="px-5 pb-10 z-10">
       <TitleNavigationBar title="Account" backNavigationPath="/settings" />
 

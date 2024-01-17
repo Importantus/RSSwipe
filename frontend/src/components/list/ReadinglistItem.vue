@@ -4,6 +4,7 @@ import ArticleSource from '../ArticleSource.vue';
 import { ref } from 'vue';
 import { FileDown, BookOpenCheck, Star } from 'lucide-vue-next';
 import { ReaderContext, useReaderStore } from '@/stores/reader';
+import router from '@/router';
 
 const props = defineProps<{
     article: Article;
@@ -13,8 +14,6 @@ const props = defineProps<{
     starredList: boolean
 }>();
 
-const readerStore = useReaderStore();
-
 const elementTransformX = ref(0)
 let posX = 0;
 let mouseover = ref(false);
@@ -23,12 +22,7 @@ const displayWidth = window.innerWidth;
 const swipeToTrigger = displayWidth / 3;
 
 function openInReader() {
-    if (!props.starredList) {
-        readerStore.openArticle(ReaderContext.READINGLIST, props.article);
-    } else {
-        readerStore.openArticle(ReaderContext.STARREDLIST, props.article);
-    }
-
+    router.push(`/article/${props.article.id}`);
 }
 
 function pressHandler(event: TouchEvent | MouseEvent) {
@@ -126,7 +120,7 @@ function releaseHandler() {
                 </Transition>
                 <div class="flex flex-row gap-2 items-center">
                     <ArticleSource :article="props.article" />
-                    <div class="h-full flex flex-row gap-1 items-center">
+                    <div class="h-full flex flex-row gap-1 items-center flex-shrink-0">
                         <FileDown v-if="props.downloaded" size="16" />
                         <BookOpenCheck v-if="props.article.read" size="16" />
                         <Star v-if="props.article.starred" size="16" />

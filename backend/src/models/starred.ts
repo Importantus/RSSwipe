@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import APIError from "../helper/apiError";
+import { updateArticle } from "./articles";
 const prisma = new PrismaClient();
 
 export async function getStarredArticles(userId: string) {
@@ -78,15 +79,5 @@ export async function updateStarredArticle(articleId: string, userId: string, st
         throw APIError.badRequest("This article is already in this state: Starred: " + starArticle);
     }
 
-    await prisma.articleList.update({
-        where: {
-            articleId_userId: {
-                articleId: articleId,
-                userId: userId
-            }
-        },
-        data: {
-            starred: starArticle
-        }
-    });
+    updateArticle(userId, articleId, { starred: starArticle });
 }

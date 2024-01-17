@@ -3,7 +3,7 @@ import TitleNavigationBar from '@/components/TitleNavigationBar.vue';
 import SwipeDirectionItem from '@/components/list/settings/SwipeDirectionItem.vue';
 import { useReadingListStore, StoreStatus, possibleSwipeDirections } from '@/stores/readingList';
 import { useStarredListStore } from '@/stores/starredList';
-import { ArrowLeftToLineIcon } from 'lucide-vue-next';
+import { ArrowLeftToLineIcon, RedoDot, MoveRight } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const store = useReadingListStore();
@@ -153,7 +153,7 @@ store.loadSettings()
             </div>
         </div>
 
-        <div class="mt-14 flex flex-col gap-10">
+        <div class="my-14 flex flex-col gap-10">
             <div class="flex flex-col gap-2">
                 <div class="font-title text-xl">Swipe gestures</div>
                 <div class="text-background-300 text-lg leading-tight">The actions that are performed when swiping an
@@ -181,6 +181,60 @@ store.loadSettings()
                     <SwipeDirectionItem v-for="direction in possibleSwipeDirections" :key="direction.id"
                         :ownDirection="direction" :selected="direction.id === store.swipeLeft.id"
                         :onClick="() => setSwipeDirection(direction.id, false)" />
+                </div>
+            </div>
+        </div>
+
+        <div class="my-14 flex flex-col gap-10">
+            <div class="flex flex-col gap-2">
+                <div class="font-title text-xl">Article Read Order</div>
+                <div class="text-background-300 text-lg leading-tight">The order in which next articles are displayed when
+                    in the reader
+                </div>
+            </div>
+            <div>
+                <div class="flex gap-3 h-fit">
+                    <div @click="store.setNextArticleSkipRead(true)"
+                        :class="{ 'bg-background-900 bg-opacity-30': !store.nextArticleSkipRead, 'bg-primary-600': store.nextArticleSkipRead }"
+                        class="cursor-pointer w-full p-3 flex flex-col items-center gap-2 justify-center rounded-lg transition-colors ease-out duration-300">
+                        <RedoDot :style="{ color: (store.nextArticleSkipRead ? 'white' : 'bg-primary-600') }"
+                            class="opacity-70" :class="{ 'opacity-100 ': store.nextArticleSkipRead }" />
+                        <span class="text-center">Only Unread Articles</span>
+                    </div>
+                    <div @click="store.setNextArticleSkipRead(false)"
+                        :class="{ 'bg-background-900 bg-opacity-30': store.nextArticleSkipRead, 'bg-primary-600': !store.nextArticleSkipRead }"
+                        class="cursor-pointer w-full p-3 flex flex-col items-center gap-2 justify-center rounded-lg transition-colors ease-out duration-300">
+                        <MoveRight :style="{ color: (store.nextArticleSkipRead ? 'white' : 'bg-primary-600') }"
+                            class="opacity-70" :class="{ 'opacity-100 ': !store.nextArticleSkipRead }" />
+                        <span class="text-center">Sequential</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="my-14 flex flex-col gap-10">
+            <div class="flex flex-col gap-2">
+                <div class="font-title text-xl">Article Read Order</div>
+                <div class="text-background-300 text-lg leading-tight">The order in which next articles are displayed when
+                    in the reader
+                </div>
+            </div>
+            <div>
+                <div class="flex gap-3 h-fit">
+                    <div @click="store.setNextArticleSkipRead(true)"
+                        :class="{ 'bg-background-900 bg-opacity-30': !store.nextArticleSkipRead, 'bg-primary-600': store.nextArticleSkipRead }"
+                        class="cursor-pointer w-full p-3 flex flex-col items-center gap-2 justify-center rounded-lg transition-colors ease-out duration-300">
+                        <RedoDot :style="{ color: (store.nextArticleSkipRead ? 'white' : 'bg-primary-600') }"
+                            class="opacity-70" :class="{ 'opacity-100 ': store.nextArticleSkipRead }" />
+                        <span class="text-center">Only Unread Articles</span>
+                    </div>
+                    <div @click="store.setNextArticleSkipRead(false)"
+                        :class="{ 'bg-background-900 bg-opacity-30': store.nextArticleSkipRead, 'bg-primary-600': !store.nextArticleSkipRead }"
+                        class="cursor-pointer w-full p-3 flex flex-col items-center gap-2 justify-center rounded-lg transition-colors ease-out duration-300">
+                        <MoveRight :style="{ color: (store.nextArticleSkipRead ? 'white' : 'bg-primary-600') }"
+                            class="opacity-70" :class="{ 'opacity-100 ': !store.nextArticleSkipRead }" />
+                        <span class="text-center">Sequential</span>
+                    </div>
                 </div>
             </div>
         </div>

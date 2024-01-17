@@ -13,7 +13,7 @@ const props = defineProps({
 </script>
 
 <template>
-    <div @click="store.setColor(props.colorScheme.id)"
+    <div @click="store.setColor(props.colorScheme.id)" title="Background color"
         class="rounded-full overflow-hidden w-10 aspect-square flex flex-row rotate-45 cursor-pointer"
         :class="{ 'border-primary-600 border-solid border-2': store.settings.colorScheme.id === props.colorScheme.id }">
         <div class="w-1/2 h-full" :style="{ backgroundColor: props.colorScheme.foreground }"></div>

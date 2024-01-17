@@ -47,7 +47,7 @@ model FeedList {
 model Article {
   id             String        @id @default(uuid())
   title          String
-  link           String        @unique @db.VarChar(1000)
+  link           String        @db.VarChar(1000)
   imageUrl       String?       @db.VarChar(1000)
   createdAt      DateTime      @default(now())
   publishedAt    DateTime?

@@ -33,6 +33,10 @@
     {
       "name": "category",
       "description": "The Categories of the articles"
+    },
+    {
+      "name": "statistics",
+      "description": "Statistics about your usage"
     }
   ],
   "servers": [
@@ -1022,6 +1026,34 @@
           }
         }
       }
+    },
+    "/statistics/recent": {
+      "get": {
+        "description": "Get statistics about your usage for articles since the maximum article age",
+        "tags": [
+          "statistics"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statistics about your usage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecentStatistics"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1033,6 +1065,71 @@
       }
     },
     "schemas": {
+      "RecentStatistics": {
+        "type": "object",
+        "properties": {
+          "dateSince": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "totalSeen": {
+            "type": "integer"
+          },
+          "totalRead": {
+            "type": "integer"
+          },
+          "totalStarred": {
+            "type": "integer"
+          },
+          "totalSaved": {
+            "type": "integer"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "seen": {
+                  "type": "integer"
+                },
+                "read": {
+                  "type": "integer"
+                },
+                "starred": {
+                  "type": "integer"
+                },
+                "saved": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "feeds": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "faviconUrl": {
+                  "type": "string"
+                },
+                "read": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
       "User": {
         "type": "object",
         "properties": {

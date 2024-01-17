@@ -4,6 +4,7 @@ import { defineStore } from "pinia";
 import { Trash2 } from 'lucide-vue-next';
 import { Star } from 'lucide-vue-next';
 import { BookOpenCheck } from "lucide-vue-next";
+import { useFeedStore } from "./feeds";
 
 export enum StoreStatus {
     LOADING,
@@ -72,17 +73,21 @@ export const useReadingListStore = defineStore({
         removedArticles: [] as Article[],
         settings: {} as Settings,
         swipeLeft: getSwipeDirection(JSON.parse(localStorage.getItem('swipeLeft') || JSON.stringify(possibleSwipeDirections[1].id))) as SwipeDirection,
-        swipeRight: getSwipeDirection(JSON.parse(localStorage.getItem('swipeRight') || JSON.stringify(possibleSwipeDirections[2].id))) as SwipeDirection
+        swipeRight: getSwipeDirection(JSON.parse(localStorage.getItem('swipeRight') || JSON.stringify(possibleSwipeDirections[2].id))) as SwipeDirection,
+        nextArticleSkipRead: JSON.parse(localStorage.getItem('nextArticleSkipRead') || 'true') as boolean
     }),
     actions: {
-        addArticleLocal(article: Article) {
+        async addArticleLocal(article: Article) {
             if (this.articles.findIndex(a => a.articleInfo.id === article.id) === -1) {
                 this.articles.unshift({
                     articleInfo: article
                 })
             }
 
-            this.addContentToArticle(article)
+            const feedStore = useFeedStore()
+            if (await feedStore.isFeedOpenedInApp(article.feed.id)) {
+                this.addContentToArticle(article)
+            }
         },
         removeArticleLocal(article: Article, undo = true) {
             const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
@@ -217,6 +222,9 @@ export const useReadingListStore = defineStore({
                 console.log(response)
             }
         },
+        getArticleById(id: string) {
+            return this.articles.find(a => a.articleInfo.id === id)
+        },
         setSwipeLeft(id: string) {
             this.swipeLeft = getSwipeDirection(id)
             localStorage.setItem('swipeLeft', JSON.stringify(id))
@@ -224,6 +232,10 @@ export const useReadingListStore = defineStore({
         setSwipeRight(id: string) {
             this.swipeRight = getSwipeDirection(id)
             localStorage.setItem('swipeRight', JSON.stringify(id))
+        },
+        setNextArticleSkipRead(skip: boolean) {
+            this.nextArticleSkipRead = skip
+            localStorage.setItem('nextArticleSkipRead', JSON.stringify(skip))
         }
     }
 })

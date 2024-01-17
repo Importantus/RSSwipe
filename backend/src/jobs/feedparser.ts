@@ -1,12 +1,12 @@
-import Parser from "rss-parser";
-import axios from "axios";
-import { JSDOM } from "jsdom";
-import { Feed, PrismaClient } from "@prisma/client";
+import type { JSDOM } from "jsdom";
+import { Feed } from "@prisma/client";
 import { environment } from "../helper/environment";
 import { getPrismaClient } from "../prismaClient";
 import { categorizeArticles } from "./categorizer";
+import { getDomFromUrl } from "../helper/htmlParsing";
+import { parseFeedFromUrl } from "../helper/feedParsing";
+import FeedParser from "feedparser";
 
-const parser = new Parser();
 const prisma = getPrismaClient();
 
 /**
@@ -15,14 +15,27 @@ const prisma = getPrismaClient();
  * @returns The favicon url
  */
 export async function getFaviconUrl(url: string) {
-    // Use only base url
-    const urlObj = new URL(url);
-    url = urlObj.origin;
+    const dom = await getDomFromUrl(url);
 
-    const res = await axios.get(url);
-    const html = res.data;
-    const dom = new JSDOM(html);
-    const favicon = dom.window.document.querySelector("link[rel='icon']")?.getAttribute("href");
+    const queries = [
+        'link[rel="apple-touch-icon-precomposed"]',
+        'link[rel="shortcut icon"]',
+        'link[rel="icon"]',
+    ]
+
+    let favicon: string | null | undefined = null;
+
+    for (const query of queries) {
+        try {
+            favicon = dom.window.document.querySelector(query)?.getAttribute("href");
+            if (favicon) {
+                break;
+            }
+        } catch (err) {
+            console.error("Error while parsing favicon: " + err);
+            break;
+        }
+    }
 
     if (!favicon && (favicon?.length || 0) > Number(environment.maxImageUrlLength)) {
         return null;
@@ -30,23 +43,71 @@ export async function getFaviconUrl(url: string) {
 
     // Check if favicon is a relative path
     if (favicon?.startsWith("/")) {
-        return url + favicon;
+        const urlObj = new URL(url);
+        return urlObj.origin + favicon;
     } else {
         return favicon;
     }
 }
 
 /**
- * Get image url from html
- * @param url The url to get the image from
+ * Get image url from dom
+ * @param dom The dom to get the image from
  * @returns The image url
  */
-async function getImageUrl(url: string) {
-    const res = await axios.get(url);
-    const html = res.data;
-    const dom = new JSDOM(html);
+function getImageUrl(dom: JSDOM) {
     const image = dom.window.document.querySelector("meta[property='og:image']")?.getAttribute("content");
     return (image?.length || 0) > Number(environment.maxImageUrlLength) ? undefined : image;
+}
+
+function getPublishedAt(dom: JSDOM) {
+    const queries = [
+        {
+            query: "time[itemprop='datePublished']",
+            attribute: "datetime"
+        },
+        {
+            query: "meta[property='article:published_time']",
+            attribute: "content"
+        },
+        {
+            query: "meta[property='og:article:published_time']",
+            attribute: "content"
+        },
+        {
+            query: "meta[property='og:published_time']",
+            attribute: "content"
+        },
+        {
+            query: "meta[property='og:release_date']",
+            attribute: "content"
+        },
+        {
+            query: "meta[property='article:release_date']",
+            attribute: "content"
+        },
+        {
+            query: "meta[property='article:published']",
+            attribute: "content"
+        }
+    ]
+
+    let publishedAt: Date | null = null;
+
+    for (const query of queries) {
+        try {
+            const date = dom.window.document.querySelector(query.query)?.getAttribute(query.attribute);
+            if (date && !isNaN(new Date(date).getTime())) {
+                publishedAt = new Date(date);
+                break;
+            }
+        } catch (err) {
+            console.error("Error while parsing date: " + err);
+            break;
+        }
+    }
+
+    return publishedAt;
 }
 
 /**
@@ -55,7 +116,7 @@ async function getImageUrl(url: string) {
  * @returns The parsed feed
  */
 export async function parseFeed(url: string) {
-    const feed = await parser.parseURL(url);
+    const feed = await parseFeedFromUrl(url);
     return feed;
 }
 
@@ -69,18 +130,25 @@ export async function parseFeedAndAddToDb(feed: Feed) {
     const parsedFeed = await parseFeed(feed.link);
 
     // Update feed title and favicon if changed
-    if (parsedFeed.title !== feed.title) {
+    if (parsedFeed.meta.title !== feed.title) {
         await prisma.feed.update({
             where: {
                 id: feed.id
             },
             data: {
-                title: parsedFeed.title
+                title: parsedFeed.meta.title
             }
         });
     }
 
-    const favicon = await getFaviconUrl(feed.link);
+    // Get Favicon
+    let link = parsedFeed.meta.link;
+    if (!link) {
+        // Use only base url
+        const urlObj = new URL(feed.link);
+        link = urlObj.origin;
+    }
+    const favicon = await getFaviconUrl(link);
 
     if (favicon !== feed.faviconUrl) {
         await prisma.feed.update({
@@ -104,7 +172,7 @@ export async function parseFeedAndAddToDb(feed: Feed) {
     });
 
     try {
-        await addArticlesToDb(parsedFeed, feed.id);
+        await addArticlesToDb(parsedFeed.items, feed.id);
     } catch (err) {
         console.error("\nError while adding articles of feed " + feed.title + " to database: \n" + err);
     }
@@ -115,30 +183,35 @@ export async function parseFeedAndAddToDb(feed: Feed) {
  * @param feed A parsed feed
  * @param feedId The id of the feed
  */
-async function addArticlesToDb(feed: Parser.Output<any>, feedId: string) {
-    const articles = feed.items;
+async function addArticlesToDb(articles: FeedParser.Item[], feedId: string) {
     let newArticles = 0;
 
     for (const article of articles) {
         try {
-            let publishedAt: Date | null = new Date(article.pubDate);
-                if (isNaN(publishedAt.getTime())) {
-                    publishedAt = null;
-                }
-            
-            if(publishedAt && publishedAt.getTime() < (new Date().getTime() - Number(environment.maxArticleAge))) {
-                console.log("Skipping article " + article.title + " because it is too old: " + publishedAt)
-                continue;
-            }
-
-            const existingArticle = await prisma.article.findUnique({
+            const existingArticle = await prisma.article.findFirst({
                 where: {
-                    link: article.link
+                    link: article.link,
+                    feedId: feedId
                 }
             });
 
             if (!existingArticle) {
-                const imageUrl = await getImageUrl(article.link);
+                const dom = await getDomFromUrl(article.link);
+
+                let publishedAt: Date | null = null;
+
+                if (!article.pubdate && !article.date) {
+                    publishedAt = getPublishedAt(dom);
+                } else {
+                    publishedAt = new Date(article.pubdate ? article.pubdate : article.date!);
+                }
+
+                if (publishedAt && publishedAt.getTime() < (new Date().getTime() - Number(environment.maxArticleAge))) {
+                    console.log("Skipping article " + article.title + " because it is too old: " + publishedAt)
+                    continue;
+                }
+
+                const imageUrl = getImageUrl(dom);
 
                 await prisma.article.create({
                     data: {

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import axios from '@/axios'
 import { useStartPageStore } from './startPage';
+import { StoreStatus } from './readingList';
 
 export interface FeedItem {
     id: string,
@@ -13,43 +14,64 @@ export interface FeedItem {
 
 export const useFeedStore = defineStore("feedList", {
     state: () => ({
-        feedList: [] as FeedItem[]
+        feedList: [] as FeedItem[],
+        state: StoreStatus.LOADING,
+        error: ""
     }),
     actions: {
         async getFeedList() {
-            const response = await axios.get('/feeds')
-            if (response.status !== 200) {
-                return
+            StoreStatus.LOADING
+            this.error = ""
+
+            try {
+                const response = await axios.get('/feeds')
+
+                this.feedList = response.data.map((feed: any) => ({
+                    id: feed.id,
+                    title: feed.title,
+                    faviconUrl: feed.faviconUrl,
+                    url: feed.link,
+                    openInApp: feed.openInApp,
+                    filtered: this.feedList.find(item => item.id === feed.id) ? this.feedList.find(item => item.id === feed.id)!.filtered : false
+                }))
+
+            } catch (error: any) {
+                this.error = error.response.data.message
+                console.log(this.error)
             }
-            this.feedList = response.data.map((feed: any) => ({
-                id: feed.id,
-                title: feed.title,
-                faviconUrl: feed.faviconUrl,
-                url: feed.link,
-                openInApp: feed.openInApp,
-                filtered: false
-            }))
+
+            this.state = StoreStatus.READY
         },
         async addFeed(url: string, openInApp: boolean) {
-            const response = await axios.post('/feeds', {
-                url,
-                openInApp
-            })
-            if (response.status !== 200) {
-                console.log(response);
+            this.state = StoreStatus.LOADING
+            this.error = ""
+
+            try {
+                const response = await axios.post('/feeds', {
+                    url,
+                    openInApp
+                })
+
+                this.feedList.push({
+                    id: response.data.id,
+                    title: response.data.title,
+                    faviconUrl: response.data.faviconUrl,
+                    url: response.data.link,
+                    openInApp: response.data.openInApp,
+                    filtered: false
+                })
+            } catch (error: any) {
+                this.error = error.response.data.message
+                console.log(this.error)
             }
-            this.feedList.push({
-                id: response.data.id,
-                title: response.data.title,
-                faviconUrl: response.data.faviconUrl,
-                url: response.data.link,
-                openInApp: response.data.openInApp,
-                filtered: false
-            })
+
+            this.state = StoreStatus.READY
         },
         async deleteFeed(id: string) {
+            this.state = StoreStatus.LOADING
             await axios.delete(`/feeds/${id}`)
             this.getFeedList()
+            this.state = StoreStatus.READY
         },
         async toggleOpenInApp(id: string) {
             const item = this.feedList.find(item => item.id === id)
@@ -81,7 +103,9 @@ export const useFeedStore = defineStore("feedList", {
             const item = this.feedList.find(item => item.id === id)
             return item ? item.filtered ? item.filtered : false : false
         },
-        isFeedOpenedInApp(id: string): boolean {
+        async isFeedOpenedInApp(id: string): Promise<boolean> {
+            if (this.feedList.length === 0) await this.getFeedList()
+
             const item = this.feedList.find(item => item.id === id)
             let openInApp = true
             if (item && item.openInApp !== undefined) {

@@ -13,12 +13,12 @@ const feedStore = useFeedStore()
 <template>
     <button class="flex flex-row rounded-xl p-2 px-3 gap-3" @click="feedStore.toggleFeed(props.feed.id)"
         :class="{ 'bg-primary-600 text-white': feedStore.isFeedSelected(props.feed.id), 'bg-secondary-900 text-secondary-300': !feedStore.isFeedSelected(props.feed.id) }">
-        <div v-if="props.feed.faviconUrl" class="align-middle w-4 h-4">
+        <div v-if="props.feed.faviconUrl" class="align-middle w-4 h-4 overflow-hidden">
             <img :src="props.feed.faviconUrl" alt="favicon" />
         </div>
         <div class="align-middle">
             <p class="font-text-detail text-xs text-opacity-60 line-clamp-1"
-                :class="{ 'w-16 truncate block': !props.noTruncate }">
+                :class="{ 'max-w-[4rem] truncate block': !props.noTruncate }">
                 {{ props.feed.title }}</p>
         </div>
     </button>
