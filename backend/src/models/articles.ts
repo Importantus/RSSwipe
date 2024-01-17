@@ -51,7 +51,17 @@ export async function getArticles(userId: string, query: GetArticlesQueryType) {
         )
     }
 
+
+
     if (startDate) {
+        try {
+            new Date(startDate);
+            if (isNaN(Date.parse(startDate))) {
+                throw new Error();
+            }
+        } catch (error) {
+            throw APIError.badRequest("startDate is not a valid date");
+        }
         where.push(
             {
                 publishedAt: {
@@ -62,6 +72,14 @@ export async function getArticles(userId: string, query: GetArticlesQueryType) {
     }
 
     if (endDate) {
+        try {
+            new Date(endDate);
+            if (isNaN(Date.parse(endDate))) {
+                throw new Error();
+            }
+        } catch (error) {
+            throw APIError.badRequest("endDate is not a valid date");
+        }
         where.push(
             {
                 publishedAt: {
