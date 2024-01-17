@@ -588,6 +588,26 @@
                 "type": "string"
               }
             }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "description": "The date from which (startDate included) articles should be returned. If not set, articles from all dates are returned",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "description": "The date until which (entDate excluded) articles should be returned. If not set, articles from all dates are returned",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
           }
         ],
         "responses": {

@@ -11,8 +11,7 @@ import { getDomFromUrl } from "../helper/htmlParsing";
 const prisma = getPrismaClient();
 
 export async function getArticles(userId: string, query: GetArticlesQueryType) {
-    let { limit, feeds, categories } = query;
-
+    let { limit, feeds, categories, startDate, endDate } = query;
 
     if (!feeds) {
         const feedList = await prisma.feedList.findMany({
@@ -28,40 +27,53 @@ export async function getArticles(userId: string, query: GetArticlesQueryType) {
         categories = [];
     }
 
-    let whereFeedsAndCategories = {}
+    const where = []
 
-    if (categories.length === 0) {
-        whereFeedsAndCategories = [
-            {
-                feed: {
-                    id: {
-                        in: feeds
-                    }
+    where.push(
+        {
+            feed: {
+                id: {
+                    in: feeds
                 }
             }
-        ];
-    } else {
-        whereFeedsAndCategories = [
+        }
+    )
+
+    if (categories.length !== 0) {
+        where.push(
             {
                 category: {
                     id: {
                         in: categories
                     }
                 }
-            },
+            }
+        )
+    }
+
+    if (startDate) {
+        where.push(
             {
-                feed: {
-                    id: {
-                        in: feeds
-                    }
+                publishedAt: {
+                    gte: new Date(startDate)
                 }
             }
-        ]
+        )
+    }
+
+    if (endDate) {
+        where.push(
+            {
+                publishedAt: {
+                    lte: new Date(endDate)
+                }
+            }
+        )
     }
 
     const articles = await prisma.article.findMany({
         where: {
-            AND: whereFeedsAndCategories,
+            AND: where,
             OR: [
                 {
                     ArticleHasUser: {
