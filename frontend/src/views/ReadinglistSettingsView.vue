@@ -2,10 +2,12 @@
 import TitleNavigationBar from '@/components/TitleNavigationBar.vue';
 import SwipeDirectionItem from '@/components/list/settings/SwipeDirectionItem.vue';
 import { useReadingListStore, StoreStatus, possibleSwipeDirections } from '@/stores/readingList';
+import { useStarredListStore } from '@/stores/starredList';
 import { ArrowLeftToLineIcon, RedoDot, MoveRight } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const store = useReadingListStore();
+const starredStore = useStarredListStore();
 
 function onInput(event: Event) {
     let target = event.target as HTMLInputElement;
@@ -69,6 +71,16 @@ const expTimeUnreadNever = computed({
         }
     },
 });
+
+function setSwipeDirection(id: string, isRightSwipe: boolean) {
+    if (isRightSwipe) {
+        store.setSwipeRight(id);
+        starredStore.setSwipeRight(id);
+    } else {
+        store.setSwipeLeft(id);
+        starredStore.setSwipeLeft(id);
+    }
+}
 
 function updateSettings() {
     store.updateSettings(store.settings);
@@ -157,7 +169,7 @@ store.loadSettings()
                 <div class="mt-5 flex gap-3 h-fit">
                     <SwipeDirectionItem v-for="direction in possibleSwipeDirections" :key="direction.id"
                         :ownDirection="direction" :selected="direction.id === store.swipeRight.id"
-                        :onClick="() => store.setSwipeRight(direction.id)" />
+                        :onClick="() => setSwipeDirection(direction.id, true)" />
                 </div>
             </div>
             <div>
@@ -168,7 +180,7 @@ store.loadSettings()
                 <div class="mt-5 flex gap-3">
                     <SwipeDirectionItem v-for="direction in possibleSwipeDirections" :key="direction.id"
                         :ownDirection="direction" :selected="direction.id === store.swipeLeft.id"
-                        :onClick="() => store.setSwipeLeft(direction.id)" />
+                        :onClick="() => setSwipeDirection(direction.id, false)" />
                 </div>
             </div>
         </div>

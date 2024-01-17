@@ -159,7 +159,7 @@ export async function getArticle(userId: string, articleId: string) {
     };
 }
 
-export async function updateArticle(userId: string, articleId: string, input: ArticleUpdateInputType) {    // Check if article exists
+export async function updateArticle(userId: string, articleId: string, input: ArticleUpdateInputType) {
     const article = await prisma.article.findUnique({
         where: {
             id: articleId
@@ -170,7 +170,7 @@ export async function updateArticle(userId: string, articleId: string, input: Ar
         throw APIError.notFound();
     }
 
-    const articleList = await prisma.articleList.findUnique({
+    let articleList = await prisma.articleList.findUnique({
         where: {
             articleId_userId: {
                 userId,
@@ -178,6 +178,17 @@ export async function updateArticle(userId: string, articleId: string, input: Ar
             }
         }
     });
+
+    if (input.read) {
+        const settings = await prisma.settings.findFirst({
+            where: {
+                userId: userId
+            }
+        });
+        if (settings?.expTimeRead === 0) {
+            input.saved = false;
+        }
+    }
 
     if (!articleList) {
         await prisma.articleList.create({
@@ -215,6 +226,7 @@ export async function updateArticle(userId: string, articleId: string, input: Ar
         });
     }
 }
+
 
 export async function getArticleContent(articleId: string) {
     const article = await prisma.article.findUnique({

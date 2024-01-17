@@ -1,21 +1,19 @@
 <script setup lang="ts">
-import { onBeforeMount, onMounted, onUpdated, ref, watch } from 'vue';
+import { onBeforeMount, ref, watch } from 'vue';
 import DOMPurify from 'dompurify';
 import ArticleSource from '@/components/ArticleSource.vue';
 import ReaderFunctionElement from '@/components/ReaderFunctionElement.vue';
-import { ReaderContext, ReaderStatus, useReaderStore } from '@/stores/reader';
+import { useReaderStore } from '@/stores/reader';
 import { MoveRight, MoveLeft } from 'lucide-vue-next';
-import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { fontSizes, fonts, colorSchemes } from '@/stores/reader';
 import ReaderSettingsButton from '@/components/Reader/FunctionBar/ReaderSettingsButton.vue';
 import router from '@/router';
-import { StoreStatus, useReadingListStore } from '@/stores/readingList';
 
 const TOLERANCE = window.innerHeight * 0.1;
 const route = useRoute();
 
 const store = useReaderStore()
-const readingListStore = useReadingListStore()
 
 let scrollpercent = ref(0);
 let lastScrollTop = 0;
@@ -32,14 +30,23 @@ let templateArr: string[] =
 let url = ref("")
 
 onBeforeMount(async () => {
-    await store.openArticle(route.params.id.toString());
+    const listParam = route.params.list;
+    let list = 'none' as 'none' | 'reading' | 'starred';
+    if (listParam === 'readinglist') {
+        list = 'reading'
+        backNavigationPath.value = "/readinglist"
+    } else if (listParam === 'starredlist') {
+        list = 'starred'
+        backNavigationPath.value = "/starredlist"
+    }
+
+    await store.openArticle(route.params.id.toString(), list);
 
     if (!store.openInApp) {
         window.open(store.storedArticles[0].articleInfo.link, '_blank');
     }
 
     hideUi.value = false;
-    backNavigationPath.value = readingListStore.articles.find(article => article.articleInfo.id === store.storedArticles[0].articleInfo.id) ? "/readinglist" : "/";
 });
 
 watch(() => store.storedArticles, (newVal) => {

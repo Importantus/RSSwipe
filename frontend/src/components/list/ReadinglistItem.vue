@@ -7,10 +7,12 @@ import { ReaderContext, useReaderStore } from '@/stores/reader';
 import router from '@/router';
 
 const props = defineProps<{
+    list: 'reading' | 'starred',
     article: Article;
     downloaded: boolean;
     swipeLeft: SwipeDirection,
-    swipeRight: SwipeDirection
+    swipeRight: SwipeDirection,
+    starredList: boolean
 }>();
 
 const elementTransformX = ref(0)
@@ -21,7 +23,7 @@ const displayWidth = window.innerWidth;
 const swipeToTrigger = displayWidth / 3;
 
 function openInReader() {
-    router.push(`/article/${props.article.id}`);
+    router.push(`/${props.list === 'reading' ? 'readinglist' : 'starredlist'}/article/${props.article.id}`);
 }
 
 function pressHandler(event: TouchEvent | MouseEvent) {
@@ -122,7 +124,7 @@ function releaseHandler() {
                     <div class="h-full flex flex-row gap-1 items-center flex-shrink-0">
                         <FileDown v-if="props.downloaded" size="16" />
                         <BookOpenCheck v-if="props.article.read" size="16" />
-                        <Star v-if="props.article.starred" size="16"  />
+                        <Star v-if="props.article.starred" size="16" />
                     </div>
                 </div>
                 <h2 class="text-lg">{{ props.article.title }}</h2>

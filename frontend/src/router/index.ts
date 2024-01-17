@@ -10,7 +10,8 @@ import SettingsView from '@/views/SettingsView.vue'
 import ReadinglistSettingsView from '@/views/ReadinglistSettingsView.vue'
 import { useAuthStore } from '@/stores/auth'
 import pinia from '@/stores/index'
-import ReadinglistViewVue from '@/views/ReadinglistView.vue'
+import ReadinglistView from '@/views/ReadinglistView.vue'
+import StarredlistView from '@/views/StarredlistView.vue'
 import StatisticsView from '@/views/StatisticsView.vue'
 
 const router = createRouter({
@@ -34,7 +35,12 @@ const router = createRouter({
     {
       path: '/readinglist',
       name: 'Reading List',
-      component: ReadinglistViewVue,
+      component: ReadinglistView,
+    },
+    {
+      path: '/starredlist',
+      name: 'Starred List',
+      component: StarredlistView,
     },
     {
       path: '/readinglist/settings',
@@ -52,7 +58,7 @@ const router = createRouter({
       component: StatisticsView
     },
     {
-      path: '/article/:id',
+      path: '/:list?/article/:id',
       name: 'Article',
       component: ReaderView
     },
