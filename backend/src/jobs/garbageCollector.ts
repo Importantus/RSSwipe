@@ -4,8 +4,7 @@ import { getPrismaClient } from "../prismaClient";
 
 const prisma = getPrismaClient();
 
-export function initGarbageCollector(intervall = environment.garbageCollectorInterval) {
-    const intervalInMs = parseInt(intervall, 10);
+export function initGarbageCollector(intervall = Number(environment.garbageCollectorInterval)) {
     console.log("Initialising garbage collector with interval of " + intervall + "ms");
     setInterval(async () => {
         try {
@@ -15,7 +14,7 @@ export function initGarbageCollector(intervall = environment.garbageCollectorInt
         } catch (err) {
             console.error(err);
         }
-    }, intervalInMs);
+    }, intervall);
 }
 
 async function deleteUnusedFeeds() {
@@ -65,12 +64,21 @@ async function deleteOldArticles() {
 
         const articles = await prisma.article.findMany({
             where: {
-                createdAt: {
-                    lt: new Date(Date.now() - parseInt(environment.maxArticleAge))
-                }
+                OR: [
+                    {
+                        publishedAt: {
+                            lt: new Date(Date.now() - Number(environment.maxArticleAge))
+                        }
+                    },
+                    {
+                        createdAt: {
+                            lt: new Date(Date.now() - Number(environment.maxArticleAge))
+                        }
+                    }
+                ]
+
             }
         });
-
 
         for (const article of articles) {
             if (!await isArticleUsed(article.id)) {
@@ -145,12 +153,16 @@ async function deleteExpiredArticlesFromReadingList() {
 
         // Delete all articles that have expired for this user
         for (const expiredArticle of expiredArticles) {
-            await prisma.articleList.delete({
+            await prisma.articleList.update({
                 where: {
                     articleId_userId: { // Change this line to match the unique identifier
                         userId: setting.userId,
                         articleId: expiredArticle.articleId
                     }
+                },
+
+                data: {
+                    saved: false,
                 }
             });
         }
@@ -158,4 +170,5 @@ async function deleteExpiredArticlesFromReadingList() {
     }
     console.log("Expired articles from the reading list have been cleaned up.");
 }
+
 
