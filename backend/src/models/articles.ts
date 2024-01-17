@@ -247,7 +247,6 @@ export async function getArticleContent(articleId: string) {
     const reader = new Readability(dom.window.document);
     const articleContent = reader.parse();
 
-    // Check if parsing was successful
     if (!articleContent) {
         console.log("Parsing failed");
         throw APIError.internalServerError("Article parsing failed");
