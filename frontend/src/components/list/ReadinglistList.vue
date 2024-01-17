@@ -1,14 +1,8 @@
 <script setup lang="ts">
 import { StoreStatus, useReadingListStore } from '@/stores/readingList';
 import ReadinglistItem from './ReadinglistItem.vue';
-import { defineProps } from 'vue';
 
 const store = useReadingListStore();
-
-const props = defineProps<{
-    starred: boolean;
-}>();
-
 
 store.update();
 </script>
@@ -24,14 +18,10 @@ store.update();
         </div>
         <div v-else>
             <TransitionGroup name="list" tag="div" class="flex flex-col gap-3">
-                <ReadinglistItem v-if="props.starred" v-for="article in store.getStarredArticles"
-                    :key="article.articleInfo.id" :article="article.articleInfo"
-                    @swipe-right="store.removeArticle(article.articleInfo)" :downloaded="article.content !== undefined"
-                    :swipe-right="store.swipeRight" :swipe-left="store.swipeLeft" />
-                <ReadinglistItem v-if="!props.starred" v-for="article in store.articles" :key="article.articleInfo.id"
+                <ReadinglistItem v-for="article in store.articles" :key="article.articleInfo.id"
                     :article="article.articleInfo" @swipe-right="store.removeArticle(article.articleInfo)"
                     :downloaded="article.content !== undefined" :swipe-right="store.swipeRight"
-                    :swipe-left="store.swipeLeft" />
+                    :swipe-left="store.swipeLeft" :starredList="false" />
             </TransitionGroup>
         </div>
     </div>
