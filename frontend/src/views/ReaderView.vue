@@ -9,14 +9,14 @@ import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from 'vue-router';
 import { fontSizes, fonts, colorSchemes } from '@/stores/reader';
 import ReaderSettingsButton from '@/components/Reader/FunctionBar/ReaderSettingsButton.vue';
 import router from '@/router';
-import { StoreStatus } from '@/stores/readingList';
+import { StoreStatus, useReadingListStore } from '@/stores/readingList';
 
 const TOLERANCE = window.innerHeight * 0.1;
 const route = useRoute();
 
 const store = useReaderStore()
+const readingListStore = useReadingListStore()
 
-let scrollDiv: HTMLElement | null
 let scrollpercent = ref(0);
 let lastScrollTop = 0;
 let hideUi = ref(true);
@@ -31,22 +31,6 @@ let templateArr: string[] =
 
 let url = ref("")
 
-onBeforeRouteUpdate(async (to, from, next) => {
-    if (to.params.id !== from.params.id) {
-        await store.openArticle(to.params.id.toString());
-        hideUi.value = false;
-
-        if (!store.openInApp) {
-            window.open(store.storedArticles[0].articleInfo.link, '_blank');
-        }
-
-        // set window state to current article
-        window.history.replaceState({ back: from.path }, "");
-
-        next();
-    }
-});
-
 onBeforeMount(async () => {
     await store.openArticle(route.params.id.toString());
 
@@ -55,14 +39,7 @@ onBeforeMount(async () => {
     }
 
     hideUi.value = false;
-    backNavigationPath.value = window.history.state?.back === "/readinglist" ? "/readinglist" : "/";
-});
-
-onMounted(async () => {
-    scrollDiv = document.getElementById("scroll");
-    if (scrollDiv) {
-        scrollDiv.addEventListener('scroll', getScrollPercent);
-    }
+    backNavigationPath.value = readingListStore.articles.find(article => article.articleInfo.id === store.storedArticles[0].articleInfo.id) ? "/readinglist" : "/";
 });
 
 watch(() => store.storedArticles, (newVal) => {
@@ -77,25 +54,13 @@ watch(() => store.storedArticles, (newVal) => {
 }, { deep: true });
 
 function nextArticle() {
-    const FADEOUT_TIME = 200;
-    const FADEIN_TIME = 100;
-    if (scrollDiv) {
-        scrollDiv.scrollTo({ top: 0, behavior: 'smooth' });
-        scrollDiv.style.transition = 'opacity ' + FADEOUT_TIME + 'ms';
-        scrollDiv.style.opacity = '0';
-        setTimeout(() => {
-            if (scrollDiv) {
-                scrollDiv.style.transition = 'opacity' + FADEIN_TIME + 'ms';
-                scrollDiv.style.opacity = '100';
-                router.push(`/article/${store.storedArticles[1].articleInfo.id}`);
-            }
-        }, FADEOUT_TIME);
-    }
+    router.push(`/article/${store.storedArticles[1].articleInfo.id}`);
 }
 
-function getScrollPercent() {
+function getScrollPercent(event: Event) {
+    const scrollDiv = event.target as HTMLElement;
     if (scrollDiv) {
-        calculateUIHide();
+        calculateUIHide(scrollDiv);
         scrollpercent.value = (scrollDiv.scrollTop / (scrollDiv.scrollHeight - scrollDiv.clientHeight)) * 100;
         if (scrollpercent.value === 100) {
             scrollFinshed.value = true;
@@ -105,7 +70,7 @@ function getScrollPercent() {
     }
 }
 
-function calculateUIHide() {
+function calculateUIHide(scrollDiv: HTMLElement | null = null) {
     if (scrollDiv) {
         if (lastScrollTop < scrollDiv.scrollTop) {
             if (scrollDiv.scrollTop - lastScrollTop > TOLERANCE) {
@@ -144,8 +109,8 @@ function calculateUIHide() {
                 :style="`width: ${scrollpercent}%;`">
             </div>
         </div>
-        <div id="scroll"
-            class="px-5 h-full overflow-y-scroll no-scrollbar pb-[10vh] pt-20 transition-colors ease-out duration-500"
+        <div :onscroll="getScrollPercent"
+            class="px-5 h-full overflow-y-scroll no-scrollbar pb-[10vh] pt-20 transition-colors ease-out duration-500 overflow-x-hidden"
             :class="{
                 'border-[#1C1204] text-[#1C1204] bg-[#C8A777]': store.settings.colorScheme.id === colorSchemes.sepia.id,
                 'border-black text-black bg-white': store.settings.colorScheme.id === colorSchemes.light.id,
@@ -162,10 +127,10 @@ function calculateUIHide() {
                     <div v-if="store.storedArticles[0].articleInfo.imageUrl"
                         class="w-full aspect-video bg-background-900 mb-5 rounded-md overflow-hidden">
                         <img :src="store.storedArticles[0].articleInfo.imageUrl"
-                            class="min-h-full min-w-full after:content-none before:content-none">
+                            class="min-h-full min-w-full after:content-none before:content-none object-cover">
                     </div>
                     <ArticleSource class="pt-2 text-white" :article="store.storedArticles[0].articleInfo" />
-                    <div class="text-3xl font-semibold text-inherit py-5"
+                    <div class="text-3xl font-semibold text-inherit py-5 break-words"
                         :class="{ 'font-title': store.settings.font.id === fonts.serif.id }">{{
                             store.storedArticles[0].articleInfo.title
                         }}

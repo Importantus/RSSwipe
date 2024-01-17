@@ -264,6 +264,11 @@ export const useReaderStore = defineStore({
 
         async setArticleStarred(article: Article, starred: boolean) {
             const request = { "id": article.id }
+
+            if (article.id === this.storedArticles[0].articleInfo.id) {
+                this.storedArticles[0].articleInfo.starred = starred
+            }
+
             if (starred) {
                 console.log("Starring:" + article.id)
                 const response = await axios.post(`/starred/articles`, request)
@@ -281,22 +286,9 @@ export const useReaderStore = defineStore({
                     console.error(response)
                 }
             }
-
         },
         async getStarStatus(article: Article) {
-            const response = await axios.get(`/starred`)
-            if (response.status === 200) {
-                const data: Article[] = response.data
-                const starred: Article | undefined = data.find(a => a.id === article.id)
-                if (starred) {
-                    return true;
-                } else {
-                    return false;
-                }
-            } else {
-                console.error(response)
-            }
-            return null;
+            return article.starred
         },
         async setColor(id: string) {
             this.settings.colorScheme = colorSchemes[id]

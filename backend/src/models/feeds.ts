@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { FeedCreateInputType, FeedUpdateInputType } from "../validators/feeds";
-import { getFaviconUrl, parseFeed, parseFeedAndAddToDb } from "./feedparser";
+import { getFaviconUrl, parseFeed, parseFeedAndAddToDb } from "../jobs/feedparser";
 import APIError from "../helper/apiError";
 import { getPrismaClient } from "../prismaClient";
 
@@ -185,7 +185,7 @@ async function createFeed(feedInput: FeedCreateInputType) {
     const parsedFeed = await parseFeed(feedInput.url);
     return await prisma.feed.create({
         data: {
-            title: parsedFeed.title || feedInput.url,
+            title: parsedFeed.meta.title || feedInput.url,
             link: feedInput.url,
             faviconUrl: favicon
         }

@@ -24,26 +24,30 @@ const addNewFeed = async () => {
 <template>
   <div class="px-5 overflow-y-scroll pb-10 h-full">
     <TitleNavigationBar title="Your Feeds" backNavigationPath="/" class="z-20" />
-    <div @click="showModal = true" class="bg-primary-600 rounded-full fixed bottom-10 right-5 p-2 cursor-pointer z-20">
-      <Plus :size="28" class=" text-white m-3" />
-    </div>
-
-    <div v-if="showModal"
-      class="fixed z-40 top-0 bottom-0 left-0 right-0 h-screen w-screen bg-opacity-40 bg-black flex justify-center items-center">
-      <div class="w-[90%] max-w-lg bg-secondary-900 rounded-xl p-5 relative  justify-between">
-        <X class="absolute mb-3 top-5 right-5 cursor-pointer" size="32" @click="toggleAddFeedPopup" />
-        <h3 class="text-lg font-semibold mb-3 top-5">Add New Feed</h3>
-        <form @submit.prevent="addNewFeed">
-          <TextInputIcon v-model="newFeedUrl" placeholder="URL" :icon="Link" :required="true" />
-          <button type="submit"
-            class="w-full h-14 bg-amber-600 rounded-lg hover:bg-amber-700 transition mb-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
-            :disabled="newFeedUrl.length === 0">
-            Add Feed
-          </button>
-        </form>
+    <div class="fixed bottom-0 left-0 right-0 max-w-xl m-auto">
+      <div @click="showModal = true" name="popup"
+        class="bg-primary-600 rounded-full absolute bottom-10 right-5 p-2 cursor-pointer z-20" title="add new Feed ">
+        <Plus :size="28" class=" text-white m-3" />
       </div>
     </div>
+    <Transition name="popup-fade">
+      <div v-if="showModal"
+        class="fixed z-40 top-0 bottom-0 left-0 right-0 h-screen w-screen bg-opacity-40 bg-black flex justify-center items-center">
 
+        <div class="w-[90%] max-w-lg bg-secondary-900 rounded-xl p-5 relative  justify-between">
+          <X class="absolute mb-3 top-5 right-5 cursor-pointer" size="32" @click="toggleAddFeedPopup" />
+          <h3 class="text-lg font-semibold mb-3 top-5">Add New Feed</h3>
+          <form @submit.prevent="addNewFeed">
+            <TextInputIcon v-model="newFeedUrl" placeholder="URL" :icon="Link" :required="true" />
+            <button type="submit"
+              class="w-full h-14 bg-amber-600 rounded-lg hover:bg-amber-700 transition mb-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+              :disabled="newFeedUrl.length === 0">
+              Add Feed
+            </button>
+          </form>
+        </div>
+      </div>
+    </Transition>
     <div v-if="store.error">
       <div v-if="store.error" class="w-full bg-red-500 rounded-lg p-3 z-10 mb-5">{{ store.error }}</div>
     </div>

@@ -8,6 +8,37 @@
   opacity: 0;
 }
 
+.slide-down-leave-active,
+.slide-up-leave-active {
+  transition: all 0.4s ease-in;
+}
+
+.slide-down-enter-active,
+.slide-up-enter-active {
+  z-index: 1000;
+  transition: all 0.4s ease-in;
+}
+
+.slide-up-enter-from {
+  transform: translateY(110%);
+  filter: brightness(1.5);
+}
+
+.slide-up-leave-to {
+  transform: translateY(-90%) scale(0.99);
+  filter: brightness(0.5);
+}
+
+.slide-down-enter-from {
+  transform: translateY(-110%);
+  filter: brightness(1.5);
+}
+
+.slide-down-leave-to {
+  transform: translateY(90%) scale(0.99);
+  filter: brightness(0.5);
+}
+
 .slide-right-enter-active,
 .slide-right-leave-active {
   transition: all 0.3s ease;
@@ -188,4 +219,20 @@
 .readersettings-leave-active {
   transition: all 0.3s ease;
   -tw-backdrop-blur: blur(12px)
+}
+
+.popup {
+  opacity: 0;
+  transition: all 0.1s ease-out;
+}
+
+.popup-fade-enter-active,
+.popup-fade-leave-active {
+  transition: opacity 0.3s ease-out;
+}
+
+.popup-fade-enter-from,
+.popup-fade-leave-to {
+  opacity: 0;
+  transition: all 0.1s ease-out;
 }

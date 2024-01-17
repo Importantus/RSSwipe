@@ -17,9 +17,9 @@ window.addEventListener('click', (e) => {
 </script>
 
 <template>
-    <div class="relative ReaderSettings">
+    <div class="relative ReaderSettings" title="Reader settings">
         <Transition name="readersettings">
-            <ReaderSettings v-if="showSettings" class="fixed top-24 right-1" />
+            <ReaderSettings v-if="showSettings" class="fixed top-24 right-1"/>
         </Transition>
         <Settings2 @click="showSettings = !showSettings" :size="28" class="m-3"
             :class="{ 'hidden transform duration-200 ease-linear': showSettings }" />

@@ -11,6 +11,7 @@ import ReadinglistSettingsView from '@/views/ReadinglistSettingsView.vue'
 import { useAuthStore } from '@/stores/auth'
 import pinia from '@/stores/index'
 import ReadinglistViewVue from '@/views/ReadinglistView.vue'
+import StatisticsView from '@/views/StatisticsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -46,6 +47,11 @@ const router = createRouter({
       component: UserDataView
     },
     {
+      path: '/settings/statistics',
+      name: 'Statistics',
+      component: StatisticsView
+    },
+    {
       path: '/article/:id',
       name: 'Article',
       component: ReaderView
@@ -70,6 +76,7 @@ const router = createRouter({
 })
 
 const authStore = useAuthStore(pinia)
+let readingListNavigation: string[] = []
 
 router.beforeEach((to, from, next) => {
   // Check if the user is logged in
@@ -90,6 +97,20 @@ router.afterEach((to, from) => {
   if (!from.name) {
     to.meta.transition = 'fade';
     return
+  }
+
+  if (to.name === 'Article' && from.name === 'Article') {
+    if (to.params.id === readingListNavigation[readingListNavigation.length - 1]) {
+      to.meta.transition = 'slide-down'
+      readingListNavigation.pop()
+      return
+    } else {
+      to.meta.transition = 'slide-up'
+      readingListNavigation.push(from.params.id as string)
+      return
+    }
+  } else {
+    readingListNavigation = []
   }
 
   if (toDepthLength === fromDepthLength) {
