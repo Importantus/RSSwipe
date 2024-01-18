@@ -1,9 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import { updateArticle } from './articles';
+import { deleteExpiredArticlesFromReadingList } from '../jobs/garbageCollector';
 
 const prisma = new PrismaClient();
 
 export async function getReadingList(userId: string) {
+    await deleteExpiredArticlesFromReadingList(userId);
+
     const readingList = await prisma.articleList.findMany({
         where: { userId, saved: true },
         select: {

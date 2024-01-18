@@ -81,7 +81,8 @@ async function deleteOldArticles() {
         });
 
         for (const article of articles) {
-            if (!await isArticleUsed(article.id)) {
+            const isUsed = await isArticleUsed(article.id);
+            if (!isUsed) {
                 await prisma.article.delete({
                     where: {
                         id: article.id
@@ -104,47 +105,61 @@ async function isArticleUsed(articleId: string) {
         }
     });
 
-    let used = false;
     for (const articleList of articleLists) {
         if (articleList.saved || articleList.starred) {
-            used = true;
-            break;
+            return true;
         }
     }
 
-    return used;
+    return false;
 }
 
-async function deleteExpiredArticlesFromReadingList() {
+export async function deleteExpiredArticlesFromReadingList(userId?: string) {
     const now = new Date();
+    let settings;
 
     // Get all user settings to determine the expiration times
-    const settings = await prisma.settings.findMany();
+    if (userId) {
+        settings = await prisma.settings.findMany({
+            where: {
+                userId: userId
+            }
+        });
+    } else {
+        settings = await prisma.settings.findMany();
+    }
 
     for (const setting of settings) {
         // Calculate the time threshold for read and unread articles based on user settings
         const readExpirationDate = new Date(now.getTime() - setting.expTimeRead);
         const unreadExpirationDate = new Date(now.getTime() - setting.expTimeUnread);
 
+        const where = []
+
+        if (setting.expTimeRead >= 0) {
+            where.push({
+                AND: [
+                    { userId: setting.userId },
+                    { read: true },
+                    { dateRead: { lt: readExpirationDate } }
+                ]
+            })
+        }
+
+        if (setting.expTimeUnread >= 0) {
+            where.push({
+                AND: [
+                    { userId: setting.userId },
+                    { read: false },
+                    { dateSaved: { lt: unreadExpirationDate } }
+                ]
+            })
+        }
+
         // Find all articles from the reading list that have expired
         const expiredArticles = await prisma.articleList.findMany({
             where: {
-                OR: [
-                    {
-                        AND: [
-                            { userId: setting.userId },
-                            { read: true },
-                            { dateRead: { lt: readExpirationDate } }
-                        ]
-                    },
-                    {
-                        AND: [
-                            { userId: setting.userId },
-                            { read: false },
-                            { dateSaved: { lt: unreadExpirationDate } }
-                        ]
-                    }
-                ]
+                OR: where
             },
             select: {
                 articleId: true

@@ -215,6 +215,7 @@ export async function updateArticle(userId: string, articleId: string, input: Ar
                 userId: userId
             }
         });
+
         if (settings?.expTimeRead === 0) {
             input.saved = false;
         }
