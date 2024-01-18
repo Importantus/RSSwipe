@@ -4,7 +4,6 @@ import ArticleDate from '@/components/ArticleDate.vue';
 import { useStartPageStore } from '@/stores/startPage';
 import type { Article } from '@/types';
 import { computed, ref } from 'vue';
-import { ReaderContext, useReaderStore } from '@/stores/reader';
 import router from '@/router';
 const props = defineProps<{
     article: Article;
@@ -12,7 +11,6 @@ const props = defineProps<{
 }>()
 
 const store = useStartPageStore();
-const readerStore = useReaderStore();
 
 const hidden = ref(false);
 const elementTransformX = ref(0)
@@ -95,13 +93,13 @@ let templateArr: string[] =
         "/images/articles/placeholder03.png",
         "/images/articles/placeholder04.png"]
 
-let url = ref("")
-
-if (!props.article.imageUrl) {
-    url.value = templateArr[Math.floor(Math.random() * templateArr.length)];
-} else {
-    url = computed(() => `"${props.article.imageUrl}"`)
-}
+const url = computed(() => {
+    if (!props.article.imageUrl) {
+        return templateArr[Math.floor(Math.random() * templateArr.length)];
+    } else {
+        return `"${props.article.imageUrl}"`
+    }
+})
 
 </script>
 
@@ -124,6 +122,6 @@ if (!props.article.imageUrl) {
 
 <style scoped>
 .transitions {
-    transition: top 0.3s ease-in-out, bottom 0.3s ease-in-out;
+    transition: top 0.5s ease-out, bottom 0.5s ease-out;
 }
 </style>
