@@ -20,6 +20,7 @@ let lastScrollTop = 0;
 let hideUi = ref(true);
 let scrollFinshed = ref(false);
 let backNavigationPath = ref("/");
+let list = 'none' as 'none' | 'reading' | 'starred';
 
 let templateArr: string[] =
     ["/images/articles/placeholder01.png",
@@ -31,13 +32,12 @@ let url = ref("")
 
 onBeforeMount(async () => {
     const listParam = route.params.list;
-    let list = 'none' as 'none' | 'reading' | 'starred';
     if (listParam === 'readinglist') {
         list = 'reading'
-        backNavigationPath.value = "/readinglist"
+        backNavigationPath.value = "/readinglist/"
     } else if (listParam === 'starredlist') {
         list = 'starred'
-        backNavigationPath.value = "/starredlist"
+        backNavigationPath.value = "/starredlist/"
     }
 
     await store.openArticle(route.params.id.toString(), list);
@@ -61,7 +61,7 @@ watch(() => store.storedArticles, (newVal) => {
 }, { deep: true });
 
 function nextArticle() {
-    router.push(`/article/${store.storedArticles[1].articleInfo.id}`);
+    router.push(`${backNavigationPath.value}article/${store.storedArticles[1].articleInfo.id}`);
 }
 
 function getScrollPercent(event: Event) {

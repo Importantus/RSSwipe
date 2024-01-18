@@ -57,6 +57,10 @@ export const useStartPageStore = defineStore({
             await this.fetchArticles()
         },
         async fetchArticles() {
+            if (new Date(this.swipeLimit.lastSwiped).getDate() !== new Date().getDate()) {
+                this.resetSwipeLimit()
+            }
+
             if (this.articles.length >= STORED_ARTICLES) {
                 this.status = ArticleStatus.READY
                 return
@@ -102,6 +106,11 @@ export const useStartPageStore = defineStore({
         },
 
         // Digital Wellbeing: Swipe Limit
+        resetSwipeLimit() {
+            this.swipeLimit.swipes = 0
+            this.swipeLimit.overSwipes = 0
+            localStorage.setItem('swipeLimit', JSON.stringify(this.swipeLimit))
+        },
         addSwipe() {
             if (new Date(this.swipeLimit.lastSwiped).getDate() !== new Date().getDate()) {
                 this.swipeLimit.swipes = 0

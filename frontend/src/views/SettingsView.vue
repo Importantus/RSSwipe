@@ -84,6 +84,12 @@ const endDate = computed({
     }
 });
 
+const endDatetoDate = computed(() => {
+    const date = startPageStore.getEndDate()
+    date.setDate(date.getDate() - 1);
+    return date;
+});
+
 startPageStore.fetchMaxStartDate()
 userStore.fetchUserData();
 </script>
@@ -124,27 +130,35 @@ userStore.fetchUserData();
                             Math.abs(startPageStore.dateFrame.maxStart) }} days by default.
                     </div>
                 </div>
-                <div class="flex items-center justify-between gap-5">
-                    <span class="flex-shrink-0">{{ startPageStore.dateFrame.maxStart }} days</span>
-                    <div class="relative w-full bg-black/50 rounded overflow-hidden">
-                        <div class="slidecontainer flex justify-end">
-                            <div class="fill bg-primary-600 flex items-center text-sm px-1 pr-4 transition-all"
-                                :style="{ width: (startPageStore.dateFrame.end / startPageStore.dateFrame.maxStart) * 100 + '%' }">
-                                {{ startPageStore.dateFrame.end }}
-                            </div>
-                            <input type="range" :min="startPageStore.dateFrame.maxStart" max="0" v-model="endDate"
-                                class="w-full slider">
-                        </div>
-                        <div class="slidecontainer">
-                            <div class="fill bg-primary-600 flex items-center text-sm px-1 pl-4 transition-all justify-end"
-                                :style="{ width: (1 - startPageStore.dateFrame.start / startPageStore.dateFrame.maxStart) * 100 + '%' }">
-                                {{ startPageStore.dateFrame.start }}
-                            </div>
-                            <input type="range" :min="startPageStore.dateFrame.maxStart" max="0" v-model="startDate"
-                                class="w-full slider">
-                        </div>
+                <div>
+                    <div class="w-full text-center text-sm mb-1">
+                        From <span class="font-bold"> {{ startPageStore.getStartDate().toLocaleDateString() }} </span> to
+                        <span class="font-bold"> {{
+                            endDatetoDate.toLocaleDateString()
+                        }}</span>
                     </div>
-                    <span>today</span>
+                    <div class="flex items-center justify-between gap-5">
+                        <span class="flex-shrink-0">{{ startPageStore.dateFrame.maxStart }} days</span>
+                        <div class="relative w-full bg-primary-950/50 rounded-lg overflow-hidden">
+                            <div class="slidecontainer">
+                                <div class="fill bg-primary-600 flex items-center text-sm px-1 pl-4 transition-all justify-end"
+                                    :style="{ width: (1 - startPageStore.dateFrame.start / startPageStore.dateFrame.maxStart) * 100 + '%' }">
+
+                                </div>
+                                <input type="range" :min="startPageStore.dateFrame.maxStart" max="0" v-model="startDate"
+                                    class="w-full slider">
+                            </div>
+                            <div class="slidecontainer flex justify-end">
+                                <div class="fill bg-primary-600 flex items-center text-sm px-1 pr-4 transition-all"
+                                    :style="{ width: (startPageStore.dateFrame.end / startPageStore.dateFrame.maxStart) * 100 + '%' }">
+
+                                </div>
+                                <input type="range" :min="startPageStore.dateFrame.maxStart" max="0" v-model="endDate"
+                                    class="w-full slider">
+                            </div>
+                        </div>
+                        <span>today</span>
+                    </div>
                 </div>
             </div>
             <div class="flex flex-col gap-5" title="change the Font Size">

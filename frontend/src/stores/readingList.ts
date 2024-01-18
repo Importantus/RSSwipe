@@ -200,13 +200,12 @@ export const useReadingListStore = defineStore({
             }
         },
         async updateSettings(settings: Settings) {
-            const response = await axios.put('/settings', settings)
-
-            if (response.status === 200) {
+            try {
+                const response = await axios.put('/settings', settings)
                 this.settings = response.data
                 this.settingsStatus = StoreStatus.SUCCESS
-            } else {
-                console.log(response)
+            } catch (e) {
+                console.log(e)
             }
         },
         async clear(onlyRead: boolean) {
