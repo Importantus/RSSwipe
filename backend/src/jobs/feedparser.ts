@@ -148,7 +148,10 @@ export async function parseFeedAndAddToDb(feed: Feed) {
         const urlObj = new URL(feed.link);
         link = urlObj.origin;
     }
-    const favicon = await getFaviconUrl(link);
+    let favicon = await getFaviconUrl(link)
+    if (!favicon) {
+        favicon = feed.faviconUrl;
+    }
 
     if (favicon !== feed.faviconUrl) {
         await prisma.feed.update({
