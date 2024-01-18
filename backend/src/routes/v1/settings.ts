@@ -8,7 +8,7 @@ import APIError from "../../helper/apiError";
 const router = express.Router();
 
 router.get("/", h(async (_, res) => {
-    const id = res.locals.id;
+    const id = res.locals.userId;
 
     res.status(200).json(
         await getSettings(id)
@@ -16,7 +16,7 @@ router.get("/", h(async (_, res) => {
 }));
 
 router.put("/", h(async (req, res) => {
-    const id = res.locals.id;
+    const id = res.locals.userId;
 
     // Check if request body is valid
     try {

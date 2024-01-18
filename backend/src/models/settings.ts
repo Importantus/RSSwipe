@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import APIError from "../helper/apiError";
 import { SettingsUpdateInputType } from "../validators/settings"
 import { getPrismaClient } from "../prismaClient";
+import { deleteExpiredArticlesFromReadingList } from "../jobs/garbageCollector";
 const prisma = getPrismaClient();
 
 export async function getSettingsIdByUserId(userId: string) {
@@ -23,9 +24,8 @@ export async function getSettingsIdByUserId(userId: string) {
 }
 
 
-export async function updateSettings(id: string, updateData: SettingsUpdateInputType) {
-    const settingsid = await getSettingsIdByUserId(id);
-
+export async function updateSettings(userId: string, updateData: SettingsUpdateInputType) {
+    const settingsid = await getSettingsIdByUserId(userId);
 
     await prisma.settings.update({
         where: {
