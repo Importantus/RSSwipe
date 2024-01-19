@@ -15,11 +15,15 @@ const prisma = getPrismaClient();
  * @returns The favicon url
  */
 export async function getFaviconUrl(url: string) {
-    const dom = await getDomFromUrl(url);
+    const dom = await getDomFromUrl(url, {
+        correctUrls: true,
+    });
 
     const queries = [
+        'link[rel="apple-touch-icon"]',
         'link[rel="apple-touch-icon-precomposed"]',
         'link[rel="shortcut icon"]',
+        'link[rel="icon", type="image/png"]',
         'link[rel="icon"]',
     ]
 
@@ -41,13 +45,7 @@ export async function getFaviconUrl(url: string) {
         return null;
     }
 
-    // Check if favicon is a relative path
-    if (favicon?.startsWith("/")) {
-        const urlObj = new URL(url);
-        return urlObj.origin + favicon;
-    } else {
-        return favicon;
-    }
+    return favicon;
 }
 
 /**
