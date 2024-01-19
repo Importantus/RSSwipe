@@ -1,5 +1,10 @@
-import { defineStore } from 'pinia'
+import { defineStore, type Pinia, type Store } from 'pinia'
 import axios from '@/axios'
+import { getActivePinia } from "pinia"
+
+interface ExtendedPinia extends Pinia {
+    _s: Map<string, Store>;
+}
 
 export const useAuthStore = defineStore({
     id: 'auth',
@@ -20,6 +25,8 @@ export const useAuthStore = defineStore({
         logout() {
             this.token = ''
             localStorage.clear()
+            const pinia = getActivePinia() as ExtendedPinia;
+            pinia._s.forEach((store: { $reset: () => any }) => store.$reset())
         },
         async login(email: string, password: string) {
             const response = await axios.post('/login', {
