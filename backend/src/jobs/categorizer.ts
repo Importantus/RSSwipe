@@ -1,7 +1,5 @@
 import { getPrismaClient } from "../prismaClient";
 import { Readability } from '@mozilla/readability';
-import axios from "axios";
-import { JSDOM, VirtualConsole } from 'jsdom';
 import natural from 'natural'
 import { getDomFromUrl } from "../helper/htmlParsing";
 

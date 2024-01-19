@@ -1,5 +1,5 @@
-import { JSDOM, VirtualConsole } from "jsdom";
-import axios from "axios";
+import { JSDOM, VirtualConsole, type ConstructorOptions } from "jsdom";
+import axios from "../axios";
 import DOMPurify from "isomorphic-dompurify";
 
 interface Options {
@@ -29,20 +29,24 @@ export async function getDomFromUrl(url: string, options: Options = defaultOptio
     const res = await axios.get(url);
     let dom: JSDOM;
     let baseUrl = getBaseUrl(url);
-    let correctUrls = options.correctUrls;
 
     if (options.sanitizeHtml) {
         res.data = sanitizeHtml(res.data);
     }
 
-    if (options.useVirtualConsole) {
-        const virtualConsole = new VirtualConsole();
-        dom = new JSDOM(res.data, { virtualConsole });
-    } else {
-        dom = new JSDOM(res.data);
+    const jsdomOptions: ConstructorOptions = {
+        url,
+        contentType: "text/html"
     }
 
-    if (correctUrls) {
+    if (options.useVirtualConsole) {
+        const virtualConsole = new VirtualConsole();
+        dom = new JSDOM(res.data, { virtualConsole, ...jsdomOptions });
+    } else {
+        dom = new JSDOM(res.data, jsdomOptions);
+    }
+
+    if (options.correctUrls) {
         correctUrlsInDom(dom, baseUrl);
     }
 
