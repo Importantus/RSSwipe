@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import TitleNavigationBar from '@/components/global/TitleNavigationBar.vue';
 import SwipeDirectionItem from '@/components/lists/settings/SwipeDirectionButton.vue';
+import ArticleOrderButton from '@/components/lists/settings/ArticleOrderButton.vue';
+import SettingWrapper from '@/components/global/SettingWrapper.vue';
 import { useReadingListStore, StoreStatus, possibleSwipeDirections } from '@/stores/readingList';
 import { useStarredListStore } from '@/stores/starredList';
-import { ArrowLeftToLineIcon, RedoDot, MoveRight } from 'lucide-vue-next';
+import { ArrowLeftToLineIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const store = useReadingListStore();
@@ -100,116 +102,86 @@ store.loadSettings();
                 Error saving settings
             </div>
         </div>
-
-        <div class="flex flex-col gap-5">
-            <div class="flex flex-col gap-2">
-                <div class="font-title text-xl">Time to expire</div>
-                <div class="text-background-300 text-lg leading-tight">The time after which articles are removed from the
-                    readinglist
-                </div>
-            </div>
-            <div class="flex flex-col gap-2">
-                <div
-                    class="font-title flex justify-between min-h-[4rem] gap-5 p-3 px-5 items-center bg-background-900 bg-opacity-30 rounded-sm">
-                    Read Articles
-                    <div class="flex items-center  justify-end gap-x-5 gap-y-3 flex-wrap-reverse ">
-                        <Transition name="readinglistsettings">
-                            <div v-if="!expTimeReadNever" class="flex gap-2 items-center">
-                                <input @input="onInput" v-model="expTimeRead" type="number" max="999" min="0"
-                                    class="w-14 text-center border-b-2 rounded-none bg-transparent text-lg" />
-                                <div>hours</div>
+        <div class="flex flex-col gap-10">
+            <SettingWrapper title="Time to expire" description="The time after which articles are removed from the
+                    readinglist">
+                <div class="flex flex-col gap-2">
+                    <div
+                        class="font-title flex justify-between min-h-[4rem] gap-5 p-3 px-5 items-center bg-background-900 bg-opacity-30 rounded-sm">
+                        Read Articles
+                        <div class="flex items-center  justify-end gap-x-5 gap-y-3 flex-wrap-reverse ">
+                            <Transition name="readinglistsettings">
+                                <div v-if="!expTimeReadNever" class="flex gap-2 items-center">
+                                    <input @input="onInput" v-model="expTimeRead" type="number" max="999" min="0"
+                                        class="w-14 text-center border-b-2 rounded-none bg-transparent text-lg" />
+                                    <div>hours</div>
+                                </div>
+                            </Transition>
+                            <div class="flex gap-3 items-center">
+                                <label for="expTimeReadNever">Never</label>
+                                <input class="h-5 w-5 bg-primary-300 accent-primary-600" type="checkbox"
+                                    name="expTimeReadNever" v-model="expTimeReadNever">
                             </div>
-                        </Transition>
-                        <div class="flex gap-3 items-center">
-                            <label for="expTimeReadNever">Never</label>
-                            <input class="h-5 w-5 bg-primary-300 accent-primary-600" type="checkbox" name="expTimeReadNever"
-                                v-model="expTimeReadNever">
                         </div>
                     </div>
-
-                </div>
-                <div
-                    class="font-title flex justify-between min-h-[4rem]  gap-5 p-3 px-5 items-center bg-background-900 bg-opacity-30 rounded-sm">
-                    Unread Articles
-                    <div class="flex items-center justify-end gap-x-5 gap-y-3 flex-wrap-reverse">
-                        <Transition name="readinglistsettings">
-                            <div v-if="!expTimeUnreadNever" class="flex gap-2 items-center">
-                                <input @input="onInput" v-model="expTimeUnread" type="number" max="999" min="0"
-                                    class="w-14 text-center border-b-2 rounded-none bg-transparent text-lg" />
-                                <div>hours</div>
+                    <div
+                        class="font-title flex justify-between min-h-[4rem]  gap-5 p-3 px-5 items-center bg-background-900 bg-opacity-30 rounded-sm">
+                        Unread Articles
+                        <div class="flex items-center justify-end gap-x-5 gap-y-3 flex-wrap-reverse">
+                            <Transition name="readinglistsettings">
+                                <div v-if="!expTimeUnreadNever" class="flex gap-2 items-center">
+                                    <input @input="onInput" v-model="expTimeUnread" type="number" max="999" min="0"
+                                        class="w-14 text-center border-b-2 rounded-none bg-transparent text-lg" />
+                                    <div>hours</div>
+                                </div>
+                            </Transition>
+                            <div class="flex gap-3 items-center">
+                                <label for="expTimeReadNever">Never</label>
+                                <input class="h-5 w-5 bg-primary-300 accent-primary-600" type="checkbox"
+                                    name="expTimeReadNever" v-model="expTimeUnreadNever">
                             </div>
-                        </Transition>
-                        <div class="flex gap-3 items-center">
-                            <label for="expTimeReadNever">Never</label>
-                            <input class="h-5 w-5 bg-primary-300 accent-primary-600" type="checkbox" name="expTimeReadNever"
-                                v-model="expTimeUnreadNever">
                         </div>
                     </div>
                 </div>
-            </div>
-            <div>
-                <button @click="updateSettings"
-                    class="w-full h-14 bg-primary-600 rounded-lg hover:bg-primary-800 transition font-semibold text-lg">Save</button>
-            </div>
-        </div>
-
-        <div class="my-14 flex flex-col gap-10">
-            <div class="flex flex-col gap-2">
-                <div class="font-title text-xl">Swipe gestures</div>
-                <div class="text-background-300 text-lg leading-tight">The actions that are performed when swiping an
-                    article
-                    to the left or right
+                <div>
+                    <button @click="updateSettings"
+                        class="w-full h-14 bg-primary-600 rounded-lg hover:bg-primary-800 transition font-semibold text-lg">Save</button>
                 </div>
-            </div>
-            <div>
-                <div class="flex font-title items-center gap-3 text-lg">
-                    <ArrowLeftToLineIcon size="30" class="text-white transform rotate-180" />
-                    Swipe right
+            </SettingWrapper>
+            <SettingWrapper title="Swipe Gestures" description="The actions that are performed when swiping an article to the
+                    left or right">
+                <div class="flex flex-col gap-5">
+                    <div class="flex flex-col gap-2">
+                        <div class="flex font-title items-center gap-3 text-lg">
+                            <ArrowLeftToLineIcon size="30" class="text-white transform rotate-180" />
+                            Swipe right
+                        </div>
+                        <div class="flex gap-3 h-fit">
+                            <SwipeDirectionItem v-for="direction in possibleSwipeDirections" :key="direction.id"
+                                :ownDirection="direction" :selected="direction.id === store.swipeRight.id"
+                                :onClick="() => setSwipeDirection(direction.id, true)" />
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex font-title items-center gap-3 text-lg">
+                            <ArrowLeftToLineIcon size="30" class="text-white" />
+                            Swipe left
+                        </div>
+                        <div class="flex gap-3">
+                            <SwipeDirectionItem v-for="direction in possibleSwipeDirections" :key="direction.id"
+                                :ownDirection="direction" :selected="direction.id === store.swipeLeft.id"
+                                :onClick="() => setSwipeDirection(direction.id, false)" />
+                        </div>
+                    </div>
                 </div>
-                <div class="mt-5 flex gap-3 h-fit">
-                    <SwipeDirectionItem v-for="direction in possibleSwipeDirections" :key="direction.id"
-                        :ownDirection="direction" :selected="direction.id === store.swipeRight.id"
-                        :onClick="() => setSwipeDirection(direction.id, true)" />
-                </div>
-            </div>
-            <div>
-                <div class="flex font-title items-center gap-3 text-lg">
-                    <ArrowLeftToLineIcon size="30" class="text-white" />
-                    Swipe left
-                </div>
-                <div class="mt-5 flex gap-3">
-                    <SwipeDirectionItem v-for="direction in possibleSwipeDirections" :key="direction.id"
-                        :ownDirection="direction" :selected="direction.id === store.swipeLeft.id"
-                        :onClick="() => setSwipeDirection(direction.id, false)" />
-                </div>
-            </div>
-        </div>
-
-        <div class="my-14 flex flex-col gap-10">
-            <div class="flex flex-col gap-2">
-                <div class="font-title text-xl">Article Read Order</div>
-                <div class="text-background-300 text-lg leading-tight">The order in which next articles are displayed when
-                    in the reader
-                </div>
-            </div>
-            <div>
+            </SettingWrapper>
+            <SettingWrapper title="Article Read Order" description="The order in which next articles are displayed when in the
+                    reader">
                 <div class="flex gap-3 h-fit">
-                    <div @click="store.setNextArticleSkipRead(true)"
-                        :class="{ 'bg-background-900 bg-opacity-30': !store.nextArticleSkipRead, 'bg-primary-600': store.nextArticleSkipRead }"
-                        class="cursor-pointer w-full p-3 flex flex-col items-center gap-2 justify-center rounded-lg transition-colors ease-out duration-300">
-                        <RedoDot :style="{ color: (store.nextArticleSkipRead ? 'white' : 'bg-primary-600') }"
-                            class="opacity-70" :class="{ 'opacity-100 ': store.nextArticleSkipRead }" />
-                        <span class="text-center">Only Unread Articles</span>
-                    </div>
-                    <div @click="store.setNextArticleSkipRead(false)"
-                        :class="{ 'bg-background-900 bg-opacity-30': store.nextArticleSkipRead, 'bg-primary-600': !store.nextArticleSkipRead }"
-                        class="cursor-pointer w-full p-3 flex flex-col items-center gap-2 justify-center rounded-lg transition-colors ease-out duration-300">
-                        <MoveRight :style="{ color: (store.nextArticleSkipRead ? 'white' : 'bg-primary-600') }"
-                            class="opacity-70" :class="{ 'opacity-100 ': !store.nextArticleSkipRead }" />
-                        <span class="text-center">Sequential</span>
-                    </div>
+                    <ArticleOrderButton :is-only-unread="true" />
+                    <ArticleOrderButton :is-only-unread="false" />
                 </div>
-            </div>
+            </SettingWrapper>
         </div>
     </div>
 </template>

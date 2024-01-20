@@ -12,9 +12,9 @@ export default defineConfig({
     includeAssets: ["favicon.ico", "icons/Logo.svg"],
     registerType: 'autoUpdate', devOptions: { enabled: true },
     manifest: {
-      name: 'RSS Swiper',
-      short_name: 'RSSS',
-      description: "A card swpiping RSS reader",
+      name: 'RSSwipe',
+      short_name: 'RSSwipe',
+      description: "A card swiping RSS reader",
       background_color: '#0A0A0A',
       theme_color: '#0A0A0A',
       orientation: 'portrait',

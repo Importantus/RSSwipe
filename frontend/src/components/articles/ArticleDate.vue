@@ -8,35 +8,37 @@ const props = defineProps<{
 const date = new Date(props.article.publishedAt);
 let dateString = isTodayOrYesterday(date);
 
-// TODO: Refactor this function
 function isTodayOrYesterday(dateToCheck: Date): string {
     const today = new Date();
-    const yesterday = new Date(today)
-    yesterday.setDate(today.getDate() - 1)
+    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
     const diff = Math.floor((today.getTime() - dateToCheck.getTime()) / 1000 / 60);
 
-    if (diff / 60 < 24) {
+    if (diff < 60) {
         if (diff < 1) {
             return 'Just now';
-        }
-        if (diff < 60) {
-            return diff + ' minutes ago';
         } else {
-            return Math.floor(diff / 60) + ' hour' + (Math.floor(diff / 60) === 1 ? "" : "s") + ' ago';
+            return diff + ' minutes ago';
         }
-    } else if (dateToCheck.getDate() === yesterday.getDate()) {
+    }
+
+    if (diff < 60 * 24) {
+        const hours = Math.floor(diff / 60);
+        return hours + ' hour' + (hours === 1 ? '' : 's') + ' ago';
+    }
+
+    if (dateToCheck.getDate() === yesterday.getDate()) {
         return 'Yesterday at ' + dateToCheck.toLocaleTimeString(undefined, {
             hour: 'numeric',
             minute: 'numeric',
         });
-    } else {
-        return date.toLocaleString(undefined, {
-            month: 'long',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: 'numeric',
-        });
     }
+
+    return dateToCheck.toLocaleString(undefined, {
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+    });
 }
 </script>
 

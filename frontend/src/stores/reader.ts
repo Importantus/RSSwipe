@@ -130,7 +130,7 @@ export const useReaderStore = defineStore({
             this.storedArticles.push(article)
             this.markArticleAsRead(article.articleInfo.id)
             const readingListStore = useReadingListStore();
-            if (readingListStore.nextArticleSkipRead) {
+            if (readingListStore.nextArticleOnlyUnread) {
                 this.getNextUnreadArticle(list)
             } else {
                 this.getNextArticle(list)
