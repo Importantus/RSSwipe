@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import TitleNavigationBar from '@/components/TitleNavigationBar.vue'
-import router from '@/router'
+
 import { useUserdataStore } from '@/stores/userdata'
-import { useAuthStore } from '@/stores/auth'
+
 import TextInputIcon from '@/components/TextInputIcon.vue'
 import { User } from 'lucide-vue-next'
 import { KeyRound, X } from 'lucide-vue-next'
@@ -11,7 +11,7 @@ import { KeyRound, X } from 'lucide-vue-next'
 import { Mail } from 'lucide-vue-next'
 
 const store = useUserdataStore()
-const authStore = useAuthStore()
+
 
 const password = ref('')
 const oldPassword = ref('')
@@ -21,10 +21,7 @@ const showDeleteAccountModal = ref(false)
 
 store.fetchUserData()
 
-function handleLogout() {
-  authStore.logout()
-  router.push('/')
-}
+
 </script>
 
 <template>
@@ -81,10 +78,7 @@ function handleLogout() {
       </form>
       <h2 class="mb-5 mt-10 text-xl">Danger Zone</h2>
       <div class="flex flex-col gap-2">
-        <button @click="handleLogout"
-          class="w-full h-14 border-amber-600 border-solid border-2 rounded-lg hover:bg-amber-700 transition">
-          Logout
-        </button>
+        
         <button @click="showDeleteAccountModal = true"
           class="w-full h-14 border-red-500 border-2 rounded-lg hover:bg-red-600 transition">
           Delete Account

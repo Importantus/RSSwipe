@@ -5,12 +5,13 @@ import { useStartPageStore } from '@/stores/startPage';
 import { useUserdataStore } from '@/stores/userdata';
 import { MoveRight } from 'lucide-vue-next';
 import { computed } from 'vue';
-
+import router from '@/router'
+import { useAuthStore } from '@/stores/auth'
 
 const userStore = useUserdataStore();
 const settingsStore = useSettingsStore();
 const startPageStore = useStartPageStore();
-
+const authStore = useAuthStore()
 const fontFactor = computed({
     get: () => settingsStore.settings.fontFactor,
     set: (value) => {
@@ -92,6 +93,10 @@ const endDatetoDate = computed(() => {
 
 startPageStore.fetchMaxStartDate()
 userStore.fetchUserData();
+function handleLogout() {
+    authStore.logout()
+    router.push('/')
+}
 </script>
 
 <template>
@@ -200,9 +205,24 @@ userStore.fetchUserData();
                             </div>
                         </div>
                     </div>
+
+                </div>
+
+            </div>
+            <div class="flex flex-col gap-5" title="change the Font Size">
+                <div class="flex flex-col gap-2">
+                    <div class="font-title text-xl">Sign Out</div>
+                    <div class="text-background-300 text-lg leading-tight">See you next time.</div>
+                </div>
+                <div class="flex items-center justify-between gap-5">
+                    <button @click="handleLogout"
+                        class="w-full h-14 border-amber-600 border-solid border-2 rounded-lg hover:bg-amber-700 transition">
+                        Logout
+                    </button>
                 </div>
             </div>
         </div>
+
     </div>
 </template>
 
