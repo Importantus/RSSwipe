@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import TitleNavigationBar from '@/components/TitleNavigationBar.vue';
+import TitleNavigationBar from '@/components/global/TitleNavigationBar.vue';
+import SettingWrapper from '@/components/global/SettingWrapper.vue';
 import { useSettingsStore } from '@/stores/settings';
-import { useStartPageStore } from '@/stores/startPage';
+import { useHomeStore } from '@/stores/home';
 import { useUserdataStore } from '@/stores/userdata';
 import { MoveRight } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -10,8 +11,9 @@ import { useAuthStore } from '@/stores/auth'
 
 const userStore = useUserdataStore();
 const settingsStore = useSettingsStore();
-const startPageStore = useStartPageStore();
+const startPageStore = useHomeStore();
 const authStore = useAuthStore()
+
 const fontFactor = computed({
     get: () => settingsStore.settings.fontFactor,
     set: (value) => {
@@ -36,6 +38,32 @@ const swipeLimit = computed({
         startPageStore.setSwipeLimit(value);
         startPageStore.resetOverSwipes();
     }
+});
+
+const startDate = computed({
+    get: () => startPageStore.dateFrame.start,
+    set: (value) => {
+        if (value >= +startPageStore.dateFrame.end) {
+            startPageStore.setEndDay(value);
+        }
+        startPageStore.setStartDay(value);
+    }
+});
+
+const endDate = computed({
+    get: () => startPageStore.dateFrame.end,
+    set: (value) => {
+        if (value <= +startPageStore.dateFrame.start) {
+            startPageStore.setStartDay(value);
+        }
+        startPageStore.setEndDay(value);
+    }
+});
+
+const endDatetoDate = computed(() => {
+    const date = startPageStore.getEndDate()
+    date.setDate(date.getDate() - 1);
+    return date;
 });
 
 function onInput(event: Event) {
@@ -65,38 +93,13 @@ function onInput(event: Event) {
     }, 0)
 }
 
-const startDate = computed({
-    get: () => startPageStore.dateFrame.start,
-    set: (value) => {
-        if (value >= +startPageStore.dateFrame.end) {
-            startPageStore.setEndDay(value);
-        }
-        startPageStore.setStartDay(value);
-    }
-});
-
-const endDate = computed({
-    get: () => startPageStore.dateFrame.end,
-    set: (value) => {
-        if (value <= +startPageStore.dateFrame.start) {
-            startPageStore.setStartDay(value);
-        }
-        startPageStore.setEndDay(value);
-    }
-});
-
-const endDatetoDate = computed(() => {
-    const date = startPageStore.getEndDate()
-    date.setDate(date.getDate() - 1);
-    return date;
-});
-
-startPageStore.fetchMaxStartDate()
-userStore.fetchUserData();
 function handleLogout() {
     authStore.logout()
     router.push('/')
 }
+
+startPageStore.fetchMaxStartDate()
+userStore.fetchUserData();
 </script>
 
 <template>
@@ -127,14 +130,8 @@ function handleLogout() {
                     </router-link>
                 </div>
             </div>
-            <div class="flex flex-col gap-5" title="Set a time frame for fetching articles">
-                <div class="flex flex-col gap-2">
-                    <div class="font-title text-xl">Time Frame</div>
-                    <div class="text-background-300 text-lg leading-tight">
-                        Set a time frame for fetching articles. Articles will be fetched from the last {{
-                            Math.abs(startPageStore.dateFrame.maxStart) }} days by default.
-                    </div>
-                </div>
+            <SettingWrapper title="Time Frame"
+                :description="'Set a time frame for fetching articles. Articles will be fetched from the last ' + Math.abs(startPageStore.dateFrame.maxStart) + ' days by default.'">
                 <div>
                     <div class="w-full text-center text-sm mb-1">
                         From <span class="font-bold"> {{ startPageStore.getStartDate().toLocaleDateString() }} </span> to
@@ -165,26 +162,17 @@ function handleLogout() {
                         <span>today</span>
                     </div>
                 </div>
-            </div>
-            <div class="flex flex-col gap-5" title="change the Font Size">
-                <div class="flex flex-col gap-2">
-                    <div class="font-title text-xl">Font Size</div>
-                    <div class="text-background-300 text-lg leading-tight">Adjust the font size of all UI elements troughout
-                        the app.</div>
-                </div>
+            </SettingWrapper>
+            <SettingWrapper title="Font Size" description="Adjust the font size of all UI elements troughout
+                        the app.">
                 <div class="flex items-center justify-between gap-5">
                     <span class="text-xs">Aa</span>
                     <input type="range" min="80" max="120" v-model="fontFactor" class="w-full accent-orange-600">
                     <span class="text-xl">Aa</span>
                 </div>
-            </div>
-            <div class="flex flex-col gap-5" title="Set a swipe limit">
-                <div class="flex flex-col gap-2">
-                    <div class="font-title text-xl">Daily Swipe Limit</div>
-                    <div class="text-background-300 text-lg leading-tight">
-                        Set a daily swipe limit to prevent yourself from swiping too much.
-                    </div>
-                </div>
+            </SettingWrapper>
+            <SettingWrapper title="Daily Swipe Limit"
+                description="Set a daily swipe limit to prevent yourself from swiping too much.">
                 <div class="flex items-center justify-between gap-5">
                     <div class="flex flex-col items-center w-full justify-end gap-x-5 gap-y-3 flex-wrap-reverse ">
                         <div class="flex gap-3 items-center w-full justify-between bg-background-900/20 p-4 rounded">
@@ -205,22 +193,16 @@ function handleLogout() {
                             </div>
                         </div>
                     </div>
-
                 </div>
-
-            </div>
-            <div class="flex flex-col gap-5" title="change the Font Size">
-                <div class="flex flex-col gap-2">
-                    <div class="font-title text-xl">Sign Out</div>
-                    <div class="text-background-300 text-lg leading-tight">See you next time.</div>
-                </div>
+            </SettingWrapper>
+            <SettingWrapper title="Sign Out" description="See you next time.">
                 <div class="flex items-center justify-between gap-5">
                     <button @click="handleLogout"
                         class="w-full h-14 border-amber-600 border-solid border-2 rounded-lg hover:bg-amber-700 transition">
                         Logout
                     </button>
                 </div>
-            </div>
+            </SettingWrapper>
         </div>
 
     </div>
@@ -286,4 +268,4 @@ function handleLogout() {
     outline: none;
     border: none;
 }
-</style>
+</style>@/stores/home

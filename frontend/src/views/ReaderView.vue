@@ -1,19 +1,20 @@
 <script setup lang="ts">
 import { onBeforeMount, ref, watch } from 'vue';
-import DOMPurify from 'dompurify';
-import ArticleSource from '@/components/ArticleSource.vue';
-import ReaderFunctionElement from '@/components/ReaderFunctionElement.vue';
-import { useReaderStore } from '@/stores/reader';
-import { MoveRight, MoveLeft } from 'lucide-vue-next';
 import { useRoute } from 'vue-router';
-import { fontSizes, fonts, colorSchemes } from '@/stores/reader';
-import ReaderSettingsButton from '@/components/Reader/FunctionBar/ReaderSettingsButton.vue';
+import DOMPurify from 'dompurify';
 import router from '@/router';
+import { useReaderStore } from '@/stores/reader';
+import { fontSizes, fonts, colorSchemes } from '@/stores/reader';
+import FeedLabel from '@/components/feeds/FeedLabel.vue';
+import ReaderControlBar from '@/components/reader/controlBar/ReaderControlBar.vue';
+import ReaderSettingsButton from '@/components/reader/settings/ReaderSettingsButton.vue';
+import BlockingLoadIndicator from '@/components/global/loadingIndicators/BlockingLoadIndicator.vue';
+import { MoveRight, MoveLeft } from 'lucide-vue-next';
+
+const store = useReaderStore()
 
 const TOLERANCE = window.innerHeight * 0.1;
 const route = useRoute();
-
-const store = useReaderStore()
 
 let scrollpercent = ref(0);
 let lastScrollTop = 0;
@@ -29,36 +30,6 @@ let templateArr: string[] =
         "/images/articles/placeholder04.png"]
 
 let url = ref("")
-
-onBeforeMount(async () => {
-    const listParam = route.params.list;
-    if (listParam === 'readinglist') {
-        list = 'reading'
-        backNavigationPath.value = "/readinglist/"
-    } else if (listParam === 'starredlist') {
-        list = 'starred'
-        backNavigationPath.value = "/starredlist/"
-    }
-
-    await store.openArticle(route.params.id.toString(), list);
-
-    if (!store.openInApp) {
-        window.open(store.storedArticles[0].articleInfo.link, '_blank');
-    }
-
-    hideUi.value = false;
-});
-
-watch(() => store.storedArticles, (newVal) => {
-    if (newVal.length > 0) {
-        hideUi.value = false;
-    }
-    if (!store.storedArticles[1] || !store.storedArticles[1].articleInfo.imageUrl) {
-        url.value = templateArr[Math.floor(Math.random() * templateArr.length)];
-    } else {
-        url.value = store.storedArticles[1].articleInfo.imageUrl
-    }
-}, { deep: true });
 
 function nextArticle() {
     router.push(`${backNavigationPath.value}article/${store.storedArticles[1].articleInfo.id}`);
@@ -90,6 +61,36 @@ function calculateUIHide(scrollDiv: HTMLElement | null = null) {
         }
     }
 }
+
+onBeforeMount(async () => {
+    const listParam = route.params.list;
+    if (listParam === 'readinglist') {
+        list = 'reading'
+        backNavigationPath.value = "/readinglist/"
+    } else if (listParam === 'starredlist') {
+        list = 'starred'
+        backNavigationPath.value = "/starredlist/"
+    }
+
+    await store.openArticle(route.params.id.toString(), list);
+
+    if (!store.openInApp) {
+        window.open(store.storedArticles[0].articleInfo.link, '_blank');
+    }
+
+    hideUi.value = false;
+});
+
+watch(() => store.storedArticles, (newVal) => {
+    if (newVal.length > 0) {
+        hideUi.value = false;
+    }
+    if (!store.storedArticles[1] || !store.storedArticles[1].articleInfo.imageUrl) {
+        url.value = templateArr[Math.floor(Math.random() * templateArr.length)];
+    } else {
+        url.value = store.storedArticles[1].articleInfo.imageUrl
+    }
+}, { deep: true });
 
 </script>
 
@@ -136,7 +137,7 @@ function calculateUIHide(scrollDiv: HTMLElement | null = null) {
                         <img :src="store.storedArticles[0].articleInfo.imageUrl"
                             class="min-h-full min-w-full after:content-none before:content-none object-cover">
                     </div>
-                    <ArticleSource class="pt-2 text-white" :article="store.storedArticles[0].articleInfo" />
+                    <FeedLabel class="pt-2 text-white" :article="store.storedArticles[0].articleInfo" />
                     <div class="text-3xl font-semibold text-inherit py-5 break-words"
                         :class="{ 'font-title': store.settings.font.id === fonts.serif.id }">{{
                             store.storedArticles[0].articleInfo.title
@@ -152,9 +153,7 @@ function calculateUIHide(scrollDiv: HTMLElement | null = null) {
                 </div>
                 <div class="border-b-2 border-inherit w-full my-5"></div>
             </div>
-            <div v-else class="flex items-center justify-center h-full pb-[20vw]">
-                <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-600"></div>
-            </div>
+            <BlockingLoadIndicator v-else :show="true" />
             <div v-if="store.storedArticles.length > 1 && (!store.openInApp || store.storedArticles[0] && store.storedArticles[0].content && store.storedArticles[0].articleInfo)"
                 @click="nextArticle" class="border-inherit">
 
@@ -169,7 +168,7 @@ function calculateUIHide(scrollDiv: HTMLElement | null = null) {
                         <div class="">
                             <h1 class="text-lg font-bold text-white w-fit line-clamp-2 overflow-ellipsis">
                                 {{ store.storedArticles[1].articleInfo.title }}</h1>
-                            <ArticleSource class="mt-2 text-white" :article="store.storedArticles[1].articleInfo" />
+                            <FeedLabel class="mt-2 text-white" :article="store.storedArticles[1].articleInfo" />
                         </div>
                         <MoveRight size="38" class="w-1/3 ml-5 text-white" />
                     </div>
@@ -179,7 +178,7 @@ function calculateUIHide(scrollDiv: HTMLElement | null = null) {
         </div>
         <Transition name="readerelement-hide">
             <div v-if="!hideUi" class="w-full fixed right-0 bottom-11">
-                <ReaderFunctionElement />
+                <ReaderControlBar />
             </div>
         </Transition>
     </div>

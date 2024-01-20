@@ -1,15 +1,14 @@
 <script lang="ts" setup>
-import { useStatisticsStore, type RecentDay } from '@/stores/statistics';
-import TitleNavigationBar from '@/components/TitleNavigationBar.vue';
-import NonBlockingLoadingIndicator from '@/components/NonBlockingLoadingIndicator.vue';
-import { StoreStatus } from '@/stores/readingList';
-import ChartBar from '@/components/statistics/ChartBar.vue';
 import { computed } from 'vue';
-import ChartWrapper from '@/components/statistics/ChartWrapper.vue';
+import { useStatisticsStore, type RecentDay } from '@/stores/statistics';
+import { StoreStatus } from '@/stores/readingList';
+import TitleNavigationBar from '@/components/global/TitleNavigationBar.vue';
+import NonBlockingLoadingIndicator from '@/components/global/loadingIndicators/NonBlockingLoadIndicator.vue';
+import BlockingLoadIndicator from '@/components/global/loadingIndicators/BlockingLoadIndicator.vue';
+import ChartBar from '@/components/statistics/StatisticsChartBar.vue';
+import ChartWrapper from '@/components/statistics/StatisticsChartWrapper.vue';
 
 const store = useStatisticsStore();
-
-store.fetchRecent()
 
 const maxValSwiped = computed(() => {
     return Math.max(...store.recent.days.map((day: RecentDay) => day.seen));
@@ -28,15 +27,15 @@ const feedsWithMostRead = computed(() => {
     const feeds = store.recent.feeds;
     return feeds.sort((a, b) => b.read - a.read).slice(0, 5);
 });
+
+store.fetchRecent();
 </script>
+
 <template>
     <div class="px-5 overflow-y-scroll pb-10 h-full">
         <TitleNavigationBar title="Statistics" backNavigationPath="/settings">
         </TitleNavigationBar>
-        <div v-if="store.status === StoreStatus.LOADING && !store.recent.dateSince"
-            class="flex items-center justify-center">
-            <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-600"></div>
-        </div>
+        <BlockingLoadIndicator v-if="store.status === StoreStatus.LOADING && !store.recent.dateSince" :show="true" />
         <div v-else class="flex flex-col gap-5">
             <NonBlockingLoadingIndicator :show="store.status === StoreStatus.LOADING" />
             <div>
@@ -49,7 +48,6 @@ const feedsWithMostRead = computed(() => {
                             day: 'numeric'
                         }) }}</div>
                 </div>
-
             </div>
             <div class="w-full flex justify-evenly gap-4 flex-wrap">
                 <div class="flex flex-col items-center justify-center">
@@ -102,6 +100,5 @@ const feedsWithMostRead = computed(() => {
                 </div>
             </ChartWrapper>
         </div>
-
     </div>
 </template>

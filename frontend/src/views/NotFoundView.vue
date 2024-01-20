@@ -1,6 +1,3 @@
-<script setup lang="ts">
-</script>
-
 <template>
     <div class="flex flex-col p-5 h-full justify-center items-center">
         <div class="font-text opacity-50 text-left text-5xl pb-10">
@@ -12,7 +9,7 @@
                 for...</h2>
             <router-link to="/"
                 class="flex justify-center items-center w-full h-14 bg-amber-600 rounded-lg mt-10 hover:bg-amber-700 transition">
-                Go back home
+                Go back Home
             </router-link>
         </div>
     </div>

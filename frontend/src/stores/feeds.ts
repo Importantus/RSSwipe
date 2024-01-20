@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia'
 import axios from '@/axios'
-import { useStartPageStore } from './startPage';
+import { useHomeStore } from './home';
 import { StoreStatus } from './readingList';
 
 export interface FeedItem {
     id: string,
     title: string,
-    filtered?: boolean,
+    isFiltered: boolean,
     faviconUrl: string,
     url: string,
     openInApp: boolean
@@ -18,53 +18,53 @@ export const useFeedStore = defineStore("feedList", {
         state: StoreStatus.LOADING,
         error: ""
     }),
+
+    getters: {
+        filteredFeedList(): FeedItem[] {
+            return this.feedList.filter(item => item.isFiltered)
+        }
+    },
+
     actions: {
         async getFeedList() {
             StoreStatus.LOADING
             this.error = ""
-
             try {
                 const response = await axios.get('/feeds')
-
                 this.feedList = response.data.map((feed: any) => ({
                     id: feed.id,
                     title: feed.title,
                     faviconUrl: feed.faviconUrl,
                     url: feed.link,
                     openInApp: feed.openInApp,
-                    filtered: this.feedList.find(item => item.id === feed.id) ? this.feedList.find(item => item.id === feed.id)!.filtered : false
+                    isFiltered: this.feedList.find(item => item.id === feed.id) ? this.feedList.find(item => item.id === feed.id)!.isFiltered : false
                 }))
-
             } catch (error: any) {
                 this.error = error.response.data.message
                 console.log(this.error)
             }
-
             this.state = StoreStatus.READY
         },
         async addFeed(url: string, openInApp: boolean) {
             this.state = StoreStatus.LOADING
             this.error = ""
-
             try {
                 const response = await axios.post('/feeds', {
                     url,
                     openInApp
                 })
-
                 this.feedList.push({
                     id: response.data.id,
                     title: response.data.title,
                     faviconUrl: response.data.faviconUrl,
                     url: response.data.link,
                     openInApp: response.data.openInApp,
-                    filtered: false
+                    isFiltered: false
                 })
             } catch (error: any) {
                 this.error = error.response.data.message
                 console.log(this.error)
             }
-
             this.state = StoreStatus.READY
         },
         async deleteFeed(id: string) {
@@ -85,38 +85,30 @@ export const useFeedStore = defineStore("feedList", {
         toggleFeed(id: string) {
             const item = this.feedList.find(item => item.id === id)
             if (item) {
-                item.filtered = !item.filtered
+                item.isFiltered = !item.isFiltered
             }
-
-            const startPageStore = useStartPageStore()
+            const startPageStore = useHomeStore()
             startPageStore.reload()
         },
         unselectAll() {
             for (const item of this.feedList) {
-                item.filtered = false
+                item.isFiltered = false
             }
-
-            const startPageStore = useStartPageStore()
+            const startPageStore = useHomeStore()
             startPageStore.reload()
         },
         isFeedSelected(id: string): boolean {
             const item = this.feedList.find(item => item.id === id)
-            return item ? item.filtered ? item.filtered : false : false
+            return item ? item.isFiltered ? item.isFiltered : false : false
         },
         async isFeedOpenedInApp(id: string): Promise<boolean> {
             if (this.feedList.length === 0) await this.getFeedList()
-
             const item = this.feedList.find(item => item.id === id)
             let openInApp = true
             if (item && item.openInApp !== undefined) {
                 openInApp = item.openInApp
             }
             return openInApp
-        }
-    },
-    getters: {
-        filteredFeedList(): FeedItem[] {
-            return this.feedList.filter(item => item.filtered)
         }
     }
 });

@@ -6,7 +6,6 @@ const props = defineProps<{
 }>()
 
 const store = useCategoriesStore()
-
 </script>
 
 <template>

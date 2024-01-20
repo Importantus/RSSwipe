@@ -1,10 +1,10 @@
-# RSSwiper
+# RSSwipe
 
 ## Deploy Version Access
+
 A deployed version of this projects main branch can be found here:
 
 [Frontend](https://b2.vwprg.mylab.th-luebeck.de/)
-
 
 The backend and phymyadmin can be reached under their respective urls as well:
 
@@ -12,32 +12,34 @@ The backend and phymyadmin can be reached under their respective urls as well:
 
 [phypmyadmin](https://phpmyadmin.vwprg.mylab.th-luebeck.de/)
 
-
-
+[API Docs](https://b2-backend.vwprg.mylab.th-luebeck.de/v1/api-docs/)
 
 ## Local Setup
 
-Clone the repo: 
+Clone the repo:
+
 ```bash
 git clone https://git.mylab.th-luebeck.de/vwprg/wise23_24/b2.git
 ```
 
-Create a .env file in the root directory of the project and copy the content of the .env.local file into it. 
-Make the same for the .env file in the b2/backend/prisma directory.
+Create a .env file in the root directory of the project and copy the content of the .env.local file into it.
+Do the same for the .env file in the b2/backend/prisma directory.
 
 Start the app:
+
 ```bash
 cd b2
 docker compose up
 ```
 
 Run migrations:
+
 ```bash
 npx prisma migrate deploy
 ```
 
-
 Generate the prisma client:
+
 ```bash
 npx prisma generate
 ```
@@ -45,14 +47,16 @@ npx prisma generate
 ### Get latest changes
 
 Pull the latest changes:
+
 ```bash
 git pull
 ```
 
 Check if the .env.local file has changed and copy the content of the .env.local file into your .env file.
-Make the same for the .env file in the b2/backend/prisma directory.
+Do the same for the .env file in the b2/backend/prisma directory.
 
 Restart the app:
+
 ```bash
 docker compose down
 docker compose up --build
@@ -61,11 +65,13 @@ docker compose up --build
 Check if there are new migrations, if so run them:
 
 Run migrations:
+
 ```bash
 npx prisma migrate deploy
 ```
 
 Generate the prisma client:
+
 ```bash
 npx prisma generate
 ```
@@ -75,11 +81,13 @@ npx prisma generate
 Make changes to the schema.prisma file
 
 Migrate the changes:
+
 ```bash
 npx prisma migrate dev --name <name of migration>
 ```
 
 Generate the prisma client:
+
 ```bash
 npx prisma generate
 ```
@@ -87,6 +95,7 @@ npx prisma generate
 ### Troubleshooting
 
 If there are problems with the database, try to delete the docker volumes and restart the app:
+
 ```bash
 docker compose down -v
 docker compose up --build

@@ -10,7 +10,6 @@ const defaultSettings: AppSettings = {
 
 function loadSettings(): AppSettings {
     const settings = localStorage.getItem('appSettings');
-
     return {
         ...defaultSettings,
         ...JSON.parse(settings || '{}'),
@@ -22,6 +21,7 @@ export const useSettingsStore = defineStore({
     state: () => ({
         settings: loadSettings(),
     }),
+
     actions: {
         applySettings() {
             this.applyFontFactor();
@@ -29,7 +29,6 @@ export const useSettingsStore = defineStore({
         updateSettings() {
             localStorage.setItem('appSettings', JSON.stringify(this.settings));
         },
-
         // Font factor
         applyFontFactor() {
             document.documentElement.style.fontSize = `${this.settings.fontFactor}%`;
@@ -39,5 +38,5 @@ export const useSettingsStore = defineStore({
             this.applyFontFactor();
             this.updateSettings();
         }
-    },
+    }
 });

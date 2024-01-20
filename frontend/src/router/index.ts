@@ -2,17 +2,18 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
-import UserDataView from '@/views/UserDataView.vue'
+import UserSettingsView from '@/views/UserSettingsView.vue'
 import ReaderView from '@/views/ReaderView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
-import FeedView from '@/views/FeedView.vue'
+import FeedsView from '@/views/FeedsView.vue'
 import SettingsView from '@/views/SettingsView.vue'
-import ReadinglistSettingsView from '@/views/ReadinglistSettingsView.vue'
+import ReadinglistSettingsView from '@/views/ReadingListSettingsView.vue'
+import ReadinglistView from '@/views/ReadingListView.vue'
+import StarredlistView from '@/views/StarredListView.vue'
+import StatisticsView from '@/views/StatisticsView.vue'
 import { useAuthStore } from '@/stores/auth'
 import pinia from '@/stores/index'
-import ReadinglistView from '@/views/ReadinglistView.vue'
-import StarredlistView from '@/views/StarredlistView.vue'
-import StatisticsView from '@/views/StatisticsView.vue'
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -50,7 +51,7 @@ const router = createRouter({
     {
       path: '/settings/account',
       name: 'Account',
-      component: UserDataView
+      component: UserSettingsView
     },
     {
       path: '/settings/statistics',
@@ -75,7 +76,7 @@ const router = createRouter({
     {
       path: '/feeds',
       name: 'Feeds',
-      component: FeedView
+      component: FeedsView
     },
 
   ]
