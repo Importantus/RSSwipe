@@ -76,6 +76,7 @@ export const useReadingListStore = defineStore({
         swipeRight: getSwipeDirection(JSON.parse(localStorage.getItem('swipeRight') || JSON.stringify(possibleSwipeDirections[2].id))) as SwipeDirection,
         nextArticleSkipRead: JSON.parse(localStorage.getItem('nextArticleSkipRead') || 'true') as boolean
     }),
+
     actions: {
         async addArticleLocal(article: Article) {
             if (this.articles.findIndex(a => a.articleInfo.id === article.id) === -1) {

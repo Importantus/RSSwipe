@@ -1,25 +1,22 @@
 <script setup lang="ts">
-import TextInputIcon from '@/components/TextInputIcon.vue';
+import { ref } from 'vue';
 import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
-import { ref } from 'vue';
-import { Mail } from 'lucide-vue-next';
-import { KeyRound } from 'lucide-vue-next';
+import { Mail, KeyRound } from 'lucide-vue-next';
+import TextInputIcon from '@/components/global/TextInputField.vue';
+
+const authStore = useAuthStore();
 
 const password = ref('');
 const email = ref('');
 const error = ref('');
 
-const authStore = useAuthStore();
-
 async function handleLogin() {
     error.value = '';
-    console.log("handleLogin")
     try {
         await authStore.login(email.value, password.value);
         router.push('/');
     } catch (e: any) {
-        console.log("Fehler: " + e);
         if (e?.response?.data?.message)
             error.value = e.response.data.message;
         else error.value = e.message;
@@ -29,7 +26,6 @@ async function handleLogin() {
 
 <template>
     <div class="min-h-full w-full flex pt-[15vh] items-center mx flex-col gap-5 px-5 relative">
-
         <div class="h-[25vh] w-full z-10">
             <img src="/images/logo-big.svg" alt="Logo" class="w-[50%] m-auto" />
         </div>
@@ -43,10 +39,9 @@ async function handleLogin() {
                     <TextInputIcon v-model="password" placeholder="Password" type="password" :icon="KeyRound"
                         :required="true" title="Enter password" />
                 </div>
-                <button type="submit"
-                    class="w-full h-14 bg-amber-600 rounded-lg mt-10 hover:bg-amber-700 transition" title="Account login">Login</button>
+                <button type="submit" class="w-full h-14 bg-amber-600 rounded-lg mt-10 hover:bg-amber-700 transition"
+                    title="Account login">Login</button>
             </form>
-
             <div>
                 Don't have an account?
                 <router-link to="/register" class="underline z-10" title="Create account">Register</router-link>

@@ -17,6 +17,7 @@ export const useUserdataStore = defineStore({
         error: '',
         success: '',
     }),
+
     actions: {
         async updateUserDetails() {
             try {

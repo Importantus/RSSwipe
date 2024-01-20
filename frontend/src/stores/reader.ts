@@ -1,6 +1,5 @@
-import { defineStore } from "pinia"; ""
+import { defineStore } from "pinia";
 import axios from "@/axios";
-import router from "@/router";
 import { useReadingListStore } from '@/stores/readingList';
 import { useStarredListStore } from '@/stores/starredList';
 import type { Article, StoredArticle } from "@/types";
@@ -10,12 +9,6 @@ export enum ReaderStatus {
     LOADING,
     READY,
     ERROR
-}
-
-export enum ReaderContext {
-    STARTPAGE,
-    READINGLIST,
-    STARREDLIST
 }
 
 export interface ColorScheme {
@@ -133,31 +126,23 @@ export const useReaderStore = defineStore({
             this.status = ReaderStatus.LOADING
             this.storedArticles = []
             this.openInApp = true
-
             const article = await this.getArticle(articleId)
             this.storedArticles.push(article)
-
             this.markArticleAsRead(article.articleInfo.id)
-
             const readingListStore = useReadingListStore();
-
             if (readingListStore.nextArticleSkipRead) {
                 this.getNextUnreadArticle(list)
             } else {
                 this.getNextArticle(list)
             }
-
-
             this.status = ReaderStatus.READY
         },
         async getNextUnreadArticle(list: 'reading' | 'starred' | 'none') {
             const listStore = list === 'reading' ? useReadingListStore() : useStarredListStore();
             const startIndex = listStore.articles.findIndex(a => a.articleInfo.id === this.storedArticles[0].articleInfo.id)
-
             if (startIndex === -1) {
                 return
             }
-
             const remainingArticles = listStore.articles.slice(startIndex + 1, listStore.articles.length)
             let unreadArticles = remainingArticles.filter(a => !a.articleInfo.read)
             if (unreadArticles.length > 0) {
@@ -176,11 +161,9 @@ export const useReaderStore = defineStore({
             const listStore = list === 'reading' ? useReadingListStore() : useStarredListStore();
             const startIndex = listStore.articles.findIndex(a => a.articleInfo.id === this.storedArticles[0].articleInfo.id)
             const remainingArticles = listStore.articles.slice(startIndex + 1, listStore.articles.length)
-
             if (startIndex === -1) {
                 return
             }
-
             if (remainingArticles.length > 0) {
                 //Unread Articles below the current one
                 this.storedArticles.push(remainingArticles[0])
@@ -189,7 +172,6 @@ export const useReaderStore = defineStore({
 
         async getArticleContent(article: Article) {
             const response = await axios.get(`/articles/${article.id}/content`)
-
             if (response.status === 200) {
                 const storedArticle = this.storedArticles.find(a => a.articleInfo.id === article.id)
                 if (storedArticle) {
@@ -203,37 +185,29 @@ export const useReaderStore = defineStore({
         async getArticle(id: string) {
             const readingListStore = useReadingListStore();
             let article = readingListStore.getArticleById(id)
-
             const feedStore = useFeedStore();
-
             if (!article) {
                 let articleInfo
-
                 const response = await axios.get(`/articles/${id}`)
                 if (response.status === 200) {
                     articleInfo = response.data
                 } else {
                     console.error(response)
                 }
-
                 article = {
                     articleInfo: articleInfo as Article
                 }
-
                 if (await feedStore.isFeedOpenedInApp(article.articleInfo.feed.id)) {
                     this.getArticleContent(article.articleInfo)
                 }
             }
-
             this.openInApp = await feedStore.isFeedOpenedInApp(article.articleInfo.feed.id)
-
             return article
         },
 
         async markArticleAsRead(id: string) {
             const readinglistStore = useReadingListStore()
             const article = readinglistStore.getArticleById(id)
-
             if (article) {
                 readinglistStore.updateArticle(article.articleInfo, {
                     read: true
@@ -266,11 +240,9 @@ export const useReaderStore = defineStore({
 
         async setArticleStarred(article: Article, starred: boolean) {
             const request = { "id": article.id }
-
             if (article.id === this.storedArticles[0].articleInfo.id) {
                 this.storedArticles[0].articleInfo.starred = starred
             }
-
             if (starred) {
                 console.log("Starring:" + article.id)
                 const response = await axios.post(`/starred/articles`, request)

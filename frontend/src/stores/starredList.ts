@@ -44,7 +44,6 @@ export const possibleSwipeDirections: SwipeDirection[] = [
             store.unstarArticle(article)
         }
     },
-
     {
         id: 'remove',
         name: 'Remove',
@@ -74,6 +73,7 @@ export const useStarredListStore = defineStore({
         swipeLeft: getSwipeDirection(JSON.parse(localStorage.getItem('swipeLeft') || JSON.stringify(possibleSwipeDirections[1].id))) as SwipeDirection,
         swipeRight: getSwipeDirection(JSON.parse(localStorage.getItem('swipeRight') || JSON.stringify(possibleSwipeDirections[2].id))) as SwipeDirection
     }),
+
     actions: {
         addArticleLocal(article: Article) {
             if (this.articles.findIndex(a => a.articleInfo.id === article.id) === -1) {
@@ -81,16 +81,13 @@ export const useStarredListStore = defineStore({
                     articleInfo: article
                 })
             }
-
             this.addContentToArticle(article)
         },
         removeArticleLocal(article: Article, undo = true) {
             const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
-
             if (index !== -1) {
                 this.articles.splice(index, 1)
             }
-
             if (undo) {
                 this.removedArticles.push(article)
             }
@@ -98,11 +95,9 @@ export const useStarredListStore = defineStore({
         },
         unstarArticleLocal(article: Article, undo = true) {
             const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
-
             if (index !== -1) {
                 this.articles.splice(index, 1)
             }
-
             if (undo) {
                 this.unstarredArticles.push(article)
                 console.log(this.unstarredArticles)
@@ -111,30 +106,23 @@ export const useStarredListStore = defineStore({
         },
         async update() {
             this.status = StoreStatus.LOADING
-
             const response = await axios.get('/starred')
-
             if (response.status === 200) {
                 const starredList = response.data as Article[]
                 for (const article of starredList) {
                     this.addArticleLocal(article)
-
                     this.articles[this.articles.findIndex(a => a.articleInfo.id === article.id)].articleInfo = article
                 }
-
                 for (const article of [...this.articles]) {
                     const index = starredList.findIndex(a => a.id === article.articleInfo.id)
                     if (index === -1) {
                         this.removeArticleLocal(article.articleInfo, false)
                     }
                 }
-
                 this.articles.sort((a, b) => {
                     return new Date(b.articleInfo.dateSaved!).getTime() - new Date(a.articleInfo.dateSaved!).getTime()
                 })
-
                 this.status = StoreStatus.READY
-
                 localStorage.setItem('starred', JSON.stringify(this.articles))
             } else {
                 console.log(response)
@@ -143,24 +131,18 @@ export const useStarredListStore = defineStore({
         },
         async addContentToArticle(article: Article) {
             const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
-
             if (index === -1 || this.articles[index].content) {
                 return
             }
-
             const content = await this.getArticleContent(article)
             console.log("Adding content to article " + article.title)
             this.articles[this.articles.findIndex(a => a.articleInfo.id === article.id)].content = content
-
             localStorage.setItem('starred', JSON.stringify(this.articles))
         },
         async getArticleContent(article: Article) {
             const response = await axios.get(`/articles/${article.id}/content`)
-
             if (response.status === 200) {
                 return response.data
-            } else {
-                console.log(response)
             }
         },
         async removeArticle(article: Article) {
@@ -188,7 +170,6 @@ export const useStarredListStore = defineStore({
             const response = await axios.put(`/articles/` + article.id, {
                 ...input
             })
-
             if (response.status === 200) {
                 this.articles[this.articles.findIndex(a => a.articleInfo.id === article.id)].articleInfo = response.data
                 localStorage.setItem('starred', JSON.stringify(this.articles))
@@ -200,15 +181,11 @@ export const useStarredListStore = defineStore({
             if (this.removedArticles.length === 0) {
                 return
             }
-
             const lastRemovedArticle = this.removedArticles.pop()
-
             this.addArticleLocal(lastRemovedArticle!)
-
             axios.post(`/readinglist/articles`, {
                 id: lastRemovedArticle!.id
             })
-
             axios.post(`/starred/articles`, {
                 id: lastRemovedArticle!.id
             })
@@ -217,11 +194,8 @@ export const useStarredListStore = defineStore({
             if (this.unstarredArticles.length === 0) {
                 return
             }
-
             const lastUnstarredArticle = this.unstarredArticles.pop()
-
             this.addArticleLocal(lastUnstarredArticle!)
-
             axios.post(`/starred/articles`, {
                 id: lastUnstarredArticle!.id
             })
@@ -229,12 +203,9 @@ export const useStarredListStore = defineStore({
         async loadSettings() {
             this.settingsStatus = StoreStatus.LOADING
             const response = await axios.get('/settings')
-
             if (response.status === 200) {
                 this.settings = response.data
                 this.settingsStatus = StoreStatus.READY
-            } else {
-                console.log(response)
             }
         },
         setSwipeLeft(id: string) {

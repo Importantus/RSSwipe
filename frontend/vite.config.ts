@@ -47,32 +47,39 @@ export default defineConfig({
       ],
       screenshots: [
         {
-          "src": "screenshots/screenshot-01.png",
-          "sizes": "360x800",
+          "src": "screenshots/screenshot01.png",
+          "sizes": "1440x3040",
           "type": "image/png",
           "form_factor": "narrow",
-          "label": "Login Page of the Application"
+          "label": "The login of the Application"
         },
         {
-          "src": "screenshots/screenshot-02.png",
+          "src": "screenshots/screenshot02.png",
           "sizes": "360x800",
           "type": "image/png",
           "form_factor": "narrow",
-          "label": "Main Page of the Application"
+          "label": "Homepage of the Application"
         },
         {
-          "src": "screenshots/screenshot-03.png",
+          "src": "screenshots/screenshot03.png",
           "sizes": "360x800",
           "type": "image/png",
           "form_factor": "narrow",
-          "label": "The Users personal Reading List"
+          "label": "The In-App Reader"
         },
         {
-          "src": "screenshots/screenshot-04.png",
+          "src": "screenshots/screenshot04.png",
           "sizes": "360x800",
           "type": "image/png",
           "form_factor": "narrow",
-          "label": "The Users personal Feeds"
+          "label": "The users personal Readinglist"
+        },
+        {
+          "src": "screenshots/screenshot05.png",
+          "sizes": "360x800",
+          "type": "image/png",
+          "form_factor": "narrow",
+          "label": "The Readinglist configuration"
         },
       ]
     },

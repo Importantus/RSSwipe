@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import TitleNavigationBar from '@/components/TitleNavigationBar.vue';
+import TitleNavigationBar from '@/components/global/TitleNavigationBar.vue';
 import { useSettingsStore } from '@/stores/settings';
-import { useStartPageStore } from '@/stores/startPage';
+import { useHomeStore } from '@/stores/home';
 import { useUserdataStore } from '@/stores/userdata';
 import { MoveRight } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -10,8 +10,9 @@ import { useAuthStore } from '@/stores/auth'
 
 const userStore = useUserdataStore();
 const settingsStore = useSettingsStore();
-const startPageStore = useStartPageStore();
+const startPageStore = useHomeStore();
 const authStore = useAuthStore()
+
 const fontFactor = computed({
     get: () => settingsStore.settings.fontFactor,
     set: (value) => {
@@ -36,6 +37,32 @@ const swipeLimit = computed({
         startPageStore.setSwipeLimit(value);
         startPageStore.resetOverSwipes();
     }
+});
+
+const startDate = computed({
+    get: () => startPageStore.dateFrame.start,
+    set: (value) => {
+        if (value >= +startPageStore.dateFrame.end) {
+            startPageStore.setEndDay(value);
+        }
+        startPageStore.setStartDay(value);
+    }
+});
+
+const endDate = computed({
+    get: () => startPageStore.dateFrame.end,
+    set: (value) => {
+        if (value <= +startPageStore.dateFrame.start) {
+            startPageStore.setStartDay(value);
+        }
+        startPageStore.setEndDay(value);
+    }
+});
+
+const endDatetoDate = computed(() => {
+    const date = startPageStore.getEndDate()
+    date.setDate(date.getDate() - 1);
+    return date;
 });
 
 function onInput(event: Event) {
@@ -65,38 +92,13 @@ function onInput(event: Event) {
     }, 0)
 }
 
-const startDate = computed({
-    get: () => startPageStore.dateFrame.start,
-    set: (value) => {
-        if (value >= +startPageStore.dateFrame.end) {
-            startPageStore.setEndDay(value);
-        }
-        startPageStore.setStartDay(value);
-    }
-});
-
-const endDate = computed({
-    get: () => startPageStore.dateFrame.end,
-    set: (value) => {
-        if (value <= +startPageStore.dateFrame.start) {
-            startPageStore.setStartDay(value);
-        }
-        startPageStore.setEndDay(value);
-    }
-});
-
-const endDatetoDate = computed(() => {
-    const date = startPageStore.getEndDate()
-    date.setDate(date.getDate() - 1);
-    return date;
-});
-
-startPageStore.fetchMaxStartDate()
-userStore.fetchUserData();
 function handleLogout() {
     authStore.logout()
     router.push('/')
 }
+
+startPageStore.fetchMaxStartDate()
+userStore.fetchUserData();
 </script>
 
 <template>
@@ -205,9 +207,7 @@ function handleLogout() {
                             </div>
                         </div>
                     </div>
-
                 </div>
-
             </div>
             <div class="flex flex-col gap-5" title="change the Font Size">
                 <div class="flex flex-col gap-2">
@@ -286,4 +286,4 @@ function handleLogout() {
     outline: none;
     border: none;
 }
-</style>
+</style>@/stores/home
