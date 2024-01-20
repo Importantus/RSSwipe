@@ -25,7 +25,16 @@
     @apply bg-background-950;
     @apply text-white;
   }
+  ::selection {
+    @apply bg-primary-600
+  }
+
+  /* For Gecko-basierte Browser wie Firefox */
+  ::-moz-selection {
+    @apply bg-primary-600
+  }
 }
+
 
 @layer utilities {
 
