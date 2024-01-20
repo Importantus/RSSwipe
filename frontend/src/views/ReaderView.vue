@@ -117,7 +117,7 @@ function calculateUIHide(scrollDiv: HTMLElement | null = null) {
             </div>
         </div>
         <div :onscroll="getScrollPercent"
-            class="px-5 h-full overflow-y-scroll no-scrollbar pb-[10vh] pt-20 transition-colors ease-out duration-500 overflow-x-hidden"
+            class="px-5 h-full overflow-y-scroll no-scrollbar pb-7 pt-20 transition-colors ease-out duration-500 overflow-x-hidden"
             :class="{
                 'border-[#1C1204] text-[#1C1204] bg-[#C8A777]': store.settings.colorScheme.id === colorSchemes.sepia.id,
                 'border-black text-black bg-white': store.settings.colorScheme.id === colorSchemes.light.id,
