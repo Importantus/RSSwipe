@@ -153,7 +153,7 @@ watch(() => store.storedArticles, (newVal) => {
                 </div>
                 <div class="border-b-2 border-inherit w-full my-5"></div>
             </div>
-            <BlockingLoadIndicator v-else :show="true" />
+            <BlockingLoadIndicator v-else :show="true" class="h-full -mt-10" />
             <div v-if="store.storedArticles.length > 1 && (!store.openInApp || store.storedArticles[0] && store.storedArticles[0].content && store.storedArticles[0].articleInfo)"
                 @click="nextArticle" class="border-inherit">
 
