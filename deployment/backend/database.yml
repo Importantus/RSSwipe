@@ -30,11 +30,11 @@ spec:
           name: "{{ APP_NAME }}-db-volume"
         resources:
           requests:
-            cpu: 25m
-            memory: 100Mi
-          limits:
             cpu: 500m
-            memory: 100Mi
+            memory: 500Mi
+          limits:
+            cpu: 1
+            memory: 1Gi
       volumes:
       - name: "{{ APP_NAME }}-db-volume"
         persistentVolumeClaim:
