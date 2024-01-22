@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "serve": "npm run setupPrisma && npm run build && node ./dist",
-    "setupPrisma": "npx prisma migrate deploy && npx prisma generate",
+    "serve": "echo 'Starting...' && npm run setupPrisma && echo 'Transpiling typescript' && npm run build && echo 'Running...' && node ./dist",
+    "setupPrisma": "echo 'Setting up database' && npx prisma migrate deploy && echo 'Generating prisma client' && npx prisma generate && echo 'Finished setting up database'",
     "dev": "nodemon ./src/index.ts"
   },
   "devDependencies": {
