@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: "{{ APP_NAME }}-backend"
+  namespace: simple-tools
   labels:
     app: "{{ APP_NAME }}-backend"
     commit: "{{ UNIQUE_TAG }}"

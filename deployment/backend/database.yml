@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: "{{ APP_NAME }}-database"
+  namespace: simple-tools
   labels:
     app: "{{ APP_NAME }}-database"
 spec:
