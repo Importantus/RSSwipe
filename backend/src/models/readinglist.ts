@@ -1,14 +1,71 @@
 import { PrismaClient } from '@prisma/client';
 import { updateArticle } from './articles';
-import { deleteExpiredArticlesFromReadingList } from '../jobs/garbageCollector';
 
 const prisma = new PrismaClient();
 
 export async function getReadingList(userId: string) {
-    await deleteExpiredArticlesFromReadingList(userId);
+    const now = new Date();
+
+    const settings = await prisma.settings.findFirst({
+        where: {
+            userId: userId
+        }
+    });
+
+    const where = []
+
+    if (settings) {
+        const readExpirationDate = new Date(now.getTime() - settings.expTimeRead);
+        const unreadExpirationDate = new Date(now.getTime() - settings.expTimeUnread);
+
+        if (settings.expTimeRead >= 0) {
+            where.push({
+                AND: [
+                    { userId: userId },
+                    { saved: true },
+                    { read: true },
+                    { dateRead: { gt: readExpirationDate } }
+                ]
+            })
+        } else {
+            where.push({
+                AND: [
+                    { userId: userId },
+                    { saved: true },
+                    { read: true },
+                ]
+            })
+        }
+
+        if (settings.expTimeUnread >= 0) {
+            where.push({
+                AND: [
+                    { userId: userId },
+                    { saved: true },
+                    { read: false },
+                    { dateSaved: { gt: unreadExpirationDate } }
+                ]
+            })
+        } else {
+            where.push({
+                AND: [
+                    { userId: userId },
+                    { saved: true },
+                    { read: false },
+                ]
+            })
+        }
+    } else {
+        where.push({
+            AND: [
+                { userId: userId },
+                { saved: true },
+            ]
+        })
+    }
 
     const readingList = await prisma.articleList.findMany({
-        where: { userId, saved: true },
+        where: { OR: where },
         select: {
             read: true,
             saved: true,
