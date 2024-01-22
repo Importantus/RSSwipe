@@ -21,7 +21,7 @@ spec:
       - name: app
         image: "ghcr.io/{{ BACKEND_IMAGE }}"
         ports:
-        - containerPort: {{ BACKEND_PORT }}
+        - containerPort: 8080
         resources:
           requests:
             cpu: "50m"
