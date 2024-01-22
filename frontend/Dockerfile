@@ -4,8 +4,7 @@ WORKDIR /build
 COPY package.json package-lock.json ./
 RUN npm install
 
-ARG BACKEND_URL
-ENV VITE_BACKEND_URL=$BACKEND_URL
+ARG VITE_BACKEND_URL
 
 COPY . .
 RUN npm run build

@@ -53,7 +53,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ghcr.io/importantus/rsswipe-frontend:main
           build-args: |
-            BACKEND_URL="https://backend.rsswipe.mcloud.digital"
+            VITE_BACKEND_URL=https://backend.rsswipe.mcloud.digital
 
       - name: Build and push Backend Docker image
         id: build-and-push-backend
