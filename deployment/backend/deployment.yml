@@ -23,7 +23,6 @@ spec:
         ports:
         - containerPort: {{ BACKEND_PORT }}
           periodSeconds: 60
-          failureThreshold: 1
         resources:
           requests:
             cpu: "50m"
