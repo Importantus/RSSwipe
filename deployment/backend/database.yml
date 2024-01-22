@@ -15,6 +15,8 @@ spec:
       labels:
         app: "{{ APP_NAME }}-database"
     spec:
+      nodeSelector:
+        server: big
       containers:
       - name: master
         image: mariadb:10.5
