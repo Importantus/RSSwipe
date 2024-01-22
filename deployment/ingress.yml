@@ -44,6 +44,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: rsswipe-backend-service
+            name: rsswipe-backend-svc
             port: 
               number: 80
