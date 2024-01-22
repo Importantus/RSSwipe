@@ -21,6 +21,7 @@ spec:
       containers:
       - name: app
         image: "ghcr.io/{{ BACKEND_IMAGE }}"
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
         resources:
