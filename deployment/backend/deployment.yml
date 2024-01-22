@@ -25,13 +25,13 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
-        resources:
-          requests:
-            cpu: "50m"
-            memory: "16Mi"
-          limits:
-            cpu: "100m"
-            memory: "64Mi"
+        # resources:
+        #   requests:
+        #     cpu: "50m"
+        #     memory: "16Mi"
+        #   limits:
+        #     cpu: "100m"
+        #     memory: "64Mi"
         env: 
           - name: "DATABASE_URL"
             value: "{{ DATABASE_URL }}"
