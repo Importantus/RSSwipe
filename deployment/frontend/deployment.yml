@@ -16,6 +16,7 @@ spec:
       labels:
         app: "{{ APP_NAME }}-frontend"
         commit: "{{ UNIQUE_TAG }}"
+        restart: "please"
     spec:
       containers:
       - image: "ghcr.io/{{ FRONTEND_IMAGE }}"
