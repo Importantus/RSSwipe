@@ -8,8 +8,8 @@ metadata:
 spec:
   tls:
   - hosts:
-    - 'rsswipe-mensa.k8s.mcloud.digital'
-    secretName: 'rsswipe-mensa-k8s-mcloud-letsencrypt-tls'
+    - 'rsswipe.k8s.mcloud.digital'
+    secretName: 'rsswipe-k8s-mcloud-letsencrypt-tls'
   - hosts:
     - 'rsswipe.mcloud.digital'
     secretName: 'rsswipe-mcloud-letsencrypt-tls'
@@ -17,7 +17,7 @@ spec:
     - 'backend.rsswipe.mcloud.digital'
     secretName: 'backend-rsswipe-mcloud-letsencrypt-tls'
   rules:
-  - host: 'rsswipe-mensa.k8s.mcloud.digital'
+  - host: 'rsswipe.k8s.mcloud.digital'
     http:
       paths:
       - path: /
