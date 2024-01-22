@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ APP_NAME }}-frontend"
+  namespace: simple-tools
+  labels:
+    app: "{{ APP_NAME }}-frontend"
+    commit: "{{ UNIQUE_TAG }}"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "{{ APP_NAME }}-frontend"
+  template:
+    metadata:
+      labels:
+        app: "{{ APP_NAME }}-frontend"
+        commit: "{{ UNIQUE_TAG }}"
+    spec:
+      containers:
+      - image: "ghcr.io/{{ FRONTEND_IMAGE }}"
+        name: "{{ APP_NAME }}-frontend"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        resources: {}
+      imagePullSecrets:
+      - name: "dockerconfigjson-github-com"

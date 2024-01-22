@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name:  rsswipe-frontend-service
+  namespace: simple-tools
+  labels:
+    commit: "{{ UNIQUE_TAG }}"
+spec:
+  selector:
+    app:  rsswipe-frontend
+  type:  ClusterIP
+  ports:
+  - protocol: TCP
+    port:  80
+    targetPort:  80

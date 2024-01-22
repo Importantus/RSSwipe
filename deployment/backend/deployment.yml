@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ APP_NAME }}-backend"
+  labels:
+    app: "{{ APP_NAME }}-backend"
+    commit: "{{ UNIQUE_TAG }}"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "{{ APP_NAME }}-backend"
+  template:
+    metadata:
+      labels:
+        app: "{{ APP_NAME }}-backend"
+    spec:
+      imagePullSecrets:
+      - name: "dockerconfigjson-github-com"
+      containers:
+      - name: app
+        image: "ghcr.io/{{ BACKEND_IMAGE }}"
+        ports:
+        - containerPort: {{ BACKEND_PORT }}
+          periodSeconds: 60
+          failureThreshold: 1
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "16Mi"
+          limits:
+            cpu: "100m"
+            memory: "64Mi"
+        env: 
+          - name: "DATABASE_URL"
+            value: "{{ DATABASE_URL }}"
+          - name: "JWT_SECRET"
+            value: "{{ JWT_SECRET }}"
+          - name: "BACKEND_PORT"
+            value: "{{ BACKEND_PORT }}"
+

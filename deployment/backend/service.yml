@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ APP_NAME }}-backend-svc"
+spec:
+  selector:
+    app: "{{ APP_NAME }}-backend"
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: {{ BACKEND_PORT }}

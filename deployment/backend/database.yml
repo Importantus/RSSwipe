@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ APP_NAME }}-database"
+  labels:
+    app: "{{ APP_NAME }}-database"
+spec:
+  selector:
+    matchLabels:
+      app: "{{ APP_NAME }}-database"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: "{{ APP_NAME }}-database"
+    spec:
+      containers:
+      - name: master
+        image: mariadb:10.5
+        # To change envs in the container, change the secret
+        # Currently set: DATABASE, ROOT_PASSWORD
+        envFrom:
+        - secretRef:
+            name: rss-mariadb-secret
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - mountPath: "/var/lib/mysql"
+          name: "{{ APP_NAME }}-db-volume"
+        resources:
+          requests:
+            cpu: 25m
+            memory: 100Mi
+          limits:
+            cpu: 500m
+            memory: 100Mi
+      volumes:
+      - name: "{{ APP_NAME }}-db-volume"
+        persistentVolumeClaim:
+          claimName: "{{ APP_NAME }}-db-pvc"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ APP_NAME }}-database-svc"
+spec:
+  selector:
+    app: "{{ APP_NAME }}-database"
+  ports:
+    - port: 3306
+      targetPort: 3306
