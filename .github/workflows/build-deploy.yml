@@ -51,7 +51,7 @@ jobs:
         with:
           context: ./frontend
           push: ${{ github.event_name != 'pull_request' }}
-          tags: importantus/rsswipe-frontend:main
+          tags: ghcr.io/importantus/rsswipe-frontend:main
 
       - name: Build and push Backend Docker image
         id: build-and-push-backend
@@ -59,7 +59,7 @@ jobs:
         with:
           context: ./backend
           push: ${{ github.event_name != 'pull_request' }}
-          tags: importantus/rsswipe-backend:main
+          tags: ghcr.io/importantus/rsswipe-backend:main
 
   deploy:
     runs-on: ubuntu-latest
