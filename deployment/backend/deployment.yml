@@ -22,7 +22,6 @@ spec:
         image: "ghcr.io/{{ BACKEND_IMAGE }}"
         ports:
         - containerPort: {{ BACKEND_PORT }}
-          periodSeconds: 60
         resources:
           requests:
             cpu: "50m"
