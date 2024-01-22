@@ -9,4 +9,4 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: {{ BACKEND_PORT }}
+      targetPort: 8080

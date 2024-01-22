@@ -74,8 +74,6 @@ jobs:
         UNIQUE_TAG: "${{ github.sha }}-${{ github.run_number }}-${{ github.run_attempt }}"
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
         JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        # You need to set is manually in backend deployment container port
-        BACKEND_PORT: ${{ env.BACKEND_PORT }}
         APP_NAME: "rsswipe"
         BACKEND_IMAGE: "importantus/rsswipe-backend:main"
         FRONTEND_IMAGE: "importantus/rsswipe-frontend:main"

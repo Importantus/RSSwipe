@@ -37,6 +37,4 @@ spec:
             value: "{{ DATABASE_URL }}"
           - name: "JWT_SECRET"
             value: "{{ JWT_SECRET }}"
-          - name: "BACKEND_PORT"
-            value: "{{ BACKEND_PORT }}"
 
