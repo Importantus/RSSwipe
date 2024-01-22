@@ -38,7 +38,7 @@ You can set per feed if you want to open the article in the app or in the browse
 
 ### 😢 Swipe Limit
 
-You swipe to much? No problem, you can set a swipe limit per day. When you reach the limit, you can still read articles in your readinglist.
+You swipe too much? No problem, you can set a swipe limit per day. When you reach the limit, you can still read articles in your readinglist.
 
 ## Usage & Deployment
 
@@ -50,7 +50,7 @@ You swipe to much? No problem, you can set a swipe limit per day. When you reach
 Clone the repo:
 
 ```sh
-git clone https://git.mylab.th-luebeck.de/vwprg/wise23_24/b2.git
+git clone https://github.com/Importantus/RSSwipe.git
 ```
 
 Create an .env file in the root directory of the project and copy the content of the .env.local file into it.
@@ -59,7 +59,7 @@ Do the same for the .env file in the /backend/prisma directory.
 Start the app:
 
 ```sh
-cd b2
+cd RSSwipe/
 docker compose up
 ```
 
