@@ -15,6 +15,7 @@ spec:
     metadata:
       labels:
         app: "{{ APP_NAME }}-backend"
+        commit: "{{ UNIQUE_TAG }}"
     spec:
       imagePullSecrets:
       - name: "dockerconfigjson-github-com"
