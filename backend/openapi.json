@@ -45,10 +45,6 @@
   ],
   "servers": [
     {
-      "url": "https://b2-backend.vwprg.mylab.th-luebeck.de/v1",
-      "description": "Production server"
-    },
-    {
       "url": "{protocol}://{host}:{port}/{endpoint}",
       "description": "Development server",
       "variables": {
@@ -69,6 +65,10 @@
           "default": "v1"
         }
       }
+    },
+    {
+      "url": "https://backend.rsswipe.mcloud.digital/v1",
+      "description": "Production server"
     }
   ],
   "paths": {
@@ -1412,6 +1412,14 @@
           "lang": {
             "type": "string",
             "description": "content language"
+          },
+          "errormessage": {
+            "type": "string",
+            "description": "the error message if there was an error parsing the feed"
+          },
+          "error_count": {
+            "type": "number",
+            "description": "the number of times the parsing of the feed failed since the last success"
           }
         }
       },
