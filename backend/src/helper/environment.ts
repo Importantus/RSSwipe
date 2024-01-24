@@ -7,9 +7,8 @@ function constructEnv(name: string, defaultOption: string = ""): string {
 }
 
 export const environment = {
-    // TO DEFINE THE DEFAULT SECRETS HERE IS BAD PRACTICE!!! We only do that, 
-    // because we don't have access to the secret management in deployment
-    jwtSecret: constructEnv("JWT_SECRET", "secret"),
+    // TO DEFINE THE DEFAULT SECRETS HERE IS BAD PRACTICE!!! 
+    jwtSecret: constructEnv("JWT_SECRET"),
     jwtExpiration: constructEnv("JWT_EXPIRATION", "30d"),
     // dbHost: constructEnv("DB_HOST"),
     // dbPort: constructEnv("DB_PORT"),
