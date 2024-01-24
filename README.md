@@ -66,6 +66,7 @@ docker compose up
 Run migrations:
 
 ```sh
+cd backend/
 npx prisma migrate deploy
 ```
 
