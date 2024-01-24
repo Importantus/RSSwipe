@@ -10,11 +10,6 @@ export const environment = {
     // TO DEFINE THE DEFAULT SECRETS HERE IS BAD PRACTICE!!! 
     jwtSecret: constructEnv("JWT_SECRET"),
     jwtExpiration: constructEnv("JWT_EXPIRATION", "30d"),
-    // dbHost: constructEnv("DB_HOST"),
-    // dbPort: constructEnv("DB_PORT"),
-    // dbDatabase: constructEnv("DB_DATABASE"),
-    // dbUser: constructEnv("DB_USER"),
-    // dbPassword: constructEnv("DB_PASSWORD"),
     dbUrl: constructEnv("DATABASE_URL"),
     status: constructEnv("STATUS", "production"),
     backendPort: constructEnv("BACKEND_PORT", "8080"),
