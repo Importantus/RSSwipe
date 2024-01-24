@@ -3,13 +3,19 @@ import axios from '@/axios'
 import { useHomeStore } from './home';
 import { StoreStatus } from './readingList';
 
+
+// The threshold for the error count of a feed to be considered as broken
+export const FEED_ERROR_COUNT_THRESHOLD = 1
+
 export interface FeedItem {
     id: string,
     title: string,
     isFiltered: boolean,
     faviconUrl: string,
     url: string,
-    openInApp: boolean
+    openInApp: boolean,
+    error_count: number,
+    errormessage?: string
 }
 
 export const useFeedStore = defineStore("feedList", {
@@ -31,13 +37,15 @@ export const useFeedStore = defineStore("feedList", {
             this.error = ""
             try {
                 const response = await axios.get('/feeds')
-                this.feedList = response.data.map((feed: any) => ({
+                this.feedList = response.data.map((feed: any): FeedItem => ({
                     id: feed.id,
                     title: feed.title,
                     faviconUrl: feed.faviconUrl,
                     url: feed.link,
                     openInApp: feed.openInApp,
-                    isFiltered: this.feedList.find(item => item.id === feed.id) ? this.feedList.find(item => item.id === feed.id)!.isFiltered : false
+                    isFiltered: this.feedList.find(item => item.id === feed.id) ? this.feedList.find(item => item.id === feed.id)!.isFiltered : false,
+                    error_count: feed.error_count,
+                    errormessage: feed.errormessage
                 }))
             } catch (error: any) {
                 this.error = error.response.data.message
@@ -59,7 +67,9 @@ export const useFeedStore = defineStore("feedList", {
                     faviconUrl: response.data.faviconUrl,
                     url: response.data.link,
                     openInApp: response.data.openInApp,
-                    isFiltered: false
+                    isFiltered: false,
+                    error_count: response.data.error_count,
+                    errormessage: response.data.errormessage
                 })
             } catch (error: any) {
                 this.error = error.response.data.message
@@ -109,6 +119,9 @@ export const useFeedStore = defineStore("feedList", {
                 openInApp = item.openInApp
             }
             return openInApp
+        },
+        someFeedHasError(): boolean {
+            return this.feedList.some(item => item.error_count > FEED_ERROR_COUNT_THRESHOLD);
         }
     }
 });
