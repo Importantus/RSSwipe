@@ -5,7 +5,8 @@ import { StoreStatus } from './readingList';
 
 
 // The threshold for the error count of a feed to be considered as broken
-export const FEED_ERROR_COUNT_THRESHOLD = 1
+// e.g. the notification will be shown if the error count is greater than this value
+export const FEED_ERROR_COUNT_THRESHOLD = 3;
 
 export interface FeedItem {
     id: string,
