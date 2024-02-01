@@ -16,8 +16,8 @@ export function parseFeedFromUrl(feedUrl: string): Promise<ParsedFeed> {
                 const feedparser = new FeedParser({});
                 const items: FeedParser.Item[] = [];
 
-                if (res.status != 200) {
-                    return reject(new Error('Bad status code'));
+                if (res.status < 200 || res.status >= 300) {
+                    return reject(new Error('Bad status code: ' + res.status));
                 }
 
                 responseStream.pipe(feedparser);

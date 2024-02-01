@@ -23,15 +23,17 @@ model User {
 }
 
 model Feed {
-  id          String     @id @default(uuid())
-  title       String
-  link        String     @unique @db.VarChar(1000)
-  createdAt   DateTime   @default(now())
-  faviconUrl  String?    @db.VarChar(1000)
-  lastUpdate  DateTime   @default(now())
-  active      Boolean    @default(true)
-  UserHasFeed FeedList[]
-  Article     Article[]
+  id           String     @id @default(uuid())
+  title        String
+  link         String     @unique @db.VarChar(1000)
+  createdAt    DateTime   @default(now())
+  faviconUrl   String?    @db.VarChar(1000)
+  lastUpdate   DateTime   @default(now())
+  active       Boolean    @default(true)
+  errormessage String?
+  error_count  Int        @default(0)
+  UserHasFeed  FeedList[]
+  Article      Article[]
 }
 
 model FeedList {

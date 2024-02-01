@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue';
-import { useFeedStore } from '@/stores/feeds';
+import { FEED_ERROR_COUNT_THRESHOLD, useFeedStore } from '@/stores/feeds';
 import type { FeedItem } from '@/stores/feeds';
-import { ChevronDown } from 'lucide-vue-next';
+import { ChevronDown, Info } from 'lucide-vue-next';
 import { Trash2 } from 'lucide-vue-next';
+
+const REPORT_URL: string = "https://github.com/Importantus/RSSwipe";
 
 const props = defineProps<{
     feed: FeedItem;
 }>();
 
 const store = useFeedStore();
+const isErroneous = computed(() => props.feed.error_count > FEED_ERROR_COUNT_THRESHOLD);
 const showOptions = ref(false);
 const templateArr: string[] = [
     "/images/articles/placeholder01.png",
@@ -52,6 +55,9 @@ const openFeedPage = () => {
     const baseUrl = new URL(props.feed.url).origin
     window.open(baseUrl, '_blank');
 }
+
+console.log(props.feed);
+
 </script>
 
 <template>
@@ -59,7 +65,8 @@ const openFeedPage = () => {
         <div @click="toggleOptions" class="flex items-center text-left cursor-pointer relative z-10">
             <div
                 class="flex justify-between bg-[#222] text-white px-4 py-3 rounded-t-lg shadow-md w-full transition items-center gap-3">
-                <div class="w-10 h-10 flex-shrink-0 overflow-hidden rounded">
+                <div class="w-10 h-10 flex-shrink-0 overflow-hidden rounded error-dot relative"
+                    :class="{ 'error-dot-active': isErroneous }">
                     <img class="min-w-full min-h-full object-cover" :src="faviconUrl" alt="favicon" />
                 </div>
                 <div class="flex flex-col w-full overflow-hidden">
@@ -76,6 +83,16 @@ const openFeedPage = () => {
         <Transition name="slide-fade">
             <div v-if="showOptions" class="px-4 py-4 rounded-lg bg-[#282828] flex flex-col gap-4 z-0"
                 :class="{ 'rounded-t-none': showOptions }">
+                <div v-if="props.feed.errormessage">
+                    <div class="flex flex-row items-center gap-2 bg-red-800 rounded-t-lg px-3 py-2">
+                        <Info size="25"></Info>
+                        <p class="text-left font-thin text-sm">We failed to fetch this feed for {{
+                            props.feed.error_count }} times. Error messages related to the
+                            app can be reported <a class="underline" :href="REPORT_URL">here</a>.</p>
+                    </div>
+                    <p class="bg-red-500 rounded-b-lg px-3 py-2 z-10 text-sm">{{ props.feed.errormessage
+                    }}</p>
+                </div>
                 <div class="flex justify-between items-center gap-2">
                     <div>
                         <h3 class="font-semibold">Open in App?</h3>

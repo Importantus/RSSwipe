@@ -125,58 +125,90 @@ export async function parseFeed(url: string) {
 export async function parseFeedAndAddToDb(feed: Feed) {
     console.log(`Updating Feed ${feed.title}`);
 
-    const parsedFeed = await parseFeed(feed.link);
-
-    // Update feed title and favicon if changed
-    if (parsedFeed.meta.title !== feed.title) {
-        await prisma.feed.update({
-            where: {
-                id: feed.id
-            },
-            data: {
-                title: parsedFeed.meta.title
-            }
-        });
-    }
-
-    // Get Favicon
-    let link = parsedFeed.meta.link;
-    if (!link) {
-        // Use only base url
-        const urlObj = new URL(feed.link);
-        link = urlObj.origin;
-    }
-    let favicon = await getFaviconUrl(link)
-    if (!favicon) {
-        favicon = feed.faviconUrl;
-    }
-
-    if (favicon !== feed.faviconUrl) {
-        await prisma.feed.update({
-            where: {
-                id: feed.id
-            },
-            data: {
-                faviconUrl: favicon
-            }
-        });
-    }
-
-    // Set lastUpdated to now
-    await prisma.feed.update({
-        where: {
-            id: feed.id
-        },
-        data: {
-            lastUpdate: new Date()
-        }
-    });
-
     try {
-        await addArticlesToDb(parsedFeed.items, feed.id);
-    } catch (err) {
-        console.error("\nError while adding articles of feed " + feed.title + " to database: \n" + err);
+        const parsedFeed = await parseFeed(feed.link);
+
+        // Reset error count
+        await prisma.feed.update({
+            where: {
+                id: feed.id
+            },
+            data: {
+                error_count: 0,
+                errormessage: null
+            }
+        });
+
+        // Update feed title and favicon if changed
+        if (parsedFeed.meta.title !== feed.title) {
+            await prisma.feed.update({
+                where: {
+                    id: feed.id
+                },
+                data: {
+                    title: parsedFeed.meta.title
+                }
+            });
+        }
+
+        // Get Favicon
+        let link = parsedFeed.meta.link;
+        if (!link) {
+            // Use only base url
+            const urlObj = new URL(feed.link);
+            link = urlObj.origin;
+        }
+        let favicon = await getFaviconUrl(link)
+        if (!favicon) {
+            favicon = feed.faviconUrl;
+        }
+
+        if (favicon !== feed.faviconUrl) {
+            await prisma.feed.update({
+                where: {
+                    id: feed.id
+                },
+                data: {
+                    faviconUrl: favicon
+                }
+            });
+        }
+
+        // Set lastUpdated to now
+        await prisma.feed.update({
+            where: {
+                id: feed.id
+            },
+            data: {
+                lastUpdate: new Date()
+            }
+        });
+
+        try {
+            await addArticlesToDb(parsedFeed.items, feed.id);
+        } catch (err) {
+            console.error("\nError while adding articles of feed " + feed.title + " to database: \n" + err);
+            throw err;
+        }
+    } catch (err: any) {
+        console.error("\nError while parsing feed " + feed.title + ": \n" + err);
+
+
+        const errorMessage = err?.message ? err?.message : "Unknown error while parsing feed";
+        await prisma.feed.update({
+            where: {
+                id: feed.id
+            },
+            data: {
+                errormessage: errorMessage.length > 255 ? errorMessage.substring(0, 255) : errorMessage,
+                error_count: {
+                    increment: 1
+                }
+            }
+        });
+
     }
+
 }
 
 /**
@@ -188,46 +220,42 @@ async function addArticlesToDb(articles: FeedParser.Item[], feedId: string) {
     let newArticles = 0;
 
     for (const article of articles) {
-        try {
-            const existingArticle = await prisma.article.findFirst({
-                where: {
+        const existingArticle = await prisma.article.findFirst({
+            where: {
+                link: article.link,
+                feedId: feedId
+            }
+        });
+
+        if (!existingArticle) {
+            const dom = await getDomFromUrl(article.link);
+
+            let publishedAt: Date | null = null;
+
+            if (!article.pubdate && !article.date) {
+                publishedAt = getPublishedAt(dom);
+            } else {
+                publishedAt = new Date(article.pubdate ? article.pubdate : article.date!);
+            }
+
+            if (publishedAt && publishedAt.getTime() < (new Date().getTime() - Number(environment.maxArticleAge))) {
+                console.log("Skipping article " + article.title + " because it is too old: " + publishedAt)
+                continue;
+            }
+
+            const imageUrl = getImageUrl(dom);
+
+            await prisma.article.create({
+                data: {
+                    title: article.title ? article.title : "No title set",
                     link: article.link,
-                    feedId: feedId
+                    imageUrl: imageUrl ? imageUrl : article.image?.url,
+                    feedId: feedId,
+                    publishedAt: publishedAt
                 }
             });
 
-            if (!existingArticle) {
-                const dom = await getDomFromUrl(article.link);
-
-                let publishedAt: Date | null = null;
-
-                if (!article.pubdate && !article.date) {
-                    publishedAt = getPublishedAt(dom);
-                } else {
-                    publishedAt = new Date(article.pubdate ? article.pubdate : article.date!);
-                }
-
-                if (publishedAt && publishedAt.getTime() < (new Date().getTime() - Number(environment.maxArticleAge))) {
-                    console.log("Skipping article " + article.title + " because it is too old: " + publishedAt)
-                    continue;
-                }
-
-                const imageUrl = getImageUrl(dom);
-
-                await prisma.article.create({
-                    data: {
-                        title: article.title,
-                        link: article.link,
-                        imageUrl: imageUrl ? imageUrl : article.image?.url,
-                        feedId: feedId,
-                        publishedAt: publishedAt
-                    }
-                });
-
-                newArticles++;
-            }
-        } catch (err) {
-            console.error("\nError while adding article " + article.title + " to database: \n" + err);
+            newArticles++;
         }
     }
 
@@ -250,8 +278,13 @@ async function updateAllFeeds() {
 
         for (const feed of feeds) {
             try {
+                if (feed.error_count > Number(environment.maxFeedErrorCount)) {
+                    console.log(`Skipping feed ${feed.title} because it has too many errors (${feed.error_count})`);
+                    continue;
+                }
                 await parseFeedAndAddToDb(feed);
             } catch (err) {
+                // Should never happen, as parseFeedAndAddToDb catches all errors
                 console.error("\nFehler beim Parsen von Feed " + feed.title + ": \n" + err);
             }
         }
