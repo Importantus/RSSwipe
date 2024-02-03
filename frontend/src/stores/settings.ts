@@ -33,7 +33,6 @@ export const useSettingsStore = defineStore({
             return undefined;
         },
         getRawBackendUrl(): string | undefined {
-            console.log("Using cached backend url");
             return this.settings.backendUrl;
         },
         async fetchBackendUrl(): Promise<string> {
@@ -45,12 +44,9 @@ export const useSettingsStore = defineStore({
             return loadedUrl;
         },
         setBackendUrl(url: string) {
-            const changed = this.settings.backendUrl !== url;
-            if (changed) {
-                this.settings.backendUrl = url;
-                this.updateSettings();
-                configuredAxios.defaults.baseURL = prepareBackendUrl(url);
-            }
+            this.settings.backendUrl = url;
+            this.updateSettings();
+            configuredAxios.defaults.baseURL = prepareBackendUrl(url);
         },
         applySettings() {
             this.applyFontFactor();
