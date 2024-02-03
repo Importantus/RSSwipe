@@ -12,6 +12,7 @@ import ReadinglistView from '@/views/ReadingListView.vue'
 import StarredlistView from '@/views/StarredListView.vue'
 import StatisticsView from '@/views/StatisticsView.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useSettingsStore } from '@/stores/settings'
 import pinia from '@/stores/index'
 
 
@@ -77,17 +78,18 @@ const router = createRouter({
       path: '/feeds',
       name: 'Feeds',
       component: FeedsView
-    },
+    }
 
   ]
 })
 
 const authStore = useAuthStore(pinia)
+const settingsStore = useSettingsStore(pinia)
 let readingListNavigation: string[] = []
 
 router.beforeEach((to, from, next) => {
   // Check if the user is logged in
-  if (to.name !== 'Login' && to.name !== 'Register' && !authStore.isLoggedIn) {
+  if (to.name !== 'Login' && to.name !== 'Register' && (!settingsStore.getBackendUrl() || !authStore.isLoggedIn)) {
     next({ name: 'Login' })
   } else {
     next()

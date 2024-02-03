@@ -2,21 +2,31 @@
 import TextInputIcon from '@/components/global/TextInputField.vue';
 import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
-import { ref } from 'vue';
-import { User, Mail, KeyRound } from 'lucide-vue-next';
+import { onMounted, ref } from 'vue';
+import { User, Mail, KeyRound, Link2 } from 'lucide-vue-next';
+import { useSettingsStore } from '@/stores/settings';
 
 const authStore = useAuthStore();
+const settingsStore = useSettingsStore()
 
 const password = ref('');
 const email = ref('');
 const name = ref('');
 const error = ref('');
+const backendUrl = ref('');
+const storedBackendUrl = ref<string | undefined>('');
+
+onMounted(async () => {
+    storedBackendUrl.value = settingsStore.getRawBackendUrl() || await settingsStore.fetchBackendUrl();
+    backendUrl.value = storedBackendUrl.value || "";
+});
 
 async function handleSubmit() {
     error.value = '';
     console.log("handleLogin")
     try {
-        await authStore.register(email.value, password.value, name.value);
+        await authStore.register(backendUrl.value, email.value, password.value, name.value);
+        settingsStore.setBackendUrl(backendUrl.value);
         router.push('/');
     } catch (e: any) {
         console.log("Fehler: " + e);
@@ -37,6 +47,8 @@ async function handleSubmit() {
             <div v-if="error" class="w-full bg-red-500 rounded-lg p-3 z-10">{{ error }}</div>
             <form @submit.prevent="handleSubmit" class="w-full z-10">
                 <div class="flex flex-col gap-5">
+                    <TextInputIcon v-model="backendUrl" placeholder="https://backend.example.com" :icon="Link2"
+                        :required="true" title="Enter Backend Url" />
                     <TextInputIcon v-model="name" placeholder="Name" :icon="User" :required="true"
                         title="Enter your name" />
                     <TextInputIcon v-model="email" placeholder="Email" :icon="Mail" :required="true"
