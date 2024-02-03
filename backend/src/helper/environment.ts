@@ -19,5 +19,6 @@ export const environment = {
     maxUrlLength: constructEnv("MAX_URL_LENGTH", "1000"), // Default size for all urls
     maxImageUrlLength: constructEnv("MAX_IMAGE_URL_LENGTH", "10000"), // Sometimes, image urls can be stored in an optimized format, which can be longer than the other urls
     maxFeedErrorCount: constructEnv("MAX_FEED_ERROR_COUNT", "20"), // If a feed has more than 20 errors, it will be disabled. Currently it is __not possible__ to re-enable a feed
+    enableFeedClassification: constructEnv("ENABLE_FEED_CLASSIFICATION", "false"),
 };
 

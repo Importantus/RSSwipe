@@ -289,7 +289,9 @@ async function updateAllFeeds() {
             }
         }
 
-        categorizeArticles();
+        if (environment.enableFeedClassification === "true") {
+            categorizeArticles();
+        }
     } catch (err) {
         console.error(err);
     }
