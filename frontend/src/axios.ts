@@ -16,6 +16,7 @@ instance.interceptors.request.use((config) => {
     if (authStore.isLoggedIn) {
         config.headers.Authorization = `Bearer ${authStore.token}`
     }
+    config.baseURL = settingsStore.getBackendUrl()
 
     return config
 }, (error) => {
