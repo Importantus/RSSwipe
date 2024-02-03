@@ -1,0 +1,35 @@
+version: "3"
+services:
+  mariadb:
+    image: "mariadb:10"
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
+      MYSQL_DATABASE: "rsswipe"
+      MYSQL_USER: "rsswipe"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+    volumes:
+      - "./data/db:/var/lib/mysql"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
+      retries: 3
+      timeout: 5s
+  backend:
+    image: ghcr.io/importantus/rsswipe-backend:main
+    ports:
+      - "${FORWARD_BACKEND_PORT:-8080}:8080"
+    env_file:
+      - .env
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+  frontend:
+    image: ghcr.io/importantus/rsswipe-frontend:main
+    restart: unless-stopped
+    ports:
+      - "${FORWARD_FRONTEND_PORT:-80}:80"
+    depends_on:
+      - backend
+    env_file:
+      - .env
