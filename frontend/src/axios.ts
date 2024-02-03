@@ -1,14 +1,18 @@
 import axios from 'axios';
 import { useAuthStore } from './stores/auth';
 import router from './router';
+import { useSettingsStore } from './stores/settings';
+import pinia from '@/stores/index'
+
+
+const authStore = useAuthStore(pinia)
+const settingsStore = useSettingsStore(pinia);
 
 const instance = axios.create({
-    baseURL: import.meta.env.VITE_BACKEND_URL + '/v1'
+    baseURL: settingsStore.getBackendUrl(),
 });
 
 instance.interceptors.request.use((config) => {
-    const authStore = useAuthStore()
-
     if (authStore.isLoggedIn) {
         config.headers.Authorization = `Bearer ${authStore.token}`
     }
