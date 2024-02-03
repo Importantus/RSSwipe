@@ -1,22 +1,20 @@
-version: '3'
+version: "3"
 services:
   mariadb:
-    image: 'mariadb:10'
+    image: "mariadb:10"
     ports:
-      - '${FORWARD_DB_PORT:-3306}:3306'
+      - "${FORWARD_DB_PORT:-3306}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
-      MYSQL_ROOT_HOST: "%"
-      MYSQL_DATABASE: '${DB_DATABASE}'
-      MYSQL_USER: '${DB_USER}'
-      MYSQL_PASSWORD: '${DB_PASSWORD}'
-      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
+      MYSQL_DATABASE: "${DB_DATABASE}"
+      MYSQL_USER: "${DB_USER}"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
     volumes:
-      - 'vwprog-mariadb:/var/lib/mysql'
+      - "vwprog-mariadb:/var/lib/mysql"
     networks:
       - vwprog-net
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}" ]
+      test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
       retries: 3
       timeout: 5s
   phpmyadmin:
@@ -39,22 +37,14 @@ services:
       - "8080:8080"
     env_file:
       - .env
-    environment:
-      # DB_USER: '${DB_USER}'
-      # DB_PASSWORD: '${DB_PASSWORD}'
-      # DB_HOST: mariadb
-      # DB_PORT: '${DB_PORT}'
-      # DB_DATABASE: '${DB_DATABASE}'
-      # STATUS: '${STATUS}'
-      # PORT: '${BACKEND_PORT}'
-      MYSQL_CONNECTION_STRING: 'mysql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}'
     volumes:
       - ./backend/:/usr/src/app
       - /usr/app/node_modules
     networks:
       - vwprog-net
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
   vwprg-frontend:
     image: node:16
     working_dir: /usr/src/app
@@ -65,7 +55,7 @@ services:
       - "80:4173"
     environment:
       VITE_BACKEND_URL: ${VITE_BACKEND_URL}
-      STATUS: '${STATUS}'
+      STATUS: "${STATUS}"
     volumes:
       - ./frontend/:/usr/src/app
     networks:
