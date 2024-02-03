@@ -42,8 +42,43 @@ You swipe too much? No problem, you can set a swipe limit per day. When you reac
 
 ## Usage & Deployment
 
-**❌ The bad news**: There is a hosted instance of RSSwipe, but it's **not for public use** (yet?) as we don't have the resources and legal knowledge to host it for more than private use.  
-**✅ The good news**: It's planned to improve the deployment process so that you can easily host your own instance. If you want to help us with that, don't hesitate!
+The recommended way to deploy RSSwipe is to use the provided docker-compose file. 
+
+To deploy the app, you need to have docker and docker-compose installed on your server.
+
+Get the `docker-compose.yml` file in the docker directory of this repository:
+
+```sh
+wget https://raw.githubusercontent.com/Importantus/RSSwipe/main/docker/docker-compose.yml
+```
+
+Create an `.env` file in the same directory as the docker-compose file and copy the content of the `.env.prod` file into it.
+
+```sh
+wget -O .env https://raw.githubusercontent.com/Importantus/RSSwipe/main/.env.prod
+```
+
+Edit the `.env` file and set the values for the environment variables.
+
+Start the app (this may take a short while):
+
+```sh
+docker compose up
+```
+
+The app is now running on port 80 or the custom `FRONTEND_FORWARD_PORT` you set in the `.env` file. 
+
+To run the app in the background, add the `-d` flag:
+
+```sh
+docker compose up -d
+```
+
+To update the app, pull the latest changes from the repository and restart the app:
+
+```sh
+docker compose pull && docker compose up -d
+```
 
 ## Local Setup
 
