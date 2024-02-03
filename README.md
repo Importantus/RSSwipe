@@ -44,7 +44,7 @@ You swipe too much? No problem, you can set a swipe limit per day. When you reac
 
 The recommended way to deploy RSSwipe is to use the provided docker-compose file. 
 
-To deploy the app, you need to have docker and docker-compose installed on your server.
+To deploy the app, you need to have docker and docker-compose installed on your machine.
 
 Get the `docker-compose.yml` file in the docker directory of this repository:
 
