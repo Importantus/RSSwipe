@@ -57,7 +57,7 @@ const addNewFeed = async () => {
     <div v-if="store.error">
       <div v-if="store.error" class="w-full bg-red-500 rounded-lg p-3 z-10 mb-5">{{ store.error }}</div>
     </div>
-    <FeedList />
+    <FeedList class="pb-20" />
   </div>
 </template>
 
