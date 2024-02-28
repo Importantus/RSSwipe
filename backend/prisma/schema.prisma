@@ -30,7 +30,7 @@ model Feed {
   faviconUrl   String?    @db.VarChar(1000)
   lastUpdate   DateTime   @default(now())
   active       Boolean    @default(true)
-  errormessage String?
+  errormessage String?    @db.VarChar(300)
   error_count  Int        @default(0)
   UserHasFeed  FeedList[]
   Article      Article[]
