@@ -8,8 +8,8 @@ export function initGarbageCollector(intervall = Number(environment.garbageColle
     console.log("Initialising garbage collector with interval of " + intervall + "ms");
     setInterval(async () => {
         try {
-            await deleteOldArticles();
             await deleteExpiredArticlesFromReadingList();
+            await deleteOldArticles();
             await deleteUnusedFeeds();
         } catch (err) {
             console.error(err);
