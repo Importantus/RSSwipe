@@ -23,11 +23,18 @@ onMounted(async () => {
 async function handleLogin() {
     error.value = '';
     try {
-        console.log(backendUrl.value);
-
         await authStore.login(backendUrl.value, email.value, password.value);
         settingsStore.setBackendUrl(backendUrl.value);
-        router.push('/');
+
+        if (authStore.isLoggedIn) {
+            // If a query parameter "redirect" is set, redirect to this URL
+            const redirect = new URLSearchParams(window.location.search).get('redirect')
+            if (redirect) {
+                router.push(redirect)
+            } else {
+                router.push('/')
+            }
+        }
     } catch (e: any) {
         if (e?.response?.data?.message)
             error.value = e.response.data.message;
@@ -49,7 +56,8 @@ async function handleLogin() {
                 <div class="flex flex-col gap-5">
                     <TextInputIcon v-model="backendUrl" placeholder="https://backend.example.com" :icon="Link2"
                         :required="true" title="Enter Backend Url" />
-                    <TextInputIcon v-model="email" placeholder="Email" :icon="Mail" :required="true" title="Enter email" />
+                    <TextInputIcon v-model="email" placeholder="Email" :icon="Mail" :required="true"
+                        title="Enter email" />
                     <TextInputIcon v-model="password" placeholder="Password" type="password" :icon="KeyRound"
                         :required="true" title="Enter password" />
                 </div>
