@@ -123,6 +123,9 @@ export const useFeedStore = defineStore("feedList", {
         },
         someFeedHasError(): boolean {
             return this.feedList.some(item => item.error_count > FEED_ERROR_COUNT_THRESHOLD);
+        },
+        isSubscribed(id: string): boolean {
+            return this.feedList.some(item => item.id === id);
         }
     }
 });
