@@ -90,7 +90,7 @@ let readingListNavigation: string[] = []
 router.beforeEach((to, from, next) => {
   // Check if the user is logged in
   if (to.name !== 'Login' && to.name !== 'Register' && (!settingsStore.getBackendUrl() || !authStore.isLoggedIn)) {
-    next({ name: 'Login' })
+    next({ name: 'Login', query: { redirect: to.fullPath } })
   } else {
     next()
   }
