@@ -231,7 +231,12 @@ export const useReaderStore = defineStore({
             navigator
                 .share({
                     title: article.title,
-                    text: article.title,
+                    text: `
+                    ${article.title}
+
+                    Read directly in RSSwipe:
+                    ${window.location.origin}/article/${article.id}
+                    `,
                     url: article.link,
                 })
                 .then(() => console.log('Successful share! 🎉'))
