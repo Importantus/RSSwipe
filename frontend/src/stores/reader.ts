@@ -232,10 +232,11 @@ export const useReaderStore = defineStore({
                 .share({
                     title: article.title,
                     text: `
-                    ${article.title}
+${article.title}
 
-                    Read directly in RSSwipe:
-                    ${window.location.origin}/article/${article.id}
+Read directly in RSSwipe:
+${window.location.origin}/article/${article.id}
+
                     `,
                     url: article.link,
                 })
