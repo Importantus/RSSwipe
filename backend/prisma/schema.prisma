@@ -59,6 +59,8 @@ model Article {
   feed           Feed          @relation(fields: [feedId], references: [id])
   categoryId     String?
   category       Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@unique([link, feedId])
 }
 
 model Settings {

@@ -1,14 +1,49 @@
 import { PrismaClient } from '@prisma/client';
 import { updateArticle } from './articles';
-import { deleteExpiredArticlesFromReadingList } from '../jobs/garbageCollector';
 
 const prisma = new PrismaClient();
 
 export async function getReadingList(userId: string) {
-    await deleteExpiredArticlesFromReadingList(userId);
+    const now = new Date();
+
+    const userSettings = await prisma.settings.findFirst({
+        where: {
+            userId: userId
+        }
+    });
+    let where = [];
+
+    if (userSettings) {
+
+        // Calculate the time threshold for read and unread articles based on user settings
+        const readExpirationDate = new Date(now.getTime() - userSettings.expTimeRead);
+        const unreadExpirationDate = new Date(now.getTime() - userSettings.expTimeUnread);
+
+        if (userSettings && userSettings.expTimeRead >= 0) {
+            where.push({
+                NOT: {
+                    AND: [
+                        { read: true },
+                        { dateRead: { lt: readExpirationDate } }
+                    ]
+                }
+            })
+        }
+
+        if (userSettings && userSettings.expTimeUnread >= 0) {
+            where.push({
+                NOT: {
+                    AND: [
+                        { read: false },
+                        { dateSaved: { lt: unreadExpirationDate } }
+                    ]
+                }
+            })
+        }
+    }
 
     const readingList = await prisma.articleList.findMany({
-        where: { userId, saved: true },
+        where: { userId, saved: true, AND: where },
         select: {
             read: true,
             saved: true,

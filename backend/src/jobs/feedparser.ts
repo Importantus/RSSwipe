@@ -220,10 +220,12 @@ async function addArticlesToDb(articles: FeedParser.Item[], feedId: string) {
     let newArticles = 0;
 
     for (const article of articles) {
-        const existingArticle = await prisma.article.findFirst({
+        const existingArticle = await prisma.article.findUnique({
             where: {
-                link: article.link,
-                feedId: feedId
+                link_feedId: {
+                    link: article.link,
+                    feedId: feedId
+                }
             }
         });
 
