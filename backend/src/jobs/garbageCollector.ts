@@ -4,9 +4,12 @@ import log, { Level, Scope } from "../helper/logger";
 
 const prisma = getPrismaClient();
 
-export function initGarbageCollector(intervall = Number(environment.garbageCollectorInterval)) {
+export async function initGarbageCollector(intervall = Number(environment.garbageCollectorInterval)) {
     log("Initialising garbage collector with interval of " + intervall + "ms", Scope.GARBAGE_COLLECTOR);
-    setInterval(async () => {
+
+    let time = new Date().getTime();
+
+    while (true) {
         try {
             await deleteExpiredArticlesFromReadingList();
             await deleteOldArticles();
@@ -14,7 +17,11 @@ export function initGarbageCollector(intervall = Number(environment.garbageColle
         } catch (err) {
             log(err, Scope.GARBAGE_COLLECTOR, Level.ERROR);
         }
-    }, intervall);
+
+        // Wait until intervall is over
+        await new Promise((resolve) => setTimeout(resolve, intervall - (new Date().getTime() - time)));
+        time = new Date().getTime();
+    }
 }
 
 async function deleteUnusedFeeds() {
