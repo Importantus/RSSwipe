@@ -309,13 +309,13 @@ async function updateAllFeeds() {
  * Initialize the feed parser
  * @param intervall The intervall in ms to update the feeds
  */
-export function initFeedParser(intervall = Number(environment.feedUpdateInterval)) {
-    console.log("Initializing Feed Parser with an intervall of " + intervall + "ms");
-    setInterval(() => {
-        try {
-            updateAllFeeds()
-        } catch (err) {
-            console.error(err);
-        }
-    }, intervall);
+export async function initFeedParser(intervall = Number(environment.feedUpdateInterval)) {
+    let time = new Date().getTime();
+    while (true) {
+        await updateAllFeeds();
+
+        // Wait until intervall is over
+        await new Promise((resolve) => setTimeout(resolve, intervall - (new Date().getTime() - time)));
+        time = new Date().getTime();
+    }
 }
