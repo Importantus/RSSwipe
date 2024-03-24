@@ -3,6 +3,7 @@ import { FeedCreateInputType, FeedUpdateInputType } from "../validators/feeds";
 import { getFaviconUrl, parseFeed, parseFeedAndAddToDb } from "../jobs/feedparser";
 import APIError from "../helper/apiError";
 import { getPrismaClient } from "../prismaClient";
+import log, { Level, Scope } from "../helper/logger";
 
 const prisma = getPrismaClient();
 
@@ -15,7 +16,7 @@ export async function followFeed(userId: string, feedInput: FeedCreateInputType)
         try {
             feed = await createFeed(feedInput);
         } catch (err) {
-            console.error(err);
+            log(err, Scope.API, Level.ERROR);
             throw APIError.badRequest("Invalid feed url");
         }
     } else {
@@ -128,7 +129,6 @@ export async function getFeedInfo(userid: string, feedId: string) {
     });
 
     if (!feed) {
-        console.log("Feed not found");
         throw APIError.notFound();
     }
 
@@ -142,7 +142,6 @@ export async function getFeedInfo(userid: string, feedId: string) {
     });
 
     if (!feedList) {
-        console.log("User does not follow this feed");
         throw APIError.notFound();
     }
 
@@ -163,7 +162,6 @@ export async function updateFeed(userid: string, feedId: string, input: FeedUpda
     });
 
     if (!feedList) {
-        console.log("User does not follow this feed");
         throw APIError.notFound();
     }
 

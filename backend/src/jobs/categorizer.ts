@@ -2,6 +2,7 @@ import { getPrismaClient } from "../prismaClient";
 import { Readability } from '@mozilla/readability';
 import natural from 'natural'
 import { getDomFromUrl } from "../helper/htmlParsing";
+import log, { Level, Scope } from "../helper/logger";
 
 const classifierJSONDe = require('../../static/classifierTrainedDe.json')
 const classifierDe = natural.BayesClassifier.restore(classifierJSONDe, natural.PorterStemmerDe);
@@ -22,7 +23,7 @@ export async function categorizeArticles() {
     runningCategorization = true;
 
     try {
-        console.log("Categorizing articles");
+        log("Categorizing articles", Scope.CATEGORIZER);
 
         while (await prisma.article.count({
             where: {
@@ -43,7 +44,7 @@ export async function categorizeArticles() {
             try {
                 category = await categorizeArticle(article.link);
             } catch (err) {
-                console.error(err);
+                log(err, Scope.CATEGORIZER, Level.ERROR);
                 continue;
             }
 
@@ -68,15 +69,15 @@ export async function categorizeArticles() {
                     }
                 }
             });
-            console.log("Categorized article " + article.title + " as " + category);
+            log("Categorized article " + article.title + " as " + category, Scope.CATEGORIZER);
         }
     } catch (err) {
-        console.error("Error while categorizing Article: " + err);
+        log("Error while categorizing Article: " + err, Scope.CATEGORIZER, Level.ERROR);
     } finally {
         runningCategorization = false;
     }
 
-    console.log("Finished categorizing articles");
+    log("Finished categorizing articles", Scope.CATEGORIZER);
     runningCategorization = false;
 }
 

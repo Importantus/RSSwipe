@@ -6,6 +6,7 @@ import { categorizeArticles } from "./categorizer";
 import { getDomFromUrl } from "../helper/htmlParsing";
 import { parseFeedFromUrl } from "../helper/feedParsing";
 import FeedParser from "feedparser";
+import log, { Level, Scope } from "../helper/logger";
 
 const prisma = getPrismaClient();
 
@@ -23,7 +24,6 @@ export async function getFaviconUrl(url: string) {
         'link[rel="apple-touch-icon"]',
         'link[rel="apple-touch-icon-precomposed"]',
         'link[rel="shortcut icon"]',
-        'link[rel="icon", type="image/png"]',
         'link[rel="icon"]',
     ]
 
@@ -36,7 +36,7 @@ export async function getFaviconUrl(url: string) {
                 break;
             }
         } catch (err) {
-            console.error("Error while parsing favicon: " + err);
+            log("Error while parsing favicon: " + err, Scope.FEEDPARSER, Level.ERROR);
             break;
         }
     }
@@ -100,7 +100,7 @@ function getPublishedAt(dom: JSDOM) {
                 break;
             }
         } catch (err) {
-            console.error("Error while parsing date: " + err);
+            log("Error while parsing date: " + err, Scope.FEEDPARSER, Level.ERROR);
             break;
         }
     }
@@ -123,23 +123,12 @@ export async function parseFeed(url: string) {
  * @param feed The feed to parse and add to db
  */
 export async function parseFeedAndAddToDb(feed: Feed) {
-    console.log(`Updating Feed ${feed.title}`);
+    log(`Updating Feed ${feed.title}`, Scope.FEEDPARSER);
 
     try {
         const parsedFeed = await parseFeed(feed.link);
 
-        // Reset error count
-        await prisma.feed.update({
-            where: {
-                id: feed.id
-            },
-            data: {
-                error_count: 0,
-                errormessage: null
-            }
-        });
-
-        // Update feed title and favicon if changed
+        // Update feed title if changed
         if (parsedFeed.meta.title !== feed.title) {
             await prisma.feed.update({
                 where: {
@@ -163,6 +152,7 @@ export async function parseFeedAndAddToDb(feed: Feed) {
             favicon = feed.faviconUrl;
         }
 
+        // Update favicon if changed
         if (favicon !== feed.faviconUrl) {
             await prisma.feed.update({
                 where: {
@@ -187,11 +177,22 @@ export async function parseFeedAndAddToDb(feed: Feed) {
         try {
             await addArticlesToDb(parsedFeed.items, feed.id);
         } catch (err) {
-            console.error("\nError while adding articles of feed " + feed.title + " to database: \n" + err);
+            log("\nError while adding articles of feed " + feed.title + " to database: \n" + err, Scope.FEEDPARSER, Level.ERROR);
             throw err;
         }
+
+        // Reset error count
+        await prisma.feed.update({
+            where: {
+                id: feed.id
+            },
+            data: {
+                error_count: 0,
+                errormessage: null
+            }
+        });
     } catch (err: any) {
-        console.error("\nError while parsing feed " + feed.title + ": \n" + err);
+        log("\nError while parsing feed " + feed.title + ": \n" + err, Scope.FEEDPARSER, Level.ERROR);
 
 
         const errorMessage = err?.message ? err?.message : "Unknown error while parsing feed";
@@ -228,22 +229,30 @@ async function addArticlesToDb(articles: FeedParser.Item[], feedId: string) {
         });
 
         if (!existingArticle) {
-            const dom = await getDomFromUrl(article.link);
+            let dom: JSDOM | null = null;
+            const getDom = async () => {
+                if (!dom) {
+                    dom = await getDomFromUrl(article.link, {
+                        correctUrls: true,
+                    });
+                }
+                return dom;
+            }
 
             let publishedAt: Date | null = null;
 
             if (!article.pubdate && !article.date) {
-                publishedAt = getPublishedAt(dom);
+                publishedAt = getPublishedAt(await getDom());
             } else {
                 publishedAt = new Date(article.pubdate ? article.pubdate : article.date!);
             }
 
+            // Skip articles that are older than maxArticleAge
             if (publishedAt && publishedAt.getTime() < (new Date().getTime() - Number(environment.maxArticleAge))) {
-                console.log("Skipping article " + article.title + " because it is too old: " + publishedAt)
                 continue;
             }
 
-            const imageUrl = getImageUrl(dom);
+            const imageUrl = getImageUrl(await getDom());
 
             await prisma.article.create({
                 data: {
@@ -259,7 +268,7 @@ async function addArticlesToDb(articles: FeedParser.Item[], feedId: string) {
         }
     }
 
-    console.log(`Added ${newArticles} from ${articles.length} Articles`);
+    log(`Added ${newArticles} from ${articles.length} Articles`, Scope.FEEDPARSER);
 }
 
 /**
@@ -274,18 +283,23 @@ async function updateAllFeeds() {
             }
         });
 
-        console.log(`Updating ${feeds.length} Feeds`);
+        log(`
+        
+Updating ${feeds.length} Feeds
+        
+        `, Scope.FEEDPARSER);
 
         for (const feed of feeds) {
             try {
                 if (feed.error_count > Number(environment.maxFeedErrorCount)) {
-                    console.log(`Skipping feed ${feed.title} because it has too many errors (${feed.error_count})`);
+                    log(`Skipping feed ${feed.title} because it has too many errors (${feed.error_count})`, Scope.FEEDPARSER, Level.WARN);
                     continue;
                 }
                 await parseFeedAndAddToDb(feed);
+                log("Updated Feed " + feed.title, Scope.FEEDPARSER);
             } catch (err) {
                 // Should never happen, as parseFeedAndAddToDb catches all errors
-                console.error("\nFehler beim Parsen von Feed " + feed.title + ": \n" + err);
+                log("\nFehler beim Parsen von Feed " + feed.title + ": \n" + err, Scope.FEEDPARSER, Level.ERROR);
             }
         }
 
@@ -293,7 +307,7 @@ async function updateAllFeeds() {
             categorizeArticles();
         }
     } catch (err) {
-        console.error(err);
+        log(err as string, Scope.FEEDPARSER, Level.ERROR);
     }
 }
 
@@ -301,13 +315,14 @@ async function updateAllFeeds() {
  * Initialize the feed parser
  * @param intervall The intervall in ms to update the feeds
  */
-export function initFeedParser(intervall = Number(environment.feedUpdateInterval)) {
-    console.log("Initializing Feed Parser with an intervall of " + intervall + "ms");
-    setInterval(() => {
-        try {
-            updateAllFeeds()
-        } catch (err) {
-            console.error(err);
-        }
-    }, intervall);
+export async function initFeedParser(intervall = Number(environment.feedUpdateInterval)) {
+    log("Initializing Feed Parser with an intervall of " + intervall + "ms", Scope.FEEDPARSER);
+    let time = new Date().getTime();
+    while (true) {
+        await updateAllFeeds();
+
+        // Wait until intervall is over
+        await new Promise((resolve) => setTimeout(resolve, intervall - (new Date().getTime() - time)));
+        time = new Date().getTime();
+    }
 }

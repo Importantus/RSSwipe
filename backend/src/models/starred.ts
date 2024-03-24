@@ -37,8 +37,6 @@ export async function getStarredArticles(userId: string) {
         },
     });
 
-    console.log(starredList)
-
     return starredList.map((article) => {
         return {
             ...article.article,
