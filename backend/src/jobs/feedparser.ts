@@ -128,18 +128,7 @@ export async function parseFeedAndAddToDb(feed: Feed) {
     try {
         const parsedFeed = await parseFeed(feed.link);
 
-        // Reset error count
-        await prisma.feed.update({
-            where: {
-                id: feed.id
-            },
-            data: {
-                error_count: 0,
-                errormessage: null
-            }
-        });
-
-        // Update feed title and favicon if changed
+        // Update feed title if changed
         if (parsedFeed.meta.title !== feed.title) {
             await prisma.feed.update({
                 where: {
@@ -190,6 +179,17 @@ export async function parseFeedAndAddToDb(feed: Feed) {
             console.error("\nError while adding articles of feed " + feed.title + " to database: \n" + err);
             throw err;
         }
+
+        // Reset error count
+        await prisma.feed.update({
+            where: {
+                id: feed.id
+            },
+            data: {
+                error_count: 0,
+                errormessage: null
+            }
+        });
     } catch (err: any) {
         console.error("\nError while parsing feed " + feed.title + ": \n" + err);
 
