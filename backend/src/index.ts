@@ -20,6 +20,7 @@ import { auth, notFound, errorHandler } from "./middleware";
 import { environment } from "./helper/environment";
 import { initFeedParser } from "./jobs/feedparser";
 import { initGarbageCollector } from "./jobs/garbageCollector";
+import log, { Scope } from "./helper/logger";
 
 const app = express();
 const port = environment.backendPort;
@@ -157,15 +158,15 @@ app.use(errorHandler);
 try {
     initFeedParser();
 } catch (e) {
-    console.log("Error while parsing feeds: " + e);
+    log("Error while parsing feeds: " + e, Scope.FEEDPARSER);
 }
 
 try {
     initGarbageCollector();
 } catch (e) {
-    console.log("Error while bringing out the trash: " + e);
+    log("Error while bringing out the trash: " + e, Scope.GARBAGE_COLLECTOR);
 }
 
 app.listen(port, () => {
-    console.log(`Server started at http://localhost:${port}`);
+    log(`Server started at http://localhost:${port}`, Scope.API);
 })

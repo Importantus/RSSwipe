@@ -1,11 +1,9 @@
-import { PrismaClient } from "@prisma/client";
 import { ArticleUpdateInputType, GetArticlesQueryType } from "../validators/articles";
 import APIError from "../helper/apiError";
-import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
-import axios from "axios";
 import { getPrismaClient } from "../prismaClient";
 import { getDomFromUrl } from "../helper/htmlParsing";
+import log, { Level, Scope } from "../helper/logger";
 
 
 const prisma = getPrismaClient();
@@ -267,7 +265,7 @@ export async function getArticleContent(articleId: string) {
     });
 
     if (!article) {
-        console.log("Article not found");
+        log("Article not found", Scope.API, Level.ERROR);
         throw APIError.notFound();
     }
 
@@ -279,7 +277,7 @@ export async function getArticleContent(articleId: string) {
     const articleContent = reader.parse();
 
     if (!articleContent) {
-        console.log("Parsing failed");
+        log("Parsing failed", Scope.API, Level.ERROR);
         throw APIError.internalServerError("Article parsing failed");
     }
 

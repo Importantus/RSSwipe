@@ -1,18 +1,18 @@
-import { PrismaClient } from "@prisma/client";
 import { environment } from "../helper/environment";
 import { getPrismaClient } from "../prismaClient";
+import log, { Level, Scope } from "../helper/logger";
 
 const prisma = getPrismaClient();
 
 export function initGarbageCollector(intervall = Number(environment.garbageCollectorInterval)) {
-    console.log("Initialising garbage collector with interval of " + intervall + "ms");
+    log("Initialising garbage collector with interval of " + intervall + "ms", Scope.GARBAGE_COLLECTOR);
     setInterval(async () => {
         try {
             await deleteExpiredArticlesFromReadingList();
             await deleteOldArticles();
             await deleteUnusedFeeds();
         } catch (err) {
-            console.error(err);
+            log(err, Scope.GARBAGE_COLLECTOR, Level.ERROR);
         }
     }, intervall);
 }
@@ -34,9 +34,9 @@ async function deleteUnusedFeeds() {
             }
         }
 
-        console.log(`Deleted ${deletedFeeds} unused Feeds`);
+        log(`Deleted ${deletedFeeds} unused Feeds`, Scope.GARBAGE_COLLECTOR);
     } catch (err) {
-        console.error("\nError while deleting old feeds: \n" + err);
+        log("\nError while deleting old feeds: \n" + err, Scope.GARBAGE_COLLECTOR, Level.ERROR);
     }
 }
 
@@ -92,9 +92,9 @@ async function deleteOldArticles() {
             }
         }
 
-        console.log(`Deleted ${deletedArticles} old Articles`);
+        log(`Deleted ${deletedArticles} old Articles`, Scope.GARBAGE_COLLECTOR);
     } catch (err) {
-        console.error("\nError while deleting old articles: \n" + err);
+        log("\nError while deleting old articles: \n" + err, Scope.GARBAGE_COLLECTOR, Level.ERROR);
     }
 }
 
@@ -183,7 +183,7 @@ export async function deleteExpiredArticlesFromReadingList(userId?: string) {
         }
 
     }
-    console.log("Expired articles from the reading list have been cleaned up.");
+    log("Expired articles from the reading list have been cleaned up.", Scope.GARBAGE_COLLECTOR);
 }
 
 
