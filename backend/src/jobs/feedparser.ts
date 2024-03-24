@@ -228,22 +228,30 @@ async function addArticlesToDb(articles: FeedParser.Item[], feedId: string) {
         });
 
         if (!existingArticle) {
-            const dom = await getDomFromUrl(article.link);
+            let dom: JSDOM | null = null;
+            const getDom = async () => {
+                if (!dom) {
+                    dom = await getDomFromUrl(article.link, {
+                        correctUrls: true,
+                    });
+                }
+                return dom;
+            }
 
             let publishedAt: Date | null = null;
 
             if (!article.pubdate && !article.date) {
-                publishedAt = getPublishedAt(dom);
+                publishedAt = getPublishedAt(await getDom());
             } else {
                 publishedAt = new Date(article.pubdate ? article.pubdate : article.date!);
             }
 
+            // Skip articles that are older than maxArticleAge
             if (publishedAt && publishedAt.getTime() < (new Date().getTime() - Number(environment.maxArticleAge))) {
-                console.log("Skipping article " + article.title + " because it is too old: " + publishedAt)
                 continue;
             }
 
-            const imageUrl = getImageUrl(dom);
+            const imageUrl = getImageUrl(await getDom());
 
             await prisma.article.create({
                 data: {
