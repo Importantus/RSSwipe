@@ -87,13 +87,16 @@ const authStore = useAuthStore(pinia)
 const settingsStore = useSettingsStore(pinia)
 let readingListNavigation: string[] = []
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, from) => {
   // Check if the user is logged in
   if (to.name !== 'Login' && to.name !== 'Register' && (!settingsStore.getBackendUrl() || !authStore.isLoggedIn)) {
-    next({ name: 'Login', query: { redirect: to.fullPath } })
-  } else {
-    next()
+    return { name: 'Login', query: { redirect: to.fullPath } }
   }
+
+  if ((to.name === 'Login' || to.name === 'Register') && !to.query.redirect && from.query.redirect) {
+    return { name: to.name, query: { redirect: from.query.redirect } }
+  }
+
 })
 
 router.afterEach((to, from) => {
