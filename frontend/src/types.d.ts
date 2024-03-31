@@ -10,6 +10,7 @@ interface Article {
         title: string;
         link: string;
         faviconUrl: string;
+        description: string?;
     };
     read: boolean;
     saved: boolean;

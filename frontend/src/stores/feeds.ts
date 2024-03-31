@@ -16,7 +16,8 @@ export interface FeedItem {
     url: string,
     openInApp: boolean,
     error_count: number,
-    errormessage?: string
+    errormessage?: string,
+    description?: string
 }
 
 export const useFeedStore = defineStore("feedList", {
@@ -46,7 +47,8 @@ export const useFeedStore = defineStore("feedList", {
                     openInApp: feed.openInApp,
                     isFiltered: this.feedList.find(item => item.id === feed.id) ? this.feedList.find(item => item.id === feed.id)!.isFiltered : false,
                     error_count: feed.error_count,
-                    errormessage: feed.errormessage
+                    errormessage: feed.errormessage,
+                    description: feed.description
                 }))
             } catch (error: any) {
                 this.error = error.response.data.message
@@ -70,7 +72,8 @@ export const useFeedStore = defineStore("feedList", {
                     openInApp: response.data.openInApp,
                     isFiltered: false,
                     error_count: response.data.error_count,
-                    errormessage: response.data.errormessage
+                    errormessage: response.data.errormessage,
+                    description: response.data.description
                 })
             } catch (error: any) {
                 this.error = error.response.data.message
