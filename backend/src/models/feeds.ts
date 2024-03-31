@@ -1,9 +1,11 @@
-import { PrismaClient } from "@prisma/client";
 import { FeedCreateInputType, FeedUpdateInputType } from "../validators/feeds";
-import { getFaviconUrl, parseFeed, parseFeedAndAddToDb } from "../jobs/feedparser";
+import { getDescription, getFaviconUrl, parseFeed, parseFeedAndAddToDb } from "../jobs/feedparser";
 import APIError from "../helper/apiError";
 import { getPrismaClient } from "../prismaClient";
 import log, { Level, Scope } from "../helper/logger";
+import { getDomFromUrl } from "../helper/htmlParsing";
+import { JSDOM } from "jsdom";
+
 
 const prisma = getPrismaClient();
 
