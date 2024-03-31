@@ -4,6 +4,7 @@ import { FEED_ERROR_COUNT_THRESHOLD, useFeedStore } from '@/stores/feeds';
 import type { FeedItem } from '@/stores/feeds';
 import { ChevronDown, Info } from 'lucide-vue-next';
 import { Trash2 } from 'lucide-vue-next';
+import FeedDescription from './FeedDescription.vue';
 
 const REPORT_URL: string = "https://github.com/Importantus/RSSwipe";
 
@@ -76,23 +77,28 @@ console.log(props.feed);
                     <div class="truncate block max-w-full text-background-500 text-sm">{{ props.feed.url }}</div>
                 </div>
                 <div class="flex items-center flex-shrink-0 aspect-square" title="open Feed Option">
-                    <ChevronDown :stroke-width="1.25" size="35" class="transition" :class="{ 'rotate-180': showOptions }" />
+                    <ChevronDown :stroke-width="1.25" size="35" class="transition"
+                        :class="{ 'rotate-180': showOptions }" />
                 </div>
             </div>
         </div>
         <Transition name="slide-fade">
             <div v-if="showOptions" class="px-4 py-4 rounded-lg bg-[#282828] flex flex-col gap-4 z-0"
                 :class="{ 'rounded-t-none': showOptions }">
+
+                <FeedDescription v-if="props.feed.description" :description="props.feed.description"></FeedDescription>
+
                 <div v-if="props.feed.errormessage">
                     <div class="flex flex-row items-center gap-2 bg-red-800 rounded-t-lg px-3 py-2">
                         <Info size="25"></Info>
                         <p class="text-left font-thin text-sm">We failed to fetch this feed for {{
-                            props.feed.error_count }} times. Error messages related to the
+            props.feed.error_count }} times. Error messages related to the
                             app can be reported <a class="underline" :href="REPORT_URL">here</a>.</p>
                     </div>
                     <p class="bg-red-500 rounded-b-lg px-3 py-2 z-10 text-sm">{{ props.feed.errormessage
-                    }}</p>
+                        }}</p>
                 </div>
+
                 <div class="flex justify-between items-center gap-2">
                     <div>
                         <h3 class="font-semibold">Open in App?</h3>
@@ -108,6 +114,7 @@ console.log(props.feed);
                         </div>
                     </label>
                 </div>
+
                 <div class="flex gap-3">
                     <button v-if="canShare" @click="shareFeed();" title="share Feed"
                         class=" w-full h-11 bg-primary-600 rounded-lg hover:bg-amber-700 transition">Share</button>

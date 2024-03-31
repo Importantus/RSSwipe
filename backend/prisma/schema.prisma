@@ -26,6 +26,7 @@ model Feed {
   id           String     @id @default(uuid())
   title        String
   link         String     @unique @db.VarChar(1000)
+  description  String?    @db.VarChar(1000)
   createdAt    DateTime   @default(now())
   faviconUrl   String?    @db.VarChar(1000)
   lastUpdate   DateTime   @default(now())

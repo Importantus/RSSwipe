@@ -1458,6 +1458,10 @@
             "type": "string",
             "description": "the error message if there was an error parsing the feed"
           },
+          "description": {
+            "type": "string",
+            "description": "the description of the feed"
+          },
           "error_count": {
             "type": "number",
             "description": "the number of times the parsing of the feed failed since the last success"
