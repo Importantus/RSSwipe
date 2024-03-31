@@ -4,7 +4,7 @@ import { environment } from "../helper/environment";
 import { getPrismaClient } from "../prismaClient";
 import { categorizeArticles } from "./categorizer";
 import { getDomFromUrl } from "../helper/htmlParsing";
-import { parseFeedFromUrl } from "../helper/feedParsing";
+import { ParsedFeed, parseFeedFromUrl } from "../helper/feedParsing";
 import FeedParser from "feedparser";
 import log, { Level, Scope } from "../helper/logger";
 
@@ -12,14 +12,10 @@ const prisma = getPrismaClient();
 
 /**
  * Get favicon url from html
- * @param url The url to get the favicon from
+ * @param dom The dom to get the favicon from
  * @returns The favicon url
  */
-export async function getFaviconUrl(url: string) {
-    const dom = await getDomFromUrl(url, {
-        correctUrls: true,
-    });
-
+export async function getFaviconUrl(dom: JSDOM) {
     const queries = [
         'link[rel="apple-touch-icon"]',
         'link[rel="apple-touch-icon-precomposed"]',
@@ -108,6 +104,41 @@ function getPublishedAt(dom: JSDOM) {
     return publishedAt;
 }
 
+export async function getDescription(dom: JSDOM, feed: ParsedFeed): Promise<string | null> {
+    const queries = [
+        {
+            query: "meta[name='description']",
+            attribute: "content"
+        },
+        {
+            query: "meta[property='og:description']",
+            attribute: "content"
+        },
+        {
+            query: "meta[name='twitter:description']",
+            attribute: "content"
+        }
+    ]
+
+    let description: string | null = null;
+
+    for (const query of queries) {
+        try {
+            if (description != null) {
+                break;
+            }
+            description = dom.window.document.querySelector(query.query)?.getAttribute(query.attribute) || null;
+        } catch (err) {
+            log("Error while parsing description: " + err, Scope.FEEDPARSER, Level.ERROR);
+            break;
+        }
+    }
+
+    const appendedDescription = description?.trim() === feed.meta.description?.trim() ? null : `${description ?? ""}${description ? " - " : ""}${feed.meta.description ?? ""}`;
+
+    return appendedDescription || description;
+}
+
 /**
  * Parse a feed from a url
  * @param url The url to parse
@@ -126,10 +157,21 @@ export async function parseFeedAndAddToDb(feed: Feed) {
     log(`Updating Feed ${feed.title}`, Scope.FEEDPARSER);
 
     try {
-        const parsedFeed = await parseFeed(feed.link);
+        const parsedFeed: ParsedFeed = await parseFeed(feed.link);
+
+        let link = parsedFeed.meta.link;
+        if (!link) {
+            // Use only base url
+            const urlObj = new URL(feed.link);
+            link = urlObj.origin;
+        }
+        const dom: JSDOM = await getDomFromUrl(link, {
+            correctUrls: true,
+        });
 
         // Update feed title if changed
         if (parsedFeed.meta.title !== feed.title) {
+            log(`Updating title of feed ${feed.title} to ${parsedFeed.meta.title}`, Scope.FEEDPARSER);
             await prisma.feed.update({
                 where: {
                     id: feed.id
@@ -140,20 +182,29 @@ export async function parseFeedAndAddToDb(feed: Feed) {
             });
         }
 
-        // Get Favicon
-        let link = parsedFeed.meta.link;
-        if (!link) {
-            // Use only base url
-            const urlObj = new URL(feed.link);
-            link = urlObj.origin;
+        // Update feed description if changed
+        const newDescription = await getDescription(dom as JSDOM, parsedFeed);
+        if (feed.description !== newDescription) {
+            log(`Updating description of feed ${feed.title} to ${newDescription}`, Scope.FEEDPARSER);
+            await prisma.feed.update({
+                where: {
+                    id: feed.id
+                },
+                data: {
+                    description: newDescription
+                }
+            });
         }
-        let favicon = await getFaviconUrl(link)
+
+        // Get Favicon
+        let favicon = await getFaviconUrl(dom);
         if (!favicon) {
             favicon = feed.faviconUrl;
         }
 
         // Update favicon if changed
         if (favicon !== feed.faviconUrl) {
+            log(`Updating favicon of feed ${feed.title} to ${favicon}`, Scope.FEEDPARSER);
             await prisma.feed.update({
                 where: {
                     id: feed.id

@@ -179,13 +179,18 @@ export async function updateFeed(userid: string, feedId: string, input: FeedUpda
 }
 
 async function createFeed(feedInput: FeedCreateInputType) {
-    const favicon = await getFaviconUrl(feedInput.url);
+    const dom: JSDOM = await getDomFromUrl(feedInput.url, {
+        correctUrls: true,
+    });
+    const favicon = await getFaviconUrl(dom);
     const parsedFeed = await parseFeed(feedInput.url);
+    const description = await getDescription(dom, parsedFeed);
     return await prisma.feed.create({
         data: {
             title: parsedFeed.meta.title || feedInput.url,
             link: feedInput.url,
-            faviconUrl: favicon
+            faviconUrl: favicon,
+            description: description,
         }
     });
 }

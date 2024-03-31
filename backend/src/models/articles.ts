@@ -155,7 +155,8 @@ export async function getArticle(userId: string, articleId: string) {
                     id: true,
                     title: true,
                     link: true,
-                    faviconUrl: true
+                    faviconUrl: true,
+                    description: true
                 }
             }
         },
