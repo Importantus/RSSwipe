@@ -19,6 +19,7 @@ export enum Scope {
     CATEGORIZER = 'CATEGORIZER',
     GARBAGE_COLLECTOR = 'GARBAGE_COLLECTOR',
     API = 'API',
+    REQUESTS = 'REQUESTS',
 }
 
 export enum Level {
