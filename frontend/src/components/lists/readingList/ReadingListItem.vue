@@ -80,7 +80,7 @@ function releaseHandler() {
 </script>
 
 <template>
-    <div @click="openInReader">
+    <div @click="openInReader" :id="article.id">
         <div class="cursor-pointer w-full rounded-xl bg-background-900 overflow-hidden transition-colors relative">
             <div v-if="elementTransformX < 0" class="absolute z-0 top-0 bottom-0 w-full h-full transition-all"
                 :style="{ filter: 'saturate(' + Math.min((Math.abs(elementTransformX) / swipeToTrigger) ** 2, 1) + ')', background: props.swipeLeft.color }">
@@ -106,7 +106,8 @@ function releaseHandler() {
                 :class="{ 'brightness-75': props.article.read }"
                 :style="{ transform: 'translateX(' + elementTransformX + 'px)' }">
                 <Transition name="fade">
-                    <div v-if="mouseover" class="absolute h-full right-2 top-0 bottom-0 flex flex-col justify-center gap-2">
+                    <div v-if="mouseover"
+                        class="absolute h-full right-2 top-0 bottom-0 flex flex-col justify-center gap-2">
                         <button :title="props.swipeRight.name" @click.stop="props.swipeRight.action(props.article)"
                             class="cursor-pointer backdrop-blur-sm bg-black/20 p-2 rounded-md hover:bg-black/40 transition-colors">
                             <props.swipeRight.icon size="20" class="text-background-100" />

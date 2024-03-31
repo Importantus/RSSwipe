@@ -18,6 +18,22 @@ import pinia from '@/stores/index'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior(to, from) {
+    // Scroll the ReadingListItem into view
+    if (from.name === 'Article' && to.name === "Reading List") {
+      const scrollContainer = document.getElementById("scrolling-container")
+      const articleId = from.fullPath.split('/').pop()
+      const articleElement = document.getElementById(articleId as string)
+      if (!scrollContainer || !articleElement) return
+
+      const articleOffset = articleElement.offsetTop
+      const containerOffset = scrollContainer.offsetTop
+      const scrollTop = articleOffset - containerOffset - 100
+
+
+      scrollContainer?.scrollTo({ top: scrollTop })
+    }
+  },
   routes: [
     {
       path: '/',
@@ -87,13 +103,16 @@ const authStore = useAuthStore(pinia)
 const settingsStore = useSettingsStore(pinia)
 let readingListNavigation: string[] = []
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, from) => {
   // Check if the user is logged in
   if (to.name !== 'Login' && to.name !== 'Register' && (!settingsStore.getBackendUrl() || !authStore.isLoggedIn)) {
-    next({ name: 'Login', query: { redirect: to.fullPath } })
-  } else {
-    next()
+    return { name: 'Login', query: { redirect: to.fullPath } }
   }
+
+  if ((to.name === 'Login' || to.name === 'Register') && !to.query.redirect && from.query.redirect) {
+    return { name: to.name, query: { redirect: from.query.redirect } }
+  }
+
 })
 
 router.afterEach((to, from) => {
