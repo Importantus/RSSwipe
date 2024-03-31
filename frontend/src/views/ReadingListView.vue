@@ -24,22 +24,22 @@ const showClearListModal = ref(false);
                     <div class="text-background-400 mb-5">Which articles do you want to remove?</div>
                     <div class="flex flex-col gap-5">
                         <button @click="() => {
-                            store.clear(false)
-                            showClearListModal = false
-                        }" class="w-full h-14 bg-primary-950 rounded-lg transition font-semibold"
+                store.clear(false)
+                showClearListModal = false
+            }" class="w-full h-14 bg-primary-950 rounded-lg transition font-semibold"
                             title="remove all articles">Remove all
                             articles</button>
                         <button @click="() => {
-                            store.clear(true)
-                            showClearListModal = false
-                        }" class="w-full h-14 bg-primary-600 rounded-lg transition font-semibold"
+                store.clear(true)
+                showClearListModal = false
+            }" class="w-full h-14 bg-primary-600 rounded-lg transition font-semibold"
                             title="remove only read articles">Remove only
                             read articles</button>
                     </div>
                 </div>
             </div>
         </Transition>
-        <div class="px-5 overflow-y-scroll pb-10 h-full">
+        <div class="px-5 overflow-y-scroll pb-10 h-full" id="scrolling-container">
             <TitleNavigationBar title="Reading List" backNavigationPath="/" class="mb-5">
                 <div class="flex gap-4">
                     <RouterLink to="/starredlist" class="text-white">
