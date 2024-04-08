@@ -21,7 +21,7 @@ instance.interceptors.request.use((config) => {
 instance.interceptors.response.use(response => {
     if (response.config.responseType === "stream") return response;
 
-    const charset = response.headers["content-type"]?.toLowerCase().match(/charset=([^;]*)/)?.[1]
+    const charset = response.headers["content-type"]?.toLowerCase().match(CHARSET_REGEX)?.[1];
 
     if (charset && charset !== "utf-8") {
         log(`Detected charset: ${charset}. Converting to utf-8.`, Scope.REQUESTS);
@@ -33,3 +33,5 @@ instance.interceptors.response.use(response => {
 })
 
 export default instance;
+
+export const CHARSET_REGEX = /charset=\W?([^;\s"']*)/;
