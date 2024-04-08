@@ -1,4 +1,4 @@
-import axios from "../axios";
+import axios, { CHARSET_REGEX } from "../axios";
 import FeedParser from "feedparser";
 import iconv from "iconv";
 import log, { Scope } from "./logger";
@@ -21,7 +21,7 @@ export function parseFeedFromUrl(feedUrl: string): Promise<ParsedFeed> {
                 }
 
                 // Setup conversion from charset to utf-8
-                const charset = res.headers["content-type"]?.toLowerCase().match(/charset=([^;]*)/)?.[1] || await extractCharsetFromRSS(feedUrl);
+                const charset = res.headers["content-type"]?.toLowerCase().match(CHARSET_REGEX)?.[1] || await extractCharsetFromRSS(feedUrl);
 
                 const needsConversion = charset && charset !== "utf-8";
 
