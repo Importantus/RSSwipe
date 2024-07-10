@@ -367,13 +367,23 @@ Updating ${feeds.length} Feeds
  * @param intervall The intervall in ms to update the feeds
  */
 export async function initFeedParser(intervall = Number(environment.feedUpdateInterval)) {
-    log("Initializing Feed Parser with an intervall of " + intervall + "ms", Scope.FEEDPARSER);
-    let time = new Date().getTime();
-    while (true) {
-        await updateAllFeeds();
+    try {
+        log("Initializing Feed Parser with an intervall of " + intervall + "ms", Scope.FEEDPARSER);
+        let time = new Date().getTime();
+        while (true) {
+            try {
+                await updateAllFeeds();
+            } catch (error) {
+                log("Error while updating feeds: " + error, Scope.FEEDPARSER, Level.ERROR);
+            }
 
-        // Wait until intervall is over
-        await new Promise((resolve) => setTimeout(resolve, intervall - (new Date().getTime() - time)));
-        time = new Date().getTime();
+            // Wait until intervall is over
+            await new Promise((resolve) => setTimeout(resolve, intervall - (new Date().getTime() - time)));
+            time = new Date().getTime();
+        }
+    } catch (error) {
+        log("Error while parsing feeds: " + error, Scope.FEEDPARSER, Level.ERROR);
+        log("Feed parsing job failed. Attempting to restart...", Scope.FEEDPARSER);
+        initFeedParser(intervall);
     }
 }
