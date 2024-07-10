@@ -155,17 +155,9 @@ versions.forEach(version => {
 app.use(notFound);
 app.use(errorHandler);
 
-try {
-    initFeedParser();
-} catch (e) {
-    log("Error while parsing feeds: " + e, Scope.FEEDPARSER);
-}
+initFeedParser();
 
-try {
-    initGarbageCollector();
-} catch (e) {
-    log("Error while bringing out the trash: " + e, Scope.GARBAGE_COLLECTOR);
-}
+initGarbageCollector();
 
 app.listen(port, () => {
     log(`Server started at http://localhost:${port}`, Scope.API);
