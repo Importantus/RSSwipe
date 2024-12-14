@@ -30,7 +30,7 @@
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "express": "^4.21.1",
+    "express": "^4.21.2",
     "feedparser": "^2.2.10",
     "iconv": "^3.0.1",
     "isomorphic-dompurify": "^2.2.0",
