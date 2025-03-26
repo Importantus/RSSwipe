@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@types/dompurify": "^3.0.5",
-    "axios": "^1.7.4",
+    "axios": "^1.8.2",
     "dompurify": "^3.2.4",
     "hotkeys-js": "^3.13.5",
     "lucide-vue-next": "^0.288.0",
