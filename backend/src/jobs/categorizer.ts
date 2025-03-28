@@ -81,7 +81,7 @@ export async function categorizeArticles() {
     runningCategorization = false;
 }
 
-async function categorizeArticle(url: string) {
+async function categorizeArticle(url: string): Promise<string | null> {
     const dom = await getDomFromUrl(url);
     const article = new Readability(dom.window.document).parse();
 
