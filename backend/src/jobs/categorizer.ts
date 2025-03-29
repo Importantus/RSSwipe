@@ -85,9 +85,9 @@ async function categorizeArticle(url: string): Promise<string | null> {
     const dom = await getDomFromUrl(url);
     const article = new Readability(dom.window.document).parse();
 
-    if (article && article.lang === "de") {
+    if (article && article.lang === "de" && article.textContent) {
         return classifierDe.classify(article.textContent);
-    } else if (article && article.lang === "en") {
+    } else if (article && article.lang === "en" && article.textContent) {
         return classifierEn.classify(article.textContent);
     } else {
         return null;
