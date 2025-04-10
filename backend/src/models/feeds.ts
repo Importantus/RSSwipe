@@ -185,16 +185,36 @@ async function createFeed(feedInput: FeedCreateInputType) {
         correctUrls: true,
     });
     const favicon = await getFaviconUrl(dom);
-    const parsedFeed = await parseFeed(feedInput.url);
-    const description = await getDescription(dom, parsedFeed);
+
+    let parsedFeed;
+    let feedUrlToSave = feedInput.url;
+
+    try {
+        parsedFeed = await parseFeed(feedInput.url);
+    } catch (e1) {
+        try {
+            const feedUrl = extractFeedUrl(dom);
+            if (!feedUrl) throw new Error("Failed to extract feed url from meta information.")
+            feedUrlToSave = feedUrl;
+            parsedFeed = await parseFeed(feedUrl)
+        } catch (e2) {
+            throw e1
+        }
+    }
+
+    const description = await getDescription(dom, parsedFeed!);
     return await prisma.feed.create({
         data: {
-            title: parsedFeed.meta.title || feedInput.url,
-            link: feedInput.url,
+            title: parsedFeed!.meta.title || feedInput.url,
+            link: feedUrlToSave,
             faviconUrl: favicon,
             description: description,
         }
     });
+}
+
+function extractFeedUrl(dom: JSDOM): string | null {
+    return dom.window.document.querySelector('link[rel="alternate"][type="application/rss+xml"]')?.getAttribute("href") || null
 }
 
 async function getFeedByUrl(url: string) {
