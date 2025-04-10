@@ -4,6 +4,7 @@ import type { Article } from '@/types';
 import { ref } from 'vue';
 import { X } from 'lucide-vue-next';
 import FeedDescription from './feedPage/FeedDescription.vue';
+import FeedFavicon from '../global/FeedFavicon.vue';
 
 defineProps<{
     article: Article;
@@ -20,7 +21,7 @@ const feedStore = useFeedStore();
         <div class="flex flex-row w-fit rounded-md p-2 items-center cursor-pointer bg-secondary-900 bg-opacity-60 max-w-[16rem]"
             @click="showMoreInformation = true">
             <div v-if="article.feed.faviconUrl" class="w-4 h-4 mr-2 flex items-center justify-center">
-                <img :src="article.feed.faviconUrl" alt="favicon" />
+                <FeedFavicon :url="article.feed.faviconUrl"></FeedFavicon>
             </div>
             <p class="font-text-detail font-light text-xs text-opacity-60 truncate ...">{{ article.feed.title }}</p>
 
@@ -36,7 +37,7 @@ const feedStore = useFeedStore();
                             <div class="flex flex-row gap-2 items-center text-lg">
                                 <div v-if="article.feed.faviconUrl"
                                     class="w-6 h-6 mr-2 flex items-center justify-center">
-                                    <img :src="article.feed.faviconUrl" alt="favicon" />
+                                    <FeedFavicon :url="article.feed.faviconUrl"></FeedFavicon>
                                 </div>
                                 <p class="truncate w-full">{{ article.feed.title }}</p>
                                 <X class="top-5 right-5 cursor-pointer" size="32"
