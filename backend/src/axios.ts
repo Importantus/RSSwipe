@@ -25,7 +25,7 @@ instance.interceptors.response.use(response => {
 
     const contentType = response.headers["Content-Type"] || response.headers["content-type"];
 
-    if (contentType === "application/pdf") {
+    if (contentType === "application/pdf" || contentType === "application/x-pdf") {
         const error = new Error(`Failed to load ${response.config.url}. This is a pdf!`);
         throw error;
     }
