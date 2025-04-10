@@ -7,6 +7,7 @@ import { getDomFromUrl } from "../helper/htmlParsing";
 import { ParsedFeed, parseFeedFromUrl } from "../helper/feedParsing";
 import FeedParser from "feedparser";
 import log, { Level, Scope } from "../helper/logger";
+import v8 from "node:v8";
 
 const prisma = getPrismaClient();
 
@@ -137,7 +138,6 @@ export async function getDescription(
     description?.trim() === feed.meta.description?.trim()
       ? null
       : `${description ?? ""}${description ? " - " : ""}${feed.meta.description ?? ""}`;
-
   return appendedDescription || description;
 }
 
@@ -306,6 +306,11 @@ async function addArticlesToDb(articles: FeedParser.Item[], feedId: string) {
   let newArticles = 0;
 
   for (const article of articles) {
+    const heapInfo = v8.getHeapStatistics();
+
+    log(`Parsing feed ${article.link}`, Scope.FEEDPARSER, Level.INFO)
+    log(`Total Heap: ${heapInfo.total_heap_size}; Available from Allocated: ${heapInfo.used_heap_size / heapInfo.total_heap_size}; Allocated: ${(heapInfo.total_available_size / heapInfo.heap_size_limit)}`, Scope.FEEDPARSER, Level.INFO)
+
     const existingArticle = await prisma.article.findFirst({
       where: {
         link: article.link,
@@ -356,6 +361,7 @@ async function addArticlesToDb(articles: FeedParser.Item[], feedId: string) {
     });
 
     newArticles++;
+    dom = null;
   }
 
   log(
