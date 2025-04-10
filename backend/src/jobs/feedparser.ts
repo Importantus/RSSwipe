@@ -306,62 +306,65 @@ async function addArticlesToDb(articles: FeedParser.Item[], feedId: string) {
   let newArticles = 0;
 
   for (const article of articles) {
-    const heapInfo = v8.getHeapStatistics();
+    try {
+      // const heapInfo = v8.getHeapStatistics();
 
-    log(`Parsing feed ${article.link}`, Scope.FEEDPARSER, Level.INFO)
-    log(`Total Heap: ${heapInfo.total_heap_size}; Available from Allocated: ${heapInfo.used_heap_size / heapInfo.total_heap_size}; Allocated: ${(heapInfo.total_available_size / heapInfo.heap_size_limit)}`, Scope.FEEDPARSER, Level.INFO)
+      // log(`Parsing feed ${article.link}`, Scope.FEEDPARSER, Level.INFO)
+      // log(`Total Heap: ${heapInfo.total_heap_size}; Available from Allocated: ${heapInfo.used_heap_size / heapInfo.total_heap_size}; Allocated: ${(heapInfo.total_available_size / heapInfo.heap_size_limit)}`, Scope.FEEDPARSER, Level.INFO)
 
-    const existingArticle = await prisma.article.findFirst({
-      where: {
-        link: article.link,
-        feedId: feedId,
-      },
-    });
+      const existingArticle = await prisma.article.findFirst({
+        where: {
+          link: article.link,
+          feedId: feedId,
+        },
+      });
 
-    // Skip if the article already exists
-    if (existingArticle) continue;
+      // Skip if the article already exists
+      if (existingArticle) continue;
 
-    let dom: JSDOM | null = null;
-    const getCachedDom = async () => {
-      if (!dom) {
-        dom = await getDomFromUrl(article.link, {
-          correctUrls: true,
-        });
+      let dom: JSDOM | null = null;
+      const getCachedDom = async () => {
+        if (!dom) {
+          dom = await getDomFromUrl(article.link, {
+            correctUrls: true,
+          });
+        }
+        return dom;
+      };
+
+      let publishedAt: Date | null = null;
+
+      if (!article.pubdate && !article.date) {
+        publishedAt = getPublishedAt(await getCachedDom());
+      } else {
+        publishedAt = new Date(article.pubdate ? article.pubdate : article.date!);
       }
-      return dom;
-    };
 
-    let publishedAt: Date | null = null;
+      // Skip articles that are older than maxArticleAge
+      if (
+        publishedAt &&
+        publishedAt.getTime() <
+        new Date().getTime() - Number(environment.maxArticleAge)
+      ) {
+        continue;
+      }
 
-    if (!article.pubdate && !article.date) {
-      publishedAt = getPublishedAt(await getCachedDom());
-    } else {
-      publishedAt = new Date(article.pubdate ? article.pubdate : article.date!);
+      const imageUrl = getImageUrl(await getCachedDom());
+
+      await prisma.article.create({
+        data: {
+          title: article.title ? article.title : "No title set",
+          link: article.link,
+          imageUrl: imageUrl ? imageUrl : article.image?.url,
+          feedId: feedId,
+          publishedAt: publishedAt,
+        },
+      });
+
+      newArticles++;
+    } catch (error) {
+      log(`Error adding article ${article.link}`, Scope.FEEDPARSER, Level.ERROR)
     }
-
-    // Skip articles that are older than maxArticleAge
-    if (
-      publishedAt &&
-      publishedAt.getTime() <
-      new Date().getTime() - Number(environment.maxArticleAge)
-    ) {
-      continue;
-    }
-
-    const imageUrl = getImageUrl(await getCachedDom());
-
-    await prisma.article.create({
-      data: {
-        title: article.title ? article.title : "No title set",
-        link: article.link,
-        imageUrl: imageUrl ? imageUrl : article.image?.url,
-        feedId: feedId,
-        publishedAt: publishedAt,
-      },
-    });
-
-    newArticles++;
-    dom = null;
   }
 
   log(
