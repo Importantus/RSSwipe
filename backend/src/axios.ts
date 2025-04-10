@@ -23,6 +23,13 @@ instance.interceptors.response.use(response => {
 
     const charset = response.headers["content-type"]?.toLowerCase().match(CHARSET_REGEX)?.[1];
 
+    const contentType = response.headers["Content-Type"] || response.headers["content-type"];
+
+    if (contentType === "application/pdf") {
+        const error = new Error(`Failed to load ${response.config.url}. This is a pdf!`);
+        throw error;
+    }
+
     if (charset && charset !== "utf-8") {
         log(`Detected charset: ${charset}. Converting to utf-8.`, Scope.REQUESTS);
         const converter = new iconv.Iconv(charset, 'utf-8');
