@@ -1,19 +1,35 @@
-FROM node:23.10
+# --- STAGE 1: Builder ---
+FROM node:24-alpine AS builder
 
 # Create app directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
 COPY package*.json ./
+COPY prisma ./prisma/
 
-RUN npm install
-# If you are building your code for production
-# RUN npm ci --only=production
+RUN npm ci
 
-# Bundle app source
 COPY . .
 
+RUN npm run build
+
+# --- STAGE 2: Runner ---
+FROM node:24-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+COPY package*.json ./
+COPY prisma ./prisma/
+
+RUN npm ci --only=production && \
+    npx prisma generate
+
+COPY --from=builder /app/dist ./dist
+
 EXPOSE 8080
-CMD [ "npm", "run", "serve" ]
+
+USER node
+
+CMD ["node", "dist/index.js"]

@@ -9,7 +9,7 @@ export async function initGarbageCollector(intervall = Number(environment.garbag
 
     let time = new Date().getTime();
 
-    while (true) {
+    do {
         try {
             await deleteExpiredArticlesFromReadingList();
             await deleteOldArticles();
@@ -18,10 +18,12 @@ export async function initGarbageCollector(intervall = Number(environment.garbag
             log(err, Scope.GARBAGE_COLLECTOR, Level.ERROR);
         }
 
-        // Wait until intervall is over
-        await new Promise((resolve) => setTimeout(resolve, intervall - (new Date().getTime() - time)));
+        // Wait until intervall is over (only if cronjobs aren't managed externally)
+        if(!environment.externalCronjobs) {
+          await new Promise((resolve) => setTimeout(resolve, intervall - (new Date().getTime() - time)));
+        }
         time = new Date().getTime();
-    }
+    } while (true && !environment.externalCronjobs)
 }
 
 async function deleteUnusedFeeds() {

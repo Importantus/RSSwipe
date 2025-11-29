@@ -7,13 +7,15 @@ function constructEnv(name: string, defaultOption: string = ""): string {
 }
 
 export const environment = {
-    // TO DEFINE THE DEFAULT SECRETS HERE IS BAD PRACTICE!!! 
+    serviceType: constructEnv("SERVICE_TYPE", "all"), // Can be "all", "api", "garbageCollector", "feedParser" or "categorizer". If you want to use "categorizer", ENABLE_FEED_CLASSIFICATION must be set to true
+    externalCronjobs: constructEnv("EXTERNAL_CRONJOB", "false") === "true", // If set to true, FEED_UPDATE_INTERVAL, CATEGORIZER_INTERVAL and CATEGORIZER_INTERVAL will be ignored and these services will only run once after startup. This is useful when managing the deployment with tools like docker
     jwtSecret: constructEnv("JWT_SECRET"),
     jwtExpiration: constructEnv("JWT_EXPIRATION", "30d"),
     dbUrl: constructEnv("DATABASE_URL"),
     status: constructEnv("STATUS", "production"),
     backendPort: constructEnv("BACKEND_PORT", "8080"),
     feedUpdateInterval: constructEnv("FEED_UPDATE_INTERVAL", (1000 * 60 * 10).toString()),
+    categorizerInterval: constructEnv("CATEGORIZER_INTERVAL", (1000 * 60 * 10).toString()),
     maxArticleAge: constructEnv("TIME_TO_DELETE_OLD_ARTICLES", (1000 * 60 * 60 * 24 * 7).toString()),
     garbageCollectorInterval: constructEnv("GARBAGE_COLLECTOR_INTERVAL", (1000 * 60 * 60 * 1).toString()),
     maxUrlLength: constructEnv("MAX_URL_LENGTH", "1000"), // Default size for all urls

@@ -415,10 +415,6 @@ Updating ${feeds.length} Feeds
         );
       }
     }
-
-    if (environment.enableFeedClassification === "true") {
-      categorizeArticles();
-    }
   } catch (err) {
     log(err as string, Scope.FEEDPARSER, Level.ERROR);
   }
@@ -437,19 +433,21 @@ export async function initFeedParser(
       Scope.FEEDPARSER,
     );
     let time = new Date().getTime();
-    while (true) {
+    do {
       try {
         await updateAllFeeds();
       } catch (error) {
         log("Error while updating feeds: " + error, Scope.FEEDPARSER);
       }
 
-      // Wait until intervall is over
-      await new Promise((resolve) =>
-        setTimeout(resolve, intervall - (new Date().getTime() - time)),
-      );
+      // Wait until intervall is over (only if cronjobs aren't managed externally)
+      if (!environment.externalCronjobs) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, intervall - (new Date().getTime() - time)),
+        );
+      }
       time = new Date().getTime();
-    }
+    } while (true && !environment.externalCronjobs);
   } catch (error) {
     log("Error while parsing feeds: " + error, Scope.FEEDPARSER, Level.ERROR);
     log("Feed parsing job failed. Attempting to restart...", Scope.FEEDPARSER);
