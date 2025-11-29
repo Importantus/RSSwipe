@@ -78,8 +78,22 @@ jobs:
         id: get-deployments
         run: |
           kubectl get deployments -n simple-tools -l "restart in (please)" -o jsonpath="{range .items[*]}{.metadata.name}{'\n'}{end}" >deployments.txt
+      
+      - name: Database Migration
+        run: |
+          JOB_NAME="rsswipe-migration-run"
+          
+          kubectl delete job $JOB_NAME -n simple-tools --ignore-not-found=true
+          
+          echo "Start Migration..."
+          kubectl create job --from=cronjob/rsswipe-migration-template $JOB_NAME -n simple-tools
+          
+          echo "Warte auf Datenbank-Update..."
+          kubectl wait --for=condition=complete --timeout=120s job/$JOB_NAME -n simple-tools
+      
 
       - name: Restart Deployments
+        if: success()
         run: |
           while IFS= read -r deployment; do 
             kubectl rollout restart deployment/$deployment -n simple-tools;
