@@ -165,7 +165,7 @@ if (environment.serviceType === "all" || environment.serviceType === "garbageCol
 }
 
 if ((environment.serviceType === "all" && environment.enableFeedClassification === "true") || environment.serviceType === "categorizer") {
- initCategorizer()
+ initCategorizer();
 }
 
 if(environment.serviceType === "all" || environment.serviceType === "api") {
