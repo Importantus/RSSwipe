@@ -3,6 +3,7 @@ import { Readability } from '@mozilla/readability';
 import natural from 'natural'
 import { getDomFromUrl } from "../helper/htmlParsing";
 import log, { Level, Scope } from "../helper/logger";
+import { environment } from "../helper/environment";
 
 const classifierJSONDe = require('../../static/classifierTrainedDe.json')
 const classifierDe = natural.BayesClassifier.restore(classifierJSONDe, natural.PorterStemmerDe);
@@ -93,4 +94,39 @@ async function categorizeArticle(url: string): Promise<string | null> {
         return null;
     }
 
+}
+
+/**
+ * Initialize the categorizer
+ * @param intervall The intervall in ms to categorize the articles
+ */
+export async function initCategorizer(
+  intervall = Number(environment.feedUpdateInterval),
+) {
+  try {
+    log(
+      "Initializing Categorizer with an intervall of " + intervall + "ms",
+      Scope.CATEGORIZER,
+    );
+    let time = new Date().getTime();
+  do {
+      try {
+        await categorizeArticles();
+      } catch (error) {
+        log("Error while updating feeds: " + error, Scope.CATEGORIZER);
+      }
+
+      // Wait until intervall is over (only if the cronjob is not handled externally)
+      if (!environment.externalCronjobs) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, intervall - (new Date().getTime() - time)),
+        );
+      }
+      time = new Date().getTime();
+    } while (true && !environment.externalCronjobs);
+  } catch (error) {
+    log("Error while categorizing feeds: " + error, Scope.CATEGORIZER, Level.ERROR);
+    log("Categorizer job failed. Attempting to restart...", Scope.CATEGORIZER);
+    initCategorizer(intervall);
+  }
 }

@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "tsc",
+    "build": "npx prisma generate && tsc",
+    "start": "node ./dist/index.js",
+    "migrate:deploy": "npx prisma migrate deploy",
     "serve": "echo 'Starting...' && npm run setupPrisma && echo 'Transpiling typescript' && npm run build && echo 'Running...' && node ./dist",
     "setupPrisma": "echo 'Setting up database' && npx prisma migrate deploy && echo 'Generating prisma client' && npx prisma generate && echo 'Finished setting up database'",
     "dev": "nodemon ./src/index.ts"

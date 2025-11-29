@@ -21,6 +21,7 @@ import { environment } from "./helper/environment";
 import { initFeedParser } from "./jobs/feedparser";
 import { initGarbageCollector } from "./jobs/garbageCollector";
 import log, { Scope } from "./helper/logger";
+import { initCategorizer } from "./jobs/categorizer";
 
 const app = express();
 const port = environment.backendPort;
@@ -155,10 +156,20 @@ versions.forEach(version => {
 app.use(notFound);
 app.use(errorHandler);
 
-initFeedParser();
+if(environment.serviceType === "all" || environment.serviceType === "feedParser") {
+  initFeedParser();
+}
 
-initGarbageCollector();
+if (environment.serviceType === "all" || environment.serviceType === "garbageCollector") {
+  initGarbageCollector();
+}
 
-app.listen(port, () => {
+if ((environment.serviceType === "all" && environment.enableFeedClassification === "true") || environment.serviceType === "categorizer") {
+ initCategorizer()
+}
+
+if(environment.serviceType === "all" || environment.serviceType === "api") {
+  app.listen(port, () => {
     log(`Server started at http://localhost:${port}`, Scope.API);
-})
+  })
+}
