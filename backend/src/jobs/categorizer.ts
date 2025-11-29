@@ -98,10 +98,10 @@ async function categorizeArticle(url: string): Promise<string | null> {
 
 /**
  * Initialize the categorizer
- * @param intervall The intervall in ms to categorize the articles
+ * @param intervall The interval in ms to categorize the articles
  */
 export async function initCategorizer(
-  intervall = Number(environment.feedUpdateInterval),
+  intervall = Number(environment.categorizerInterval),
 ) {
   try {
     log(
