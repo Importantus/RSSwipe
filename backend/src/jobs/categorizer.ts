@@ -113,7 +113,7 @@ export async function initCategorizer(
       try {
         await categorizeArticles();
       } catch (error) {
-        log("Error while updating feeds: " + error, Scope.CATEGORIZER);
+        log("Error while categorizing articles: " + error, Scope.CATEGORIZER);
       }
 
       // Wait until intervall is over (only if the cronjob is not handled externally)
