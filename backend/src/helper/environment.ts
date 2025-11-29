@@ -8,7 +8,7 @@ function constructEnv(name: string, defaultOption: string = ""): string {
 
 export const environment = {
     serviceType: constructEnv("SERVICE_TYPE", "all"), // Can be "all", "api", "garbageCollector", "feedParser" or "categorizer". If you want to use "categorizer", ENABLE_FEED_CLASSIFICATION must be set to true
-    externalCronjobs: constructEnv("EXTERNAL_CRONJOB", "false") === "true", // If set to true, FEED_UPDATE_INTERVAL, CATEGORIZER_INTERVAL and CATEGORIZER_INTERVAL will be ignored and these services will only run once after startup. This is usefull when managing the deployment with tools like docker
+    externalCronjobs: constructEnv("EXTERNAL_CRONJOB", "false") === "true", // If set to true, FEED_UPDATE_INTERVAL, CATEGORIZER_INTERVAL and CATEGORIZER_INTERVAL will be ignored and these services will only run once after startup. This is useful when managing the deployment with tools like docker
     jwtSecret: constructEnv("JWT_SECRET"),
     jwtExpiration: constructEnv("JWT_EXPIRATION", "30d"),
     dbUrl: constructEnv("DATABASE_URL"),
