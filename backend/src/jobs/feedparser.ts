@@ -156,7 +156,8 @@ export async function parseFeed(url: string) {
  * @param feed The feed to parse and add to db
  */
 export async function parseFeedAndAddToDb(feed: Feed) {
-  log(`Updating Feed ${feed.title}`, Scope.FEEDPARSER);
+  log(`
+Updating Feed ${feed.title}`, Scope.FEEDPARSER);
 
   try {
     log("Parsing feed", Scope.FEEDPARSER);
@@ -445,12 +446,16 @@ export async function initFeedParser(
         await new Promise((resolve) =>
           setTimeout(resolve, intervall - (new Date().getTime() - time)),
         );
+        time = new Date().getTime();
       }
-      time = new Date().getTime();
+      log("\nUpdated all feeds\n", Scope.FEEDPARSER);
     } while (true && !environment.externalCronjobs);
   } catch (error) {
     log("Error while parsing feeds: " + error, Scope.FEEDPARSER, Level.ERROR);
     log("Feed parsing job failed. Attempting to restart...", Scope.FEEDPARSER);
-    initFeedParser(intervall);
+    if (!environment.externalCronjobs) {
+      initFeedParser(intervall);
+    }
   }
+  log("Done with Feed Parser", Scope.FEEDPARSER);
 }
