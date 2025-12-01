@@ -450,11 +450,14 @@ export async function initFeedParser(
       }
       log("\nUpdated all feeds\n", Scope.FEEDPARSER);
     } while (true && !environment.externalCronjobs);
+    process.exit(0)
   } catch (error) {
     log("Error while parsing feeds: " + error, Scope.FEEDPARSER, Level.ERROR);
     log("Feed parsing job failed. Attempting to restart...", Scope.FEEDPARSER);
     if (!environment.externalCronjobs) {
       initFeedParser(intervall);
+    } else {
+        process.exit(1)
     }
   }
   log("Done with Feed Parser", Scope.FEEDPARSER);
