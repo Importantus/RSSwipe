@@ -1,12 +1,18 @@
 import { PrismaClient } from "@prisma/client";
 import { environment } from "./helper/environment";
 
+let prismaInstance: PrismaClient;
+
 export const getPrismaClient = () => {
-    return new PrismaClient({
-        datasources: {
-            db: {
-                url: environment.dbUrl,
+    if (!prismaInstance) {
+        prismaInstance = new PrismaClient({
+            datasources: {
+                db: {
+                    url: environment.dbUrl,
+                }
             }
-        }
-    });
+        });
+    }
+    
+    return prismaInstance;
 }
