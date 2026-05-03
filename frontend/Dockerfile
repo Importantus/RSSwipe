@@ -7,7 +7,7 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-FROM alpine:latest
+FROM alpine:3.12
 
 RUN apk update && apk add nginx && rm -rf /var/cache/apk/*
 
