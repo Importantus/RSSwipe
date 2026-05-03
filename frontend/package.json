@@ -12,6 +12,8 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@dicebear/collection": "^9.4.2",
+    "@dicebear/core": "^9.4.2",
     "@types/dompurify": "^3.0.5",
     "axios": "^1.7.4",
     "dompurify": "^3.2.4",

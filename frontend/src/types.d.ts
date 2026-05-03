@@ -1,3 +1,10 @@
+export interface ArticleReader {
+    user: {
+        id: string;
+        name: string;
+    }
+}
+
 interface Article {
     id: string;
     title: string;
@@ -19,7 +26,8 @@ interface Article {
     dateRead: string | null;
     dateSaved: string | null;
     dateStarred: string | null;
-    dateSeen: string | null;
+  dateSeen: string | null;
+  ArticleHasUser?: ArticleReader[];
 }
 
 export interface StoredArticle {

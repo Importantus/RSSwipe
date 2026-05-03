@@ -4,7 +4,7 @@ import { Readability } from "@mozilla/readability";
 import { getPrismaClient } from "../prismaClient";
 import { getDomFromUrl } from "../helper/htmlParsing";
 import log, { Level, Scope } from "../helper/logger";
-
+import { environment } from "../helper/environment";
 
 const prisma = getPrismaClient();
 
@@ -25,31 +25,25 @@ export async function getArticles(userId: string, query: GetArticlesQueryType) {
         categories = [];
     }
 
-    const where = []
+    const where: any[] = [];
 
-    where.push(
-        {
-            feed: {
-                id: {
-                    in: feeds
-                }
+    where.push({
+        feed: {
+            id: {
+                in: feeds
             }
         }
-    )
+    });
 
     if (categories.length !== 0) {
-        where.push(
-            {
-                category: {
-                    id: {
-                        in: categories
-                    }
+        where.push({
+            category: {
+                id: {
+                    in: categories
                 }
             }
-        )
+        });
     }
-
-
 
     if (startDate) {
         try {
@@ -60,13 +54,11 @@ export async function getArticles(userId: string, query: GetArticlesQueryType) {
         } catch (error) {
             throw APIError.badRequest("startDate is not a valid date");
         }
-        where.push(
-            {
-                publishedAt: {
-                    gte: new Date(startDate)
-                }
+        where.push({
+            publishedAt: {
+                gte: new Date(startDate)
             }
-        )
+        });
     }
 
     if (endDate) {
@@ -78,13 +70,48 @@ export async function getArticles(userId: string, query: GetArticlesQueryType) {
         } catch (error) {
             throw APIError.badRequest("endDate is not a valid date");
         }
-        where.push(
-            {
-                publishedAt: {
-                    lte: new Date(endDate)
+        where.push({
+            publishedAt: {
+                lte: new Date(endDate)
+            }
+        });
+    }
+
+    const selectQuery: any = {
+        id: true,
+        title: true,
+        imageUrl: true,
+        link: true,
+        publishedAt: true,
+        createdAt: true,
+        category: true,
+        feed: {
+            select: {
+                id: true,
+                title: true,
+                link: true,
+                faviconUrl: true
+            }
+        }
+    };
+
+    if (environment.showArticleReaders === 'true') {
+        selectQuery.ArticleHasUser = {
+            where: {
+                read: true,
+                userId: {
+                    not: userId 
+                }
+            },
+            select: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true 
+                    }
                 }
             }
-        )
+        };
     }
 
     const articles = await prisma.article.findMany({
@@ -108,30 +135,13 @@ export async function getArticles(userId: string, query: GetArticlesQueryType) {
                         }
                     }
                 }
-
             ]
         },
         take: Number(limit),
         orderBy: {
             publishedAt: "desc"
         },
-        select: {
-            id: true,
-            title: true,
-            imageUrl: true,
-            link: true,
-            publishedAt: true,
-            createdAt: true,
-            category: true,
-            feed: {
-                select: {
-                    id: true,
-                    title: true,
-                    link: true,
-                    faviconUrl: true
-                }
-            }
-        },
+        select: selectQuery, 
     });
 
     return articles;
