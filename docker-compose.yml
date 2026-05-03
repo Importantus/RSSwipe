@@ -31,7 +31,8 @@ services:
     networks:
       - vwprog-net
   vwprg-backend:
-    build: backend/.
+    image: node:20
+    working_dir: /usr/src/app
     command: bash -c "npm install && npm run dev"
     ports:
       - "8080:8080"
@@ -46,13 +47,13 @@ services:
       mariadb:
         condition: service_healthy
   vwprg-frontend:
-    image: node:16
+    image: node:20
     working_dir: /usr/src/app
     command: bash -c "npm install && npm run dev"
     env_file:
       - .env
     ports:
-      - "80:4173"
+      - "4173:4173"
     environment:
       VITE_BACKEND_URL: ${VITE_BACKEND_URL}
       STATUS: "${STATUS}"

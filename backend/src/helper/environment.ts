@@ -23,5 +23,6 @@ export const environment = {
     maxFeedErrorCount: constructEnv("MAX_FEED_ERROR_COUNT", "20"), // If a feed has more than 20 errors, it will be disabled. Currently it is __not possible__ to re-enable a feed
     enableFeedClassification: constructEnv("ENABLE_FEED_CLASSIFICATION", "false"),
     maxContentLength: constructEnv("MAX_CONTENT_LENGTH", "2000000"), // Maximum length of the content of an article or feed in bytes
+    showArticleReaders: constructEnv("SHOW_ARTICLE_READERS", "true") // If requests to the articles api should return the users, who read the article
 };
 
