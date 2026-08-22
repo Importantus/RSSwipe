@@ -5,6 +5,9 @@ import log, { Scope } from "./helper/logger";
 
 const instance = axios.create();
 
+// Prevent requests to broken or slow publishers/feeds from hanging indefinitely
+instance.defaults.timeout = 20000;
+
 instance.interceptors.request.use((config) => {
     config.headers.Cookie = "DSGVO_ZUSAGE_V1=true;cookieconsent_status=allow;waconcookiemanagement=min;"
     config.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0"
