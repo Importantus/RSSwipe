@@ -3,6 +3,7 @@ import TitleNavigationBar from '@/components/global/TitleNavigationBar.vue';
 import SettingWrapper from '@/components/global/SettingWrapper.vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useHomeStore } from '@/stores/home';
+import { useArticlesStore } from '@/stores/articles';
 import { useUserdataStore } from '@/stores/userdata';
 import { MoveRight } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -12,7 +13,15 @@ import { useAuthStore } from '@/stores/auth'
 const userStore = useUserdataStore();
 const settingsStore = useSettingsStore();
 const startPageStore = useHomeStore();
+const articlesStore = useArticlesStore();
 const authStore = useAuthStore()
+
+const contentPrefetchDisabled = computed({
+    get: () => !articlesStore.prefetchEnabled,
+    set: (value) => {
+        articlesStore.setPrefetchEnabled(!value);
+    }
+});
 
 const fontFactor = computed({
     get: () => settingsStore.settings.fontFactor,
@@ -192,6 +201,16 @@ userStore.fetchUserData();
                                     min="0" class="w-16 text-center border-b-2 rounded-none bg-transparent text-lg" />
                             </div>
                         </div>
+                    </div>
+                </div>
+            </SettingWrapper>
+            <SettingWrapper title="Preload Article Content"
+                description="Download article texts in advance, so articles open instantly. Disable this to save data.">
+                <div class="flex items-center justify-between gap-5">
+                    <div class="flex gap-3 items-center w-full justify-between bg-background-900/20 p-4 rounded">
+                        <label for="contentPrefetchDisabled">Preload article content</label>
+                        <input class="h-5 w-5 bg-primary-300 accent-primary-600" type="checkbox"
+                            name="contentPrefetchDisabled" v-model="contentPrefetchDisabled">
                     </div>
                 </div>
             </SettingWrapper>

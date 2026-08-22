@@ -81,8 +81,8 @@ onBeforeMount(async () => {
     hideUi.value = false;
 });
 
-watch(() => store.storedArticles, (newVal) => {
-    if (newVal.length > 0) {
+watch(() => store.storedArticleIds.join('|'), () => {
+    if (store.storedArticleIds.length > 0) {
         hideUi.value = false;
     }
     if (!store.storedArticles[1] || !store.storedArticles[1].articleInfo.imageUrl) {
@@ -90,7 +90,7 @@ watch(() => store.storedArticles, (newVal) => {
     } else {
         url.value = store.storedArticles[1].articleInfo.imageUrl
     }
-}, { deep: true });
+});
 
 </script>
 

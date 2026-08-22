@@ -1,9 +1,11 @@
 import express from "express";
 import h from "../../helper/errorHelper";
 import { assert } from "superstruct";
-import { ArticleUpdateInput, GetArticlesQuery } from "../../validators/articles";
+import { ArticleUpdateInput, GetArticlesContentInput, GetArticlesQuery } from "../../validators/articles";
 import APIError from "../../helper/apiError";
 import { getArticle, getArticleContent, getArticles, updateArticle } from "../../models/articles";
+import { getArticlesContent } from "../../models/articleContent";
+import { environment } from "../../helper/environment";
 import { uuid } from "../../validators/uuids";
 
 const router = express.Router();
@@ -92,6 +94,18 @@ router.get("/:id/content", h(async (req, res) => {
     res.status(200).json({
         content: article
     });
+}));
+
+router.post("/content", h(async (req, res) => {
+    try {
+        assert(req.body, GetArticlesContentInput(Number(environment.contentPrefetchMaxIds)))
+    } catch (err: any) {
+        throw APIError.badRequest(err.message)
+    }
+
+    res.status(200).json(
+        await getArticlesContent(req.body.ids)
+    )
 }));
 
 

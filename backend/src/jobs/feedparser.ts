@@ -5,6 +5,7 @@ import { getPrismaClient } from "../prismaClient";
 import { categorizeArticles } from "./categorizer";
 import { getDomFromUrl } from "../helper/htmlParsing";
 import { ParsedFeed, parseFeedFromUrl } from "../helper/feedParsing";
+import { extractAndStoreContent } from "../models/articleContent";
 import FeedParser from "feedparser";
 import log, { Level, Scope } from "../helper/logger";
 import v8 from "node:v8";
@@ -352,7 +353,7 @@ async function addArticlesToDb(articles: FeedParser.Item[], feedId: string) {
 
       const imageUrl = getImageUrl(await getCachedDom());
 
-      await prisma.article.create({
+      const createdArticle = await prisma.article.create({
         data: {
           title: article.title ? article.title : "No title set",
           link: article.link,
@@ -361,6 +362,20 @@ async function addArticlesToDb(articles: FeedParser.Item[], feedId: string) {
           publishedAt: publishedAt,
         },
       });
+
+      // The page was already fetched for metadata, so readability runs on the same
+      // dom without an extra request. Failures must not affect adding the article.
+      if (dom) {
+        try {
+          await extractAndStoreContent(createdArticle.id, article.link, dom);
+        } catch (err) {
+          log(
+            `Error storing content of article ${article.link}`,
+            Scope.FEEDPARSER,
+            Level.ERROR,
+          );
+        }
+      }
 
       newArticles++;
     } catch (error) {

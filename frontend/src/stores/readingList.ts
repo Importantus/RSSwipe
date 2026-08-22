@@ -4,7 +4,7 @@ import { defineStore } from "pinia";
 import { Trash2 } from 'lucide-vue-next';
 import { Star } from 'lucide-vue-next';
 import { BookOpenCheck } from "lucide-vue-next";
-import { useFeedStore } from "./feeds";
+import { loadPersistedListIds, toStoredArticle, useArticlesStore } from "./articles";
 
 export enum StoreStatus {
     LOADING,
@@ -67,7 +67,7 @@ function getSwipeDirection(id: string) {
 export const useReadingListStore = defineStore({
     id: 'readingList',
     state: () => ({
-        articles: JSON.parse(localStorage.getItem('readinglist') || '[]') as StoredArticle[],
+        articleIds: loadPersistedListIds('readinglist'),
         status: StoreStatus.LOADING,
         settingsStatus: StoreStatus.LOADING,
         removedArticles: [] as Article[],
@@ -77,84 +77,67 @@ export const useReadingListStore = defineStore({
         nextArticleOnlyUnread: JSON.parse(localStorage.getItem('nextArticleOnlyUnread') || 'true') as boolean
     }),
 
-    actions: {
-        async addArticleLocal(article: Article) {
-            if (this.articles.findIndex(a => a.articleInfo.id === article.id) === -1) {
-                this.articles.unshift({
-                    articleInfo: article
+    getters: {
+        articles(state): StoredArticle[] {
+            return state.articleIds
+                .map(toStoredArticle)
+                .filter((a): a is StoredArticle => a !== undefined)
+                .sort((a, b) => {
+                    return new Date(b.articleInfo.dateSaved!).getTime() - new Date(a.articleInfo.dateSaved!).getTime()
                 })
+        }
+    },
+
+    actions: {
+        async update() {
+            this.status = StoreStatus.LOADING
+
+            try {
+                const response = await axios.get('/readinglist')
+                const readingList = response.data as Article[]
+
+                const articlesStore = useArticlesStore()
+                articlesStore.upsertMany(readingList)
+
+                this.articleIds = readingList.map(a => a.id)
+
+                await articlesStore.loadBatch(this.articleIds)
+                for (const id of this.articleIds) {
+                    if (articlesStore.content[id] === null) {
+                        articlesStore.getContent(id).catch(error => {
+                            console.debug(`Failed to load content for article ${id}`, error)
+                        })
+                    }
+                }
+
+                this.status = StoreStatus.READY
+            } catch (error) {
+                console.error(error)
+                this.status = StoreStatus.ERROR
+                return
             }
 
-            const feedStore = useFeedStore()
-            if (await feedStore.isFeedOpenedInApp(article.feed.id)) {
-                this.addContentToArticle(article)
+            this.persistIds()
+        },
+        addArticleLocal(article: Article) {
+            const articlesStore = useArticlesStore()
+            articlesStore.upsert(article)
+            if (!this.articleIds.includes(article.id)) {
+                this.articleIds.unshift(article.id)
             }
+            this.persistIds()
         },
         removeArticleLocal(article: Article, undo = true) {
-            const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
+            const index = this.articleIds.indexOf(article.id)
 
             if (index !== -1) {
-                this.articles.splice(index, 1)
+                this.articleIds.splice(index, 1)
             }
 
             if (undo) {
                 this.removedArticles.push(article)
             }
-            localStorage.setItem('readinglist', JSON.stringify(this.articles))
-        },
-        async update() {
-            this.status = StoreStatus.LOADING
-
-            const response = await axios.get('/readinglist')
-
-            if (response.status === 200) {
-                const readingList = response.data as Article[]
-                for (const article of readingList) {
-                    this.addArticleLocal(article)
-
-                    this.articles[this.articles.findIndex(a => a.articleInfo.id === article.id)].articleInfo = article
-                }
-
-                for (const article of [...this.articles]) {
-                    const index = readingList.findIndex(a => a.id === article.articleInfo.id)
-                    if (index === -1) {
-                        this.removeArticleLocal(article.articleInfo, false)
-                    }
-                }
-
-                this.articles.sort((a, b) => {
-                    return new Date(b.articleInfo.dateSaved!).getTime() - new Date(a.articleInfo.dateSaved!).getTime()
-                })
-
-                this.status = StoreStatus.READY
-
-                localStorage.setItem('readinglist', JSON.stringify(this.articles))
-            } else {
-                console.log(response)
-                this.status = StoreStatus.ERROR
-            }
-        },
-        async addContentToArticle(article: Article) {
-            const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
-
-            if (index === -1 || this.articles[index].content) {
-                return
-            }
-
-            const content = await this.getArticleContent(article)
-            console.log("Adding content to article " + article.title)
-            this.articles[this.articles.findIndex(a => a.articleInfo.id === article.id)].content = content
-
-            localStorage.setItem('readinglist', JSON.stringify(this.articles))
-        },
-        async getArticleContent(article: Article) {
-            const response = await axios.get(`/articles/${article.id}/content`)
-
-            if (response.status === 200) {
-                return response.data
-            } else {
-                console.log(response)
-            }
+            this.persistIds()
         },
         async removeArticle(article: Article) {
             axios.delete(`/readinglist/articles`, {
@@ -165,16 +148,7 @@ export const useReadingListStore = defineStore({
             this.removeArticleLocal(article)
         },
         async updateArticle(article: Article, input: ArticleUpdateInput) {
-            const response = await axios.put(`/articles/` + article.id, {
-                ...input
-            })
-
-            if (response.status === 200) {
-                this.articles[this.articles.findIndex(a => a.articleInfo.id === article.id)].articleInfo = response.data
-                localStorage.setItem('readinglist', JSON.stringify(this.articles))
-            } else {
-                console.log(response)
-            }
+            await useArticlesStore().patch(article.id, input)
         },
         async undo() {
             if (this.removedArticles.length === 0) {
@@ -191,13 +165,12 @@ export const useReadingListStore = defineStore({
         },
         async loadSettings() {
             this.settingsStatus = StoreStatus.LOADING
-            const response = await axios.get('/settings')
-
-            if (response.status === 200) {
+            try {
+                const response = await axios.get('/settings')
                 this.settings = response.data
                 this.settingsStatus = StoreStatus.READY
-            } else {
-                console.log(response)
+            } catch (error) {
+                console.error(error)
             }
         },
         async updateSettings(settings: Settings) {
@@ -210,20 +183,28 @@ export const useReadingListStore = defineStore({
             }
         },
         async clear(onlyRead: boolean) {
-            const response = await axios.delete('/readinglist', {
-                data: {
-                    onlyRead
-                }
-            })
-
-            if (response.status === 200) {
+            try {
+                await axios.delete('/readinglist', {
+                    data: {
+                        onlyRead
+                    }
+                })
                 this.update()
-            } else {
-                console.log(response)
+            } catch (error) {
+                console.error(error)
             }
         },
         getArticleById(id: string) {
-            return this.articles.find(a => a.articleInfo.id === id)
+            if (!this.articleIds.includes(id)) {
+                return undefined
+            }
+            return toStoredArticle(id)
+        },
+        persistIds() {
+            localStorage.setItem('readinglist', JSON.stringify(this.articleIds))
+            const articlesStore = useArticlesStore()
+            articlesStore.setProtectedIds('readingList', [...this.articleIds])
+            articlesStore.schedulePersist()
         },
         setSwipeLeft(id: string) {
             this.swipeLeft = getSwipeDirection(id)

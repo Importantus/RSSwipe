@@ -1,4 +1,5 @@
 import * as s from 'superstruct';
+import { uuid } from './uuids';
 
 const limit = s.size(s.string(), 1, 50);
 const feeds = s.array(s.string());
@@ -24,6 +25,12 @@ export const ArticleUpdateInput = s.object({
     starred: s.optional(starred),
     saved: s.optional(saved)
 });
+
+export function GetArticlesContentInput(maxIds: number) {
+    return s.object({
+        ids: s.size(s.array(uuid), 1, maxIds)
+    });
+}
 
 export type GetArticlesQueryType = s.Infer<typeof GetArticlesQuery>;
 export type ArticleUpdateInputType = s.Infer<typeof ArticleUpdateInput>;

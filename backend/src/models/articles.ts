@@ -1,10 +1,9 @@
 import { ArticleUpdateInputType, GetArticlesQueryType } from "../validators/articles";
 import APIError from "../helper/apiError";
-import { Readability } from "@mozilla/readability";
 import { getPrismaClient } from "../prismaClient";
-import { getDomFromUrl } from "../helper/htmlParsing";
 import log, { Level, Scope } from "../helper/logger";
 import { environment } from "../helper/environment";
+import { extractAndStoreContent, toClientArticleContent } from "./articleContent";
 
 const prisma = getPrismaClient();
 
@@ -272,6 +271,9 @@ export async function getArticleContent(articleId: string) {
     const article = await prisma.article.findUnique({
         where: {
             id: articleId
+        },
+        include: {
+            content: true
         }
     });
 
@@ -280,17 +282,29 @@ export async function getArticleContent(articleId: string) {
         throw APIError.notFound();
     }
 
-    const dom = await getDomFromUrl(article.link, {
-        correctUrls: true
-    });
+    const stored = article.content;
 
-    const reader = new Readability(dom.window.document);
-    const articleContent = reader.parse();
-
-    if (!articleContent) {
-        log("Parsing failed", Scope.API, Level.ERROR);
-        throw APIError.internalServerError("Article parsing failed");
+    if (stored?.status === "OK") {
+        return toClientArticleContent(stored);
     }
 
-    return articleContent;
+    // Don't touch the publisher site again when extraction permanently failed
+    // or the retry backoff after the last failed attempt hasn't elapsed yet
+    const attemptsExhausted = stored?.status === "FAILED" &&
+        stored.attempts >= Number(environment.maxExtractionAttempts);
+    const backoffActive = stored?.status === "FAILED" && !!stored.lastAttempt &&
+        Date.now() - stored.lastAttempt.getTime() < Number(environment.extractionRetryDelay);
+
+    if (attemptsExhausted || backoffActive) {
+        log(`Not extracting content of article ${article.link} (attempts: ${stored?.attempts})`, Scope.API, Level.WARN);
+        throw APIError.internalServerError(stored?.lastError ?? "Article extraction failed");
+    }
+
+    const result = await extractAndStoreContent(article.id, article.link);
+
+    if (result.status !== "OK") {
+        throw APIError.internalServerError(result.lastError ?? "Article extraction failed");
+    }
+
+    return toClientArticleContent(result);
 }

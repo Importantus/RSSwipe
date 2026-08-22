@@ -2,6 +2,7 @@ import axios from "@/axios";
 import type { Article } from "@/types";
 import { defineStore } from "pinia";
 import { useReadingListStore } from "./readingList";
+import { useArticlesStore } from "./articles";
 import { useCategoriesStore } from "./categories";
 import { useFeedStore } from "./feeds";
 
@@ -31,7 +32,7 @@ export interface DateFrame {
 export const useHomeStore = defineStore({
     id: 'home',
     state: () => ({
-        articles: [] as Article[],
+        articleIds: [] as string[],
         status: ArticleStatus.LOADING,
         swipeLimit: JSON.parse(localStorage.getItem('swipeLimit') ?? JSON.stringify({
             swipes: 0,
@@ -40,7 +41,7 @@ export const useHomeStore = defineStore({
             overSwipes: 0,
             active: false
         })) as SwipeLimit,
-        lastActions: [] as Article[],
+        lastActionIds: [] as string[],
         swipeLeftPercentage: 0,
         swipeRightPercentage: 0,
         dateFrame: JSON.parse(localStorage.getItem('dateFrame') ?? JSON.stringify({
@@ -50,18 +51,30 @@ export const useHomeStore = defineStore({
         })) as DateFrame
     }),
 
+    getters: {
+        articles(state): Article[] {
+            const articlesStore = useArticlesStore()
+            return state.articleIds.map(id => articlesStore.articles[id]).filter((a): a is Article => a !== undefined)
+        },
+        lastActions(state): Article[] {
+            const articlesStore = useArticlesStore()
+            return state.lastActionIds.map(id => articlesStore.articles[id]).filter((a): a is Article => a !== undefined)
+        }
+    },
+
     actions: {
         // Load Articles
         async reload() {
-            this.articles = []
+            this.articleIds = []
             await this.fetchArticles()
         },
         async fetchArticles() {
             if (new Date(this.swipeLimit.lastSwiped).getDate() !== new Date().getDate()) {
                 this.resetSwipeLimit()
             }
-            if (this.articles.length >= STORED_ARTICLES) {
+            if (this.articleIds.length >= STORED_ARTICLES) {
                 this.status = ArticleStatus.READY
+                this.prefetchWindow()
                 return
             }
             this.status = ArticleStatus.LOADING
@@ -69,32 +82,60 @@ export const useHomeStore = defineStore({
             const feedsStore = useFeedStore()
             const response = await axios.get('/articles', {
                 params: {
-                    limit: STORED_ARTICLES + this.articles.length,
+                    limit: STORED_ARTICLES + this.articleIds.length,
                     categories: categoriesStore.selectedCategories.map(c => c.id),
                     feeds: feedsStore.filteredFeedList.map(f => f.id),
                     startDate: this.toISO8601(this.getStartDate()),
                     endDate: this.toISO8601(this.getEndDate())
                 }
             })
-            if (response.status === 200) {
-                for (const article of response.data) {
-                    if (!this.articles.find(a => a.id === article.id) && !this.lastActions.find(a => a.id === article.id)) {
-                        this.articles.push(article)
-                    }
+            const articlesStore = useArticlesStore()
+            articlesStore.upsertMany(response.data)
+            const known = new Set<string>([...this.articleIds, ...this.lastActionIds])
+            for (const article of response.data) {
+                if (!known.has(article.id)) {
+                    known.add(article.id)
+                    this.articleIds.push(article.id)
                 }
             }
-            if (this.articles.length < 1) {
+            if (this.articleIds.length < 1) {
                 this.status = ArticleStatus.OUT_OF_ARTICLES
             } else {
                 this.status = ArticleStatus.READY
             }
+            this.syncProtectedIds()
+            this.prefetchWindow()
+        },
+        syncProtectedIds() {
+            useArticlesStore().setProtectedIds('home', [...this.articleIds, ...this.lastActionIds])
+        },
+        prefetchWindow() {
+            const articlesStore = useArticlesStore()
+            if (!articlesStore.prefetchEnabled || this.articleIds.length === 0) {
+                return
+            }
+            const feedsStore = useFeedStore()
+            let candidateIds = this.articleIds.slice(0, STORED_ARTICLES)
+            if (feedsStore.feedList.length > 0) {
+                candidateIds = candidateIds.filter(id => {
+                    const feed = feedsStore.feedList.find(f => f.id === articlesStore.articles[id]?.feed?.id)
+                    return feed ? feed.openInApp : true
+                })
+            }
+            articlesStore.prefetch(candidateIds)
         },
         async _updateArticle(params: Partial<Article>) {
+            const articlesStore = useArticlesStore()
             const article = this.articles[0]
-            if (params.seen) {
-                this.articles.shift()
+            if (!article) {
+                return
             }
-            await axios.put(`/articles/${article.id}`, params)
+            if (params.seen) {
+                this.articleIds.shift()
+            }
+            await articlesStore.patch(article.id, params)
+            this.syncProtectedIds()
+            articlesStore.prune()
             this.fetchArticles()
         },
         // Digital Wellbeing: Swipe Limit
@@ -165,17 +206,26 @@ export const useHomeStore = defineStore({
         },
         // Revert Actions
         saveAction() {
-            this.lastActions.unshift(this.articles[0])
-            if (this.lastActions.length > 5) {
-                this.lastActions.pop()
+            const article = this.articles[0]
+            if (!article) {
+                return
             }
+            this.lastActionIds.unshift(article.id)
+            if (this.lastActionIds.length > 5) {
+                this.lastActionIds.pop()
+            }
+            this.syncProtectedIds()
         },
         revertAction() {
             this.removeSwipe()
-            if (this.lastActions.length === 0) {
+            if (this.lastActionIds.length === 0) {
                 return
             }
-            this.articles.unshift(this.lastActions.shift()!)
+            const revertedId = this.lastActionIds.shift()!
+            if (!this.articleIds.includes(revertedId)) {
+                this.articleIds.unshift(revertedId)
+            }
+            this.syncProtectedIds()
             this._updateArticle({
                 saved: false,
                 seen: false

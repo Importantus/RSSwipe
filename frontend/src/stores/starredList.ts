@@ -4,6 +4,7 @@ import { defineStore } from "pinia";
 import { Trash2 } from 'lucide-vue-next';
 import { Star } from 'lucide-vue-next';
 import { BookOpenCheck } from "lucide-vue-next";
+import { loadPersistedListIds, toStoredArticle, useArticlesStore } from "./articles";
 
 export enum StoreStatus {
     LOADING,
@@ -64,7 +65,7 @@ function getSwipeDirection(id: string) {
 export const useStarredListStore = defineStore({
     id: 'starred',
     state: () => ({
-        articles: JSON.parse(localStorage.getItem('starred') || '[]') as StoredArticle[],
+        articleIds: loadPersistedListIds('starred'),
         status: StoreStatus.LOADING,
         settingsStatus: StoreStatus.LOADING,
         removedArticles: [] as Article[],
@@ -74,76 +75,79 @@ export const useStarredListStore = defineStore({
         swipeRight: getSwipeDirection(JSON.parse(localStorage.getItem('swipeRight') || JSON.stringify(possibleSwipeDirections[2].id))) as SwipeDirection
     }),
 
+    getters: {
+        articles(state): StoredArticle[] {
+            return state.articleIds
+                .map(toStoredArticle)
+                .filter((a): a is StoredArticle => a !== undefined)
+                .sort((a, b) => {
+                    return new Date(b.articleInfo.dateSaved!).getTime() - new Date(a.articleInfo.dateSaved!).getTime()
+                })
+        }
+    },
+
     actions: {
         addArticleLocal(article: Article) {
-            if (this.articles.findIndex(a => a.articleInfo.id === article.id) === -1) {
-                this.articles.unshift({
-                    articleInfo: article
-                })
+            const articlesStore = useArticlesStore()
+            articlesStore.upsert(article)
+            if (!this.articleIds.includes(article.id)) {
+                this.articleIds.unshift(article.id)
             }
-            this.addContentToArticle(article)
+            this.persistIds()
         },
         removeArticleLocal(article: Article, undo = true) {
-            const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
+            const index = this.articleIds.indexOf(article.id)
+
             if (index !== -1) {
-                this.articles.splice(index, 1)
+                this.articleIds.splice(index, 1)
             }
+
             if (undo) {
                 this.removedArticles.push(article)
             }
-            localStorage.setItem('starred', JSON.stringify(this.articles))
+            this.persistIds()
         },
         unstarArticleLocal(article: Article, undo = true) {
-            const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
+            const index = this.articleIds.indexOf(article.id)
+
             if (index !== -1) {
-                this.articles.splice(index, 1)
+                this.articleIds.splice(index, 1)
             }
+
             if (undo) {
                 this.unstarredArticles.push(article)
-                console.log(this.unstarredArticles)
             }
-            localStorage.setItem('starred', JSON.stringify(this.articles))
+            this.persistIds()
         },
         async update() {
             this.status = StoreStatus.LOADING
-            const response = await axios.get('/starred')
-            if (response.status === 200) {
+
+            try {
+                const response = await axios.get('/starred')
                 const starredList = response.data as Article[]
-                for (const article of starredList) {
-                    this.addArticleLocal(article)
-                    this.articles[this.articles.findIndex(a => a.articleInfo.id === article.id)].articleInfo = article
-                }
-                for (const article of [...this.articles]) {
-                    const index = starredList.findIndex(a => a.id === article.articleInfo.id)
-                    if (index === -1) {
-                        this.removeArticleLocal(article.articleInfo, false)
+
+                const articlesStore = useArticlesStore()
+                articlesStore.upsertMany(starredList)
+
+                this.articleIds = starredList.map(a => a.id)
+
+                await articlesStore.loadBatch(this.articleIds)
+                for (const id of this.articleIds) {
+                    if (articlesStore.content[id] === null) {
+                        articlesStore.getContent(id).catch(error => {
+                            console.debug(`Failed to load content for article ${id}`, error)
+                        })
                     }
                 }
-                this.articles.sort((a, b) => {
-                    return new Date(b.articleInfo.dateSaved!).getTime() - new Date(a.articleInfo.dateSaved!).getTime()
-                })
+
                 this.status = StoreStatus.READY
-                localStorage.setItem('starred', JSON.stringify(this.articles))
-            } else {
-                console.log(response)
+            } catch (error) {
+                console.error(error)
                 this.status = StoreStatus.ERROR
-            }
-        },
-        async addContentToArticle(article: Article) {
-            const index = this.articles.findIndex(a => a.articleInfo.id === article.id)
-            if (index === -1 || this.articles[index].content) {
                 return
             }
-            const content = await this.getArticleContent(article)
-            console.log("Adding content to article " + article.title)
-            this.articles[this.articles.findIndex(a => a.articleInfo.id === article.id)].content = content
-            localStorage.setItem('starred', JSON.stringify(this.articles))
-        },
-        async getArticleContent(article: Article) {
-            const response = await axios.get(`/articles/${article.id}/content`)
-            if (response.status === 200) {
-                return response.data
-            }
+
+            this.persistIds()
         },
         async removeArticle(article: Article) {
             axios.delete(`/readinglist/articles`, {
@@ -167,22 +171,17 @@ export const useStarredListStore = defineStore({
             this.unstarArticleLocal(article)
         },
         async updateArticle(article: Article, input: ArticleUpdateInput) {
-            const response = await axios.put(`/articles/` + article.id, {
-                ...input
-            })
-            if (response.status === 200) {
-                this.articles[this.articles.findIndex(a => a.articleInfo.id === article.id)].articleInfo = response.data
-                localStorage.setItem('starred', JSON.stringify(this.articles))
-            } else {
-                console.log(response)
-            }
+            await useArticlesStore().patch(article.id, input)
         },
         async undoRemove() {
             if (this.removedArticles.length === 0) {
                 return
             }
+
             const lastRemovedArticle = this.removedArticles.pop()
+
             this.addArticleLocal(lastRemovedArticle!)
+
             axios.post(`/readinglist/articles`, {
                 id: lastRemovedArticle!.id
             })
@@ -194,18 +193,29 @@ export const useStarredListStore = defineStore({
             if (this.unstarredArticles.length === 0) {
                 return
             }
+
             const lastUnstarredArticle = this.unstarredArticles.pop()
+
             this.addArticleLocal(lastUnstarredArticle!)
+
             axios.post(`/starred/articles`, {
                 id: lastUnstarredArticle!.id
             })
         },
+        persistIds() {
+            localStorage.setItem('starred', JSON.stringify(this.articleIds))
+            const articlesStore = useArticlesStore()
+            articlesStore.setProtectedIds('starredList', [...this.articleIds])
+            articlesStore.schedulePersist()
+        },
         async loadSettings() {
             this.settingsStatus = StoreStatus.LOADING
-            const response = await axios.get('/settings')
-            if (response.status === 200) {
+            try {
+                const response = await axios.get('/settings')
                 this.settings = response.data
                 this.settingsStatus = StoreStatus.READY
+            } catch (error) {
+                console.error(error)
             }
         },
         setSwipeLeft(id: string) {

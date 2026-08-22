@@ -1098,6 +1098,47 @@
           }
         }
       }
+    },
+    "/articles/content": {
+      "post": {
+        "description": "Get the stored content of multiple articles. Ids without successfully extracted content map to null. No live extraction happens here.",
+        "tags": [
+          "article"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArticlesContentInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Map of article id to its content (same shape as the single content endpoint) or null",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticlesContentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidInputError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1477,6 +1518,36 @@
           "name": {
             "type": "string"
           }
+        }
+      },
+      "ArticlesContentInput": {
+        "type": "object",
+        "required": [
+          "ids"
+        ],
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "description": "Article ids, at most CONTENT_PREFETCH_MAX_IDS"
+          }
+        }
+      },
+      "ArticlesContentResponse": {
+        "type": "object",
+        "additionalProperties": {
+          "oneOf": [
+            {
+              "$ref": "#/components/schemas/ArticleContent"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },

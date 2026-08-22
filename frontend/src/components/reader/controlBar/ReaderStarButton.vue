@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import { Star } from 'lucide-vue-next';
-import { onMounted, ref } from 'vue';
+import { computed } from 'vue';
 import { useReaderStore } from '@/stores/reader';
 
 const store = useReaderStore()
-let starred = ref(false);
 
-onMounted(async () => {
-    starred.value = (await store.getStarStatus(store.storedArticles[0].articleInfo)) ?? false;
-});
+const starred = computed(() => !!store.storedArticles[0]?.articleInfo.starred);
 
 function toggleStar() {
-    store.setArticleStarred(store.storedArticles[0].articleInfo, !starred.value);
-    starred.value = !starred.value;
+    const article = store.storedArticles[0]?.articleInfo;
+    if (!article) return;
+    store.setArticleStarred(article, !starred.value);
 }
 </script>
 

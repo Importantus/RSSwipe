@@ -49,17 +49,47 @@ model FeedList {
 }
 
 model Article {
-  id             String        @id @default(uuid())
+  id             String          @id @default(uuid())
   title          String
-  link           String        @db.VarChar(1000)
-  imageUrl       String?       @db.VarChar(1000)
-  createdAt      DateTime      @default(now())
+  link           String          @db.VarChar(1000)
+  imageUrl       String?         @db.VarChar(1000)
+  createdAt      DateTime        @default(now())
   publishedAt    DateTime?
   feedId         String
   ArticleHasUser ArticleList[]
-  feed           Feed          @relation(fields: [feedId], references: [id])
+  content        ArticleContent?
+  feed           Feed            @relation(fields: [feedId], references: [id])
   categoryId     String?
-  category       Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  category       Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([feedId, publishedAt])
+}
+
+model ArticleContent {
+  articleId   String        @id
+  article     Article       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  title       String?       @db.VarChar(1000)
+  content     String?       @db.LongText
+  textContent String?       @db.LongText
+  excerpt     String?       @db.VarChar(1000)
+  byline      String?       @db.VarChar(500)
+  dir         String?       @db.VarChar(10)
+  siteName    String?       @db.VarChar(255)
+  lang        String?       @db.VarChar(20)
+  length      Int?
+
+  status      ContentStatus @default(PENDING)
+  attempts    Int           @default(0)
+  lastError   String?       @db.VarChar(500)
+  lastAttempt DateTime?
+  fetchedAt   DateTime?
+}
+
+enum ContentStatus {
+  PENDING
+  OK
+  FAILED
 }
 
 model Settings {
