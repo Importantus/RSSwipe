@@ -130,7 +130,7 @@ watch(() => store.storedArticleIds.join('|'), () => {
                 Article was opened in a new tab.
             </div>
             <div v-else-if="store.storedArticles[0] && store.storedArticles[0].content && store.storedArticles[0].articleInfo"
-                class="border-inherit">
+                class="border-inherit reader-content">
                 <div class="pt-5 border-b-2 border-inherit">
                     <div v-if="store.storedArticles[0].articleInfo.imageUrl"
                         class="w-full aspect-video bg-background-900 mb-5 rounded-md overflow-hidden">
@@ -185,6 +185,19 @@ watch(() => store.storedArticleIds.join('|'), () => {
 </template>
 
 <style>
+.reader-content {
+    animation: reader-content-in 0.3s ease;
+}
+
+@keyframes reader-content-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
 .family * {
     font-family: "Merriweather", serif;
 }

@@ -134,7 +134,7 @@ export const useStarredListStore = defineStore({
                 await articlesStore.loadBatch(this.articleIds)
                 for (const id of this.articleIds) {
                     if (articlesStore.content[id] === null) {
-                        articlesStore.getContent(id, { force: true }).catch(error => {
+                        articlesStore.getContent(id).catch(error => {
                             console.debug(`Failed to load content for article ${id}`, error)
                         })
                     }

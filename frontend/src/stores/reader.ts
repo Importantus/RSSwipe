@@ -136,7 +136,7 @@ export const useReaderStore = defineStore({
             this.openInApp = true
             const article = await this.getArticle(articleId)
             if (this.openInApp) {
-                useArticlesStore().getContent(article.id, { force: true }).catch(error => {
+                useArticlesStore().getContent(article.id).catch(error => {
                     console.debug(`Failed to load content for article ${article.id}`, error)
                 })
             }
