@@ -4,10 +4,19 @@ import APIError from "../helper/apiError";
 import { getPrismaClient } from "../prismaClient";
 import log, { Level, Scope } from "../helper/logger";
 import { getDomFromUrl } from "../helper/htmlParsing";
+import { buildOpml, parseOpml } from "../helper/opml";
+import { environment } from "../helper/environment";
+import type { Feed } from "@prisma/client";
 import { JSDOM } from "jsdom";
 
 
 const prisma = getPrismaClient();
+
+// MySQL VARCHAR(191) is the implicit limit for non-annotated string columns
+const MAX_TITLE_LENGTH = 191;
+
+// Maximum parallel metadata fetches after an OPML import
+const IMPORT_PARSE_CONCURRENCY = 5;
 
 
 export async function followFeed(userId: string, feedInput: FeedCreateInputType) {
@@ -224,4 +233,183 @@ async function getFeedByUrl(url: string) {
         }
     });
     return feed;
+}
+
+/**
+ * Exports all feeds a user follows as an OPML 2.0 document.
+ * @param userId The id of the user
+ */
+export async function exportFeedsAsOpml(userId: string): Promise<string> {
+    const feedLists = await prisma.feedList.findMany({
+        where: {
+            userId
+        },
+        include: {
+            feed: true
+        }
+    });
+
+    return buildOpml(feedLists.map(feedList => ({
+        title: feedList.feed.title,
+        link: feedList.feed.link,
+    })));
+}
+
+export type ImportResult = {
+    imported: number;
+    skipped: number;
+    failed: { url: string; reason: string }[];
+};
+
+/**
+ * Imports feeds from an OPML 2.0 document. Feed rows are created without any
+ * network access - the metadata is refreshed in the background after the
+ * response has been sent.
+ * @param userId The id of the user
+ * @param xml The OPML document
+ */
+export async function importFeedsFromOpml(userId: string, xml: string): Promise<ImportResult> {
+    let entries;
+    try {
+        entries = parseOpml(xml);
+    } catch (err: any) {
+        throw APIError.badRequest(err?.message ?? "Invalid OPML file");
+    }
+
+    const result: ImportResult = { imported: 0, skipped: 0, failed: [] };
+
+    if (entries.length === 0) {
+        return result;
+    }
+
+    const validEntries = entries.filter(entry => {
+        if (entry.xmlUrl.length > Number(environment.maxUrlLength)) {
+            result.failed.push({ url: entry.xmlUrl, reason: "URL too long" });
+            return false;
+        }
+        return true;
+    });
+
+    // Batch check which urls already exist in the database
+    const existingFeeds = await prisma.feed.findMany({
+        where: {
+            link: {
+                in: validEntries.map(entry => entry.xmlUrl)
+            }
+        }
+    });
+    const feedByLink = new Map(existingFeeds.map(feed => [feed.link, feed]));
+
+    // Batch check which of the existing feeds the user already follows
+    const followedFeedIds = new Set(
+        (
+            await prisma.feedList.findMany({
+                where: {
+                    userId,
+                    feedId: {
+                        in: existingFeeds.map(feed => feed.id)
+                    }
+                },
+                select: {
+                    feedId: true
+                }
+            })
+        ).map(follow => follow.feedId)
+    );
+
+    const createdFeeds: Feed[] = [];
+
+    for (const entry of validEntries) {
+        try {
+            let feed = feedByLink.get(entry.xmlUrl);
+
+            if (!feed) {
+                try {
+                    feed = await prisma.feed.create({
+                        data: {
+                            title: (entry.title || entry.xmlUrl).substring(0, MAX_TITLE_LENGTH),
+                            link: entry.xmlUrl,
+                        }
+                    });
+                    createdFeeds.push(feed);
+                } catch (err: any) {
+                    // The feed was created concurrently e.g. by another import
+                    if (err?.code !== "P2002") throw err;
+                    const existing = await getFeedByUrl(entry.xmlUrl);
+                    if (!existing) throw err;
+                    feed = existing;
+                }
+            }
+
+            if (followedFeedIds.has(feed.id)) {
+                result.skipped++;
+                continue;
+            }
+
+            if (!feed.active) {
+                await prisma.feed.update({
+                    where: {
+                        id: feed.id
+                    },
+                    data: {
+                        active: true
+                    }
+                });
+            }
+
+            try {
+                await prisma.feedList.create({
+                    data: {
+                        userId,
+                        feedId: feed.id
+                    }
+                });
+            } catch (err: any) {
+                // The user started following this feed concurrently
+                if (err?.code !== "P2002") throw err;
+                result.skipped++;
+                continue;
+            }
+
+            result.imported++;
+        } catch (err: any) {
+            log(`Error while importing feed ${entry.xmlUrl}: ${err}`, Scope.API, Level.ERROR);
+            result.failed.push({ url: entry.xmlUrl, reason: err?.message ?? "Unknown error" });
+        }
+    }
+
+    // Refresh the placeholder titles and fetch missing metadata only after the
+    // response has been sent. Errors are logged only - error_count handling
+    // happens inside parseFeedAndAddToDb.
+    runWithConcurrency(createdFeeds, IMPORT_PARSE_CONCURRENCY, async feed => {
+        try {
+            await parseFeedAndAddToDb(feed);
+        } catch (err) {
+            log(`Error while updating metadata of imported feed ${feed.title}: ${err}`, Scope.FEEDPARSER, Level.ERROR);
+        }
+    });
+
+    return result;
+}
+
+/**
+ * Runs an async worker over all items with a limited concurrency.
+ * @param items The items to process
+ * @param limit Maximum number of workers running at the same time
+ * @param worker The worker to run for each item
+ */
+async function runWithConcurrency<T>(items: T[], limit: number, worker: (item: T) => Promise<void>) {
+    let index = 0;
+
+    const runners = Array.from(
+        { length: Math.min(limit, items.length) },
+        async () => {
+            while (index < items.length) {
+                const item = items[index++];
+                await worker(item);
+            }
+        }
+    );
+
+    await Promise.all(runners);
 }

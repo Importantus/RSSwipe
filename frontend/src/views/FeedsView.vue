@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useFeedStore } from '@/stores/feeds';
+import type { ImportResult } from '@/stores/feeds';
 import FeedList from '@/components/feeds/feedPage/FeedPageList.vue';
 import TitleNavigationBar from '@/components/global/TitleNavigationBar.vue'
 import TextInputIcon from '@/components/global/TextInputField.vue'
-import { Link, X, Plus } from 'lucide-vue-next';
+import { Link, X, Plus, Upload, Download } from 'lucide-vue-next';
 
 const store = useFeedStore();
 
 const newFeedUrl = ref('');
 const openInApp = ref(true);
 const showModal = ref(false);
+const isImporting = ref(false);
+const importSummary = ref('');
+const fileInput = ref<HTMLInputElement>();
 const vFocus = {
   mounted: (el: HTMLElement) => el.querySelector("input")?.focus()
 }
@@ -24,6 +28,22 @@ const addNewFeed = async () => {
   showModal.value = false;
   await store.addFeed(shortenedURL, openInApp.value);
   newFeedUrl.value = '';
+};
+
+const importOpml = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = '';
+  if (!file) return;
+
+  isImporting.value = true;
+  const result: ImportResult | null = await store.importOpml(file);
+  isImporting.value = false;
+
+  if (result) {
+    importSummary.value = `${result.imported} imported, ${result.skipped} already subscribed, ${result.failed.length} failed`;
+    showModal.value = false;
+  }
 };
 
 </script>
@@ -50,11 +70,28 @@ const addNewFeed = async () => {
               :disabled="newFeedUrl.length === 0">
               Add Feed
             </button>
+            <hr class="border-secondary-700 my-4" />
+            <input ref="fileInput" type="file" accept=".opml,.xml,text/xml" class="hidden" @change="importOpml" />
+            <div class="flex gap-2 mb-2">
+              <button type="button"
+                class="w-full h-14 bg-secondary-800 rounded-lg hover:bg-secondary-700 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="isImporting" @click="fileInput?.click()">
+                <Upload :size="20" />
+                {{ isImporting ? 'Importing…' : 'Import OPML' }}
+              </button>
+              <button type="button"
+                class="w-full h-14 bg-secondary-800 rounded-lg hover:bg-secondary-700 transition flex items-center justify-center gap-2"
+                @click="store.exportOpml()">
+                <Download :size="20" />
+                Export OPML
+              </button>
+            </div>
           </form>
         </div>
       </div>
     </Transition>
-    <div v-if="store.error">
+    <div v-if="store.error || importSummary">
+      <div v-if="importSummary" class="w-full bg-green-600 rounded-lg p-3 z-10 mb-5">{{ importSummary }}</div>
       <div v-if="store.error" class="w-full bg-red-500 rounded-lg p-3 z-10 mb-5">{{ store.error }}</div>
     </div>
     <FeedList class="pb-20" />

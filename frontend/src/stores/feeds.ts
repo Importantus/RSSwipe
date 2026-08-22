@@ -20,6 +20,25 @@ export interface FeedItem {
     description?: string
 }
 
+export interface ImportResult {
+    imported: number,
+    skipped: number,
+    failed: { url: string, reason: string }[]
+}
+
+// Error responses are Blobs when the request used responseType 'blob'
+async function getErrorMessage(error: any, fallback: string): Promise<string> {
+    const data = error.response?.data
+    if (data instanceof Blob) {
+        try {
+            return JSON.parse(await data.text()).message ?? fallback
+        } catch {
+            return fallback
+        }
+    }
+    return data?.message ?? fallback
+}
+
 export const useFeedStore = defineStore("feedList", {
     state: () => ({
         feedList: [] as FeedItem[],
@@ -86,6 +105,43 @@ export const useFeedStore = defineStore("feedList", {
             await axios.delete(`/feeds/${id}`)
             this.getFeedList()
             this.state = StoreStatus.READY
+        },
+        async exportOpml(): Promise<void> {
+            this.state = StoreStatus.LOADING
+            this.error = ""
+            try {
+                const response = await axios.get('/feeds/export', { responseType: 'blob' })
+                const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/x-opml' }))
+                const link = document.createElement('a')
+                link.href = url
+                link.download = 'feeds.opml'
+                link.click()
+                window.URL.revokeObjectURL(url)
+            } catch (error: any) {
+                this.error = await getErrorMessage(error, "Export failed")
+                console.log(this.error)
+            }
+            this.state = StoreStatus.READY
+        },
+        async importOpml(file: File): Promise<ImportResult | null> {
+            this.state = StoreStatus.LOADING
+            this.error = ""
+            let result: ImportResult | null = null
+            try {
+                const xml = await file.text()
+                const response = await axios.post('/feeds/import', xml, {
+                    headers: {
+                        'Content-Type': 'text/xml'
+                    }
+                })
+                result = response.data
+                await this.getFeedList()
+            } catch (error: any) {
+                this.error = await getErrorMessage(error, "Import failed")
+                console.log(this.error)
+            }
+            this.state = StoreStatus.READY
+            return result
         },
         async toggleOpenInApp(id: string) {
             const item = this.feedList.find(item => item.id === id)
