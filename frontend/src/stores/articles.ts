@@ -26,6 +26,20 @@ function isStoredArticle(value: unknown): value is StoredArticle {
     return isPlainObject(articleInfo) && typeof articleInfo.id === 'string'
 }
 
+/**
+ * The batch endpoint returns bare content payloads while the single endpoint
+ * (and the local persistence format) wraps them in a `content` object.
+ * Normalize everything to the wrapped ArticleContent shape; invalid values become null.
+ */
+function normalizeArticleContent(value: unknown): ArticleContent | null {
+    if (!isPlainObject(value)) return null
+    if (isPlainObject(value.content)) return value as unknown as ArticleContent
+    if (typeof value.content === 'string') {
+        return { content: value as unknown as ArticleContent['content'] }
+    }
+    return null
+}
+
 function mergeDefined(target: Article, source: Partial<Article>) {
     const record = target as unknown as Record<string, unknown>
     for (const [key, value] of Object.entries(source)) {
@@ -37,10 +51,14 @@ function mergeDefined(target: Article, source: Partial<Article>) {
 function loadPersistedStore(): { articles: Record<string, Article>; content: Record<string, ArticleContent | null> } {
     try {
         const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
-        return {
-            articles: (isPlainObject(parsed?.articles) ? parsed.articles : {}) as Record<string, Article>,
-            content: (isPlainObject(parsed?.content) ? parsed.content : {}) as Record<string, ArticleContent | null>
+        const articles = (isPlainObject(parsed?.articles) ? parsed.articles : {}) as Record<string, Article>
+        const content: Record<string, ArticleContent | null> = {}
+        if (isPlainObject(parsed?.content)) {
+            for (const [id, value] of Object.entries(parsed.content)) {
+                content[id] = normalizeArticleContent(value)
+            }
         }
+        return { articles, content }
     } catch {
         return { articles: {}, content: {} }
     }
@@ -154,7 +172,7 @@ export const useArticlesStore = defineStore({
                     const response = await axios.post('/articles/content', { ids: chunk })
                     for (const [id, content] of Object.entries(response.data)) {
                         if (!hasKey(this.content, id)) {
-                            this.content[id] = content as ArticleContent | null
+                            this.content[id] = normalizeArticleContent(content)
                         }
                     }
                 } catch (error) {
@@ -244,7 +262,7 @@ export function migrateLegacyArticleStorage() {
         for (const stored of legacy) {
             store.upsert(stored.articleInfo)
             if (stored.content && !hasKey(store.content, stored.articleInfo.id)) {
-                store.content[stored.articleInfo.id] = stored.content
+                store.content[stored.articleInfo.id] = normalizeArticleContent(stored.content)
             }
             if (!migratedIds.includes(stored.articleInfo.id)) {
                 migratedIds.push(stored.articleInfo.id)
