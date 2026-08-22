@@ -104,7 +104,7 @@ export const useReadingListStore = defineStore({
                 await articlesStore.loadBatch(this.articleIds)
                 for (const id of this.articleIds) {
                     if (articlesStore.content[id] === null) {
-                        articlesStore.getContent(id).catch(error => {
+                        articlesStore.getContent(id, { force: true }).catch(error => {
                             console.debug(`Failed to load content for article ${id}`, error)
                         })
                     }

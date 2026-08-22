@@ -130,8 +130,8 @@ export const useArticlesStore = defineStore({
                 throw error
             }
         },
-        async getContent(id: string): Promise<ArticleContent | null> {
-            if (hasKey(this.content, id)) return this.content[id]
+        async getContent(id: string, { force = false }: { force?: boolean } = {}): Promise<ArticleContent | null> {
+            if (!force && hasKey(this.content, id)) return this.content[id]
             const pending = pendingContentRequests.get(id)
             if (pending) return pending
             const request = axios.get(`/articles/${id}/content`).then(response => {
