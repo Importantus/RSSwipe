@@ -5,11 +5,18 @@ import { defineStore } from "pinia";
 const STORAGE_KEY = 'articlesStore'
 const PREFETCH_STORAGE_KEY = 'prefetchContent'
 export const CONTENT_BATCH_SIZE = 50
-const MAX_CACHED_ARTICLES = 500
+const MAX_CACHED_ARTICLES = 50
+const MAX_PROTECTED_IDS = 40
 const PERSIST_DEBOUNCE_MS = 250
 
 const pendingArticleRequests = new Map<string, Promise<Article>>()
 const pendingContentRequests = new Map<string, Promise<ArticleContent | null>>()
+
+interface PersistedStore {
+    version: number
+    articles: Record<string, Article>
+    content: Record<string, ArticleContent | null>
+}
 
 let persistTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -193,19 +200,14 @@ export const useArticlesStore = defineStore({
             this.protectedIds[owner] = ids
         },
         prune(keepIds: string[] = []) {
-            const keep = new Set(keepIds)
-            for (const ids of Object.values(this.protectedIds)) {
-                for (const id of ids) keep.add(id)
-            }
+            const keep = this.keepIds()
+            for (const id of keepIds) keep.add(id)
             for (const id of Object.keys(this.content)) {
                 if (!keep.has(id)) {
                     delete this.content[id]
                 }
             }
             const allIds = Object.keys(this.articles)
-            if (allIds.length <= MAX_CACHED_ARTICLES) {
-                return
-            }
             let excess = allIds.length - MAX_CACHED_ARTICLES
             for (const id of allIds) {
                 if (excess <= 0 || keep.has(id)) continue
@@ -224,10 +226,7 @@ export const useArticlesStore = defineStore({
             }, PERSIST_DEBOUNCE_MS)
         },
         persistNow() {
-            const keep = new Set<string>()
-            for (const ids of Object.values(this.protectedIds)) {
-                for (const id of ids) keep.add(id)
-            }
+            const keep = this.keepIds()
             const articles: Record<string, Article> = {}
             for (const id of Object.keys(this.articles)) {
                 if (keep.has(id)) articles[id] = this.articles[id]
@@ -236,7 +235,72 @@ export const useArticlesStore = defineStore({
             for (const id of Object.keys(this.content)) {
                 if (keep.has(id)) content[id] = this.content[id]
             }
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, articles, content }))
+            this.writeStore({ version: 1, articles, content }, keep)
+        },
+        /**
+         * Ids that must survive a prune. Every owner contributes at most
+         * MAX_PROTECTED_IDS entries, so persistent lists (starred, readinglist)
+         * can grow arbitrarily long without blowing up the cache.
+         */
+        keepIds() {
+            const keep = new Set<string>()
+            for (const ids of Object.values(this.protectedIds)) {
+                for (const id of ids.slice(0, MAX_PROTECTED_IDS)) keep.add(id)
+            }
+            return keep
+        },
+        /**
+         * textContent is never rendered, so it is dropped on write. When the
+         * quota is exceeded anyway the cache degrades step by step (shrink,
+         * then drop content, then drop articles) instead of failing every
+         * future write with a QuotaExceededError.
+         */
+        writeStore(payload: PersistedStore, keep: Set<string>) {
+            const slim = { ...payload, content: this.stripTextContent(payload.content) }
+            if (this.setItem(slim)) return
+            const articles = this.shrinkArticles(slim.articles, keep, 10)
+            if (this.setItem({ ...slim, articles })) return
+            if (this.setItem({ ...slim, articles: {}, content: {} })) return
+        },
+        /**
+         * Copies content without textContent. The in-memory cache keeps it,
+         * only the persisted copy loses the field.
+         */
+        stripTextContent(content: Record<string, ArticleContent | null>) {
+            const result: Record<string, ArticleContent | null> = {}
+            for (const [id, value] of Object.entries(content)) {
+                if (value === null) {
+                    result[id] = null
+                    continue
+                }
+                const { textContent: _dropped, ...rest } = value.content
+                result[id] = { content: rest as ArticleContent['content'] }
+            }
+            return result
+        },
+        /** Keeps the newest `limit` protected articles, dropping the rest first. */
+        shrinkArticles(articles: Record<string, Article>, keep: Set<string>, limit: number) {
+            const ids = Object.keys(articles)
+            if (ids.length <= limit) return articles
+            const retained = new Set(ids.slice(0, limit))
+            for (const id of ids) {
+                if (!keep.has(id) || retained.has(id)) continue
+                retained.delete(id)
+                if (retained.size <= limit) break
+            }
+            const result: Record<string, Article> = {}
+            for (const id of ids) {
+                if (retained.has(id)) result[id] = articles[id]
+            }
+            return result
+        },
+        setItem(payload: PersistedStore) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+                return true
+            } catch {
+                return false
+            }
         }
     }
 })

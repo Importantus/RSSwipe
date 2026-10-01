@@ -10,29 +10,34 @@ const prisma = getPrismaClient();
 export async function getArticles(userId: string, query: GetArticlesQueryType) {
     let { limit, feeds, categories, startDate, endDate } = query;
 
-    if (!feeds) {
-        const feedList = await prisma.feedList.findMany({
-            where: {
-                userId: userId
-            }
-        });
-
-        feeds = feedList?.map(feed => feed.feedId) ?? [];
-    }
-
     if (!categories) {
         categories = [];
     }
 
     const where: any[] = [];
 
-    where.push({
-        feed: {
-            id: {
-                in: feeds
+    // Without an explicit feed selection, filter by the user's subscriptions
+    // directly instead of loading every feedId first. Same result, one roundtrip
+    // less and no large IN list.
+    if (feeds) {
+        where.push({
+            feed: {
+                id: {
+                    in: feeds
+                }
             }
-        }
-    });
+        });
+    } else {
+        where.push({
+            feed: {
+                UserHasFeed: {
+                    some: {
+                        userId: userId
+                    }
+                }
+            }
+        });
+    }
 
     if (categories.length !== 0) {
         where.push({
@@ -146,6 +151,17 @@ export async function getArticles(userId: string, query: GetArticlesQueryType) {
     return articles;
 }
 
+const articleListSelect = {
+    read: true,
+    saved: true,
+    starred: true,
+    seen: true,
+    dateRead: true,
+    dateSaved: true,
+    dateStar: true,
+    dateSeen: true
+} as const;
+
 export async function getArticle(userId: string, articleId: string) {
     const article = await prisma.article.findUnique({
         where: {
@@ -167,6 +183,12 @@ export async function getArticle(userId: string, articleId: string) {
                     faviconUrl: true,
                     description: true
                 }
+            },
+            // Fetch the user's state in the same roundtrip as the article.
+            ArticleHasUser: {
+                where: { userId },
+                take: 1,
+                select: articleListSelect
             }
         },
     });
@@ -175,17 +197,11 @@ export async function getArticle(userId: string, articleId: string) {
         throw APIError.notFound();
     }
 
-    const articleList = await prisma.articleList.findUnique({
-        where: {
-            articleId_userId: {
-                userId,
-                articleId
-            }
-        }
-    });
+    const { ArticleHasUser, ...fields } = article;
+    const articleList = ArticleHasUser[0];
 
     return {
-        ...article,
+        ...fields,
         read: articleList?.read ?? false,
         saved: articleList?.saved ?? false,
         starred: articleList?.starred ?? false,
@@ -198,9 +214,18 @@ export async function getArticle(userId: string, articleId: string) {
 }
 
 export async function updateArticle(userId: string, articleId: string, input: ArticleUpdateInputType) {
+    // Existence check and the user's current state come from one query.
     const article = await prisma.article.findUnique({
         where: {
             id: articleId
+        },
+        select: {
+            id: true,
+            ArticleHasUser: {
+                where: { userId },
+                take: 1,
+                select: articleListSelect
+            }
         }
     });
 
@@ -208,14 +233,7 @@ export async function updateArticle(userId: string, articleId: string, input: Ar
         throw APIError.notFound();
     }
 
-    let articleList = await prisma.articleList.findUnique({
-        where: {
-            articleId_userId: {
-                userId,
-                articleId
-            }
-        }
-    });
+    const articleList = article.ArticleHasUser[0];
 
     if (input.read) {
         const settings = await prisma.settings.findFirst({
