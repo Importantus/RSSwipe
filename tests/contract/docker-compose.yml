@@ -53,10 +53,12 @@ services:
 
   ts-feedparser:
     profiles: [ts-jobs]
+    image: rsswipe-ts:contract
     environment: { <<: *backend-env, SERVICE_TYPE: feedParser }
     restart: "no"
 
   ts-gc:
     profiles: [ts-jobs]
+    image: rsswipe-ts:contract
     environment: { <<: *backend-env, SERVICE_TYPE: garbageCollector }
     restart: "no"

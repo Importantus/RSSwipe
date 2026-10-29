@@ -39,9 +39,9 @@ def site_home():
     return page("Fixture Site", "<p>Welcome</p>", head)
 
 
-def rss(n):
+def rss(n, step=1):
     items = "".join(f"""<item><title>Item {i}</title><link>{BASE}/article/{i}</link>
-<guid>{BASE}/article/{i}</guid><pubDate>{rfc822(i)}</pubDate><description>Summary {i}</description></item>""" for i in range(1, n + 1))
+<guid>{BASE}/article/{i}</guid><pubDate>{rfc822(i * step)}</pubDate><description>Summary {i}</description></item>""" for i in range(1, n + 1))
     return f"""<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Fixture RSS</title>
 <link>{BASE}/site</link><description>Fixture feed</description>{items}</channel></rss>"""
 
@@ -93,7 +93,7 @@ class H(BaseHTTPRequestHandler):
         if p in ("/site", "/site/"):
             return self.send(200, site_home())
         if p == "/feed/rss.xml":
-            return self.send(200, rss(n), "application/rss+xml; charset=utf-8")
+            return self.send(200, rss(n, int(q.get("step", ["1"])[0])), "application/rss+xml; charset=utf-8")
         if p == "/feed/atom.xml":
             return self.send(200, atom(n), "application/atom+xml; charset=utf-8")
         if p == "/feed/rdf.xml":
@@ -104,6 +104,11 @@ class H(BaseHTTPRequestHandler):
             return self.send(200, "<rss><channel><title>oops", "application/rss+xml")
         if p == "/feed/redirect":
             return self.send(302, "", headers={"Location": "/feed/rss.xml"})
+        if p == "/site-rel/":
+            head = '<link rel="alternate" type="application/rss+xml" href="rss.xml">'
+            return self.send(200, page("Relative", "<p>x</p>", head))
+        if p == "/site-rel/rss.xml":
+            return self.send(200, rss(n), "application/rss+xml; charset=utf-8")
         if p.startswith("/article/"):
             return self.send(200, article_page(int(p.rsplit("/", 1)[1])))
         if p == "/pdf":

@@ -25,7 +25,11 @@ Auswirkung: 🔴 Client muss/sollte angepasst werden · 🟡 Verhalten ändert s
 | S1 | `POST/DELETE /v1/starred/:article` | Antwort kann alten Zustand zeigen (Race, B3) | Antwort zeigt neuen Zustand | 🟢 |
 | F1 | `POST /v1/feeds` | `openInApp` ignoriert (B4) | wird gespeichert | 🟢 |
 | F2 | `POST /v1/feeds` | relative Feed-URL aus `<link rel=alternate>` unverändert gespeichert (B10) | gegen Seiten-URL aufgelöst | 🟢 |
-| A2 | `GET /v1/articles` | `limit` fehlt/ungültig → Verhalten undefiniert (B8, in Phase 3 gemessen) | definiert: Zahl 1–100, sonst 400 | 🟡 |
+| A2 | `GET /v1/articles` | `limit` fehlt oder ist keine Zahl → **500** mit Prisma-Text; `-1` → 200 `[]` | fehlt → Default 50; keine Ganzzahl ≥ 0 → 400; max. 1000 | 🟡 |
+| SE1 | `PUT /v1/settings` | Kommazahlen werden still zu Ganzzahlen gekürzt (`1.5` → `1`) | Nicht-Ganzzahlen → 400 | 🟢 |
+| V1 | `GET /v1/articles` (`startDate`/`endDate`) | Nicht existierende Tage wie `2023-02-31` werden akzeptiert (V8-Überlauf) | → 400 | 🟢 |
+| F3 | Feed-`description` | Ohne Feed-Beschreibung endet sie auf `" - "` (`Seitenbeschreibung - `) | ohne Trennzeichen | 🟢 |
+| F4 | `POST /v1/feeds` | Seite verweist auf bereits bekannten Feed einer anderen Person → 400 `Invalid feed url` (Unique-Verletzung, B15) | bestehender Feed wird wiederverwendet, 200 | 🟡 |
 | ST1 | `GET /v1/statistics/recent` | Tageszuordnung über Tag-im-Monat (B9) | UTC-Kalendertag | 🟡 Zahlen bei ≥ 28 Tagen |
 | D1 | `GET /v1/api-docs` | statische `openapi.json`, teils veraltet (B14) | aus den Handlern generiert, + `/v1/api-docs/openapi.json` | 🟢 |
 
