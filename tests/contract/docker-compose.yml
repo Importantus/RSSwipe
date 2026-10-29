@@ -1,0 +1,62 @@
+# Reproducible environment for the black-box contract tests.
+# Mirrors production: mariadb:10.5, same env values as rsswipe-deployment/backend/configMap.yml.
+#
+#   docker compose --profile ts up -d --build      # TypeScript reference (backend from the current checkout)
+#   docker compose --profile rust up -d --build    # Rust implementation
+#
+# TS on :18080, Rust on :18081, fake publisher on :19000, DB on :13306.
+name: rsswipe-contract
+
+x-backend-env: &backend-env
+  DATABASE_URL: mysql://root:test@db:3306/rsswipe
+  JWT_SECRET: contract-test-secret
+  JWT_EXPIRATION: 365d
+  MAX_CONTENT_LENGTH: "8000000"
+  MAX_FEED_ERROR_COUNT: "99"
+  EXTERNAL_CRONJOB: "true"
+
+services:
+  db:
+    image: mariadb:10.5
+    environment:
+      MYSQL_ROOT_PASSWORD: test
+      MYSQL_DATABASE: rsswipe
+    ports: ["13306:3306"]
+    tmpfs: [/var/lib/mysql]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-ptest"]
+      interval: 2s
+      retries: 30
+
+  publisher:
+    image: python:3.13-alpine
+    command: ["python", "-u", "/app/server.py"]
+    volumes: ["./publisher:/app:ro"]
+    ports: ["19000:9000"]
+
+  # --- TypeScript reference ---------------------------------------------------
+  ts-migrate:
+    profiles: [ts]
+    build: ../../backend
+    image: rsswipe-ts:contract
+    command: ["npm", "run", "migrate:deploy"]
+    environment: { DATABASE_URL: "mysql://root:test@db:3306/rsswipe" }
+    depends_on: { db: { condition: service_healthy } }
+    restart: "no"
+
+  ts-api:
+    profiles: [ts]
+    image: rsswipe-ts:contract
+    environment: { <<: *backend-env, SERVICE_TYPE: api }
+    ports: ["18080:8080"]
+    depends_on: { ts-migrate: { condition: service_completed_successfully } }
+
+  ts-feedparser:
+    profiles: [ts-jobs]
+    environment: { <<: *backend-env, SERVICE_TYPE: feedParser }
+    restart: "no"
+
+  ts-gc:
+    profiles: [ts-jobs]
+    environment: { <<: *backend-env, SERVICE_TYPE: garbageCollector }
+    restart: "no"
