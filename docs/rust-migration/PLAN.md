@@ -8,7 +8,7 @@ Status: **Entwurf zur Freigabe.** Am Ende stehen die Punkte, die ich von dir bes
 1. Request/Response-Formate bleiben kompatibel; **bewusste Abweichungen** (Fehlerformat, Bugfixes, entfernte Klassifikation, entfallene Express-Header) sammle ich zentral in `docs/rust-migration/API-CHANGES.md`, sortiert nach Auswirkung auf Clients. Interne Bugfixes ohne Außenwirkung stehen in `BUGFIXES.md`.
 2. Daten bleiben erhalten; Schemaänderungen nur als automatische, datenerhaltende, idempotente Migrationen.
 3. MariaDB bleibt. Es gibt keinen Grund zum Wechsel.
-4. Das Deployment (`rsswipe-deployment` + CI in diesem Repo) funktioniert **ohne Änderung**. Die heutige Außenschnittstelle des Images ist (aus Inventar §12): Default-`CMD` mit `SERVICE_TYPE`, Port 8080, `GET /` als Probe, `npm run migrate:deploy`, Image-Name/Tag, Build-Context `./backend`.
+4. Das Deployment funktioniert nach dem Merge ohne manuelles Eingreifen. Die Außenschnittstelle des Images bleibt (Inventar §12): Default-`CMD` mit `SERVICE_TYPE`, Port 8080, `GET /` als Probe, Image-Name/Tag, Build-Context `./backend`. **Einzige Änderung im `rsswipe-deployment`** (von dir freigegeben): Migrations-Command `npm run migrate:deploy` → `rsswipe migrate`, `NODE_OPTIONS` entfällt. Lokal committet, **nicht gepusht**, bis die App-Änderungen gemergt sind.
 5. Kein Parallelbetrieb. Nach dem Merge ersetzt Rust das TS-Backend komplett.
 
 ## 1. Technologie-Entscheidungen
@@ -84,13 +84,10 @@ Die Subcommand-Form (`rsswipe serve|feed-parser|garbage-collector|migrate`) komm
 - `_prisma_migrations` bleibt **unangetastet** (nur gelesen). Sie wird nicht gelöscht; ein späterer Aufräumschritt wäre eine eigene, bewusste Migration. Rollback auf das alte TS-Image bleibt damit möglich, solange nur additive Migrationen (0002+) gelaufen sind.
 - Locking: `sqlx` nutzt `GET_LOCK` (MySQL-Advisory-Lock), parallele Starter warten aufeinander. Die Migrationen sind klein, additive DDL.
 
-### 3.2 Wann Migrationen laufen
-Bisher: CI-Job `restart-deployments` erzeugt `rsswipe-migration-run` aus dem CronJob-Template und wartet 120 s; der Job führt `npm run migrate:deploy` im Backend-Image aus.
-
-Plan, damit nichts im Deployment geändert werden muss:
-- **Kompatibilitäts-Shim im Image:** ein kleines Shell-Skript `/usr/local/bin/npm`, das `npm run migrate:deploy` (und `start`/`serve`) auf `rsswipe migrate` bzw. `rsswipe` abbildet und bei allem anderen mit klarer Meldung ≠ 0 endet. Der unveränderte CronJob läuft damit weiter und erhält denselben Erfolgs-/Fehler-Exitcode. `DATABASE_URL` ist, wie heute, die einzige nötige Variable (`JWT_SECRET` ist für `migrate` nicht erforderlich).
-- **Zusätzlich** wenden `SERVICE_TYPE=api` und `all` ausstehende Migrationen beim Start an (idempotent, unter Lock). Das schließt die Lücke aus F3 für Docker-Compose-Nutzer und macht den Rollout robust, falls der CronJob einmal nicht lief. Die Job-Services (`feedParser`, `garbageCollector`) migrieren nicht, sie prüfen nur, ob das Schema aktuell ist, und brechen sonst mit klarer Meldung ab.
-- Optionaler Folgeschritt (nur mit deiner Zustimmung): im Deployment-Repo `command: ["npm","run","migrate:deploy"]` durch `["rsswipe","migrate"]` ersetzen und den Shim später entfernen.
+### 3.2 Wann Migrationen laufen (entschieden)
+- Migrationen laufen **nur** im bisherigen CI-Schritt (Job aus `rsswipe-migration-template`), nicht bei jedem Pod-Start. Der Job führt künftig `rsswipe migrate` aus (Änderung in `rsswipe-deployment/backend/migrate-job.yml`). Das Binary liegt unter `/usr/local/bin/rsswipe` im PATH. Es gibt **keinen** `npm`-Shim.
+- `api`/`all`/Jobs migrieren nicht. Sie prüfen beim Start nur, ob das Schema zum Binary passt (letzte Migration in `_sqlx_migrations`), und loggen eine **Warnung**, wenn nicht. Sie brechen nicht ab.
+- Docker-Compose-Nutzer (F3): in `docker/docker-compose.yml` kommt ein One-Shot-Service `migrate` (`command: rsswipe migrate`), von dem `backend` abhängt. Das ist eine Repo-interne Änderung und ändert nichts am K8s-Deployment.
 
 ### 3.3 Schemaverbesserungen (jeweils eigene, additive Migration; alle datenerhaltend)
 | Migration | Inhalt | Effekt nach außen |
@@ -123,16 +120,16 @@ Weitere geplante Abweichungen:
 - Unerwartete Fehler → 500 `{"message":"Internal server error","code":"internal_error"}` ohne Interna.
 - `POST /starred/:article` / `DELETE`: Antwort enthält den **aktualisierten** Zustand (B3). Der Pfadparameter wird weiter ignoriert, `id` kommt aus dem Body (Frontend-Verhalten bleibt). Als Zusatz ist zulässig, dass `:article` statt Body-`id` verwendet wird, falls der Body fehlt (neu, nicht Pflicht).
 - `POST /feeds` übernimmt `openInApp` (B4).
-- `GET /articles`: `feeds` wird auf die vom User abonnierten Feeds begrenzt, fremde IDs werden ignoriert (B7); fehlendes/ungültiges `limit` → klare 400-Meldung bzw. definierter Default (wird in Phase 3 gegen das Ist-Verhalten gemessen und dokumentiert, B8). `limit` wird als Zahl 1–100 validiert.
+- `GET /articles`: `feeds` bleibt **unbeschränkt** (jede Feed-ID abfragbar, bewusst: Artikel, die jemand anderes teilt, sollen öffnbar sein); fehlendes/ungültiges `limit` → klare 400-Meldung bzw. definierter Default (wird in Phase 3 gegen das Ist-Verhalten gemessen und dokumentiert, B8). `limit` wird als Zahl 1–100 validiert.
 - `GET /statistics/recent`: Tageszuordnung nach UTC-Kalendertag statt „Tag im Monat" (B9). Struktur gleich, Zahlen bei Zeiträumen ≥ 28 Tage jetzt korrekt.
 - `POST /feeds`: gefundene Feed-URL wird gegen die Seiten-URL aufgelöst (B10).
-- `GET /articles/:id/content`: Zugriff nur auf Artikel der Feeds, denen der User folgt (B13). Das ist die größte Verhaltensänderung bei Zugriffsrechten, siehe Q6.
-- **Klassifikation entfernt:** `GET /categories` liefert weiter `[]`; Artikel behalten das Feld `category` (immer `null`); der Query-Parameter `categories` bleibt akzeptiert und wirkt nicht (leere Filterliste). So müssen Clients nichts ändern. (Q4.)
+- `GET /articles/:id/content`: Zugriff bleibt für alle angemeldeten User auf jeden Artikel (bewusst, wegen geteilter Artikel).
+- **Klassifikation entfernt (nur der Job):** `GET /categories` liefert weiter `[]`, außer `ENABLE_FEED_CLASSIFICATION=true`; dann werden die vorhandenen `Category`-Zeilen ausgegeben. `category` in Artikeln und der Query-Parameter `categories` funktionieren unverändert auf den vorhandenen Daten. Es werden nur keine neuen Kategorien mehr vergeben.
 - Express-Header entfallen (`X-Powered-By`, `ETag`/304-Verhalten). Es gibt weiter `Content-Type: application/json`, `Content-Length`, CORS-Header. Pfade sind **case-sensitive**; Trailing Slash bleibt tolerant.
 - `OPTIONS`/CORS: `Access-Control-Allow-Origin: *`, Methoden und Header wie bisher.
 - `/v1/system`: gleiche Felder und Typen (Intervalle bleiben Strings), `version` aus `Cargo.toml` (`1.0.0`).
 - `/v1/api-docs`: Swagger UI mit generierter Spec; zusätzlich `/v1/api-docs/openapi.json`.
-- Auth: `Authorization`-Header muss künftig `Bearer <token>` sein, bis Q5 geklärt ist, tolerant: beliebiges Schema mit Token wie bisher (Standard: tolerant, keine Änderung).
+- Auth: `Authorization`-Header bleibt tolerant (beliebiges Schema, zweites Token wird als JWT gelesen).
 
 ## 5. Contract-Test-Suite (Phase 3)
 
@@ -166,16 +163,15 @@ Nach jedem Schritt: kleiner Commit; Contract-Tests der jeweiligen Gruppe grün.
 
 | Datei | Änderung | Warum von außen identisch |
 |---|---|---|
-| `backend/Dockerfile` | Stage 1 `rust:1-bookworm` (mit `cargo-chef`-Cache, `SQLX_OFFLINE=true`, `--release`, `strip`, LTO), Stage 2 `debian:bookworm-slim` + `ca-certificates`, Non-root-User; Dateien: `/app/rsswipe`, Shim `/usr/local/bin/npm`; `ENV TZ=UTC`; `EXPOSE 8080`; `CMD ["/app/rsswipe"]` | gleicher Pfad, gleicher Build-Context, `SERVICE_TYPE` steuert wie bisher, Port 8080, `npm run migrate:deploy` funktioniert, kein `command` im Deployment nötig |
+| `backend/Dockerfile` | Stage 1 `rust:1-bookworm` (mit `cargo-chef`-Cache, `SQLX_OFFLINE=true`, `--release`, `strip`, LTO), Stage 2 `debian:bookworm-slim` + `ca-certificates`, Non-root-User; Binary `/usr/local/bin/rsswipe`; `ENV TZ=UTC`; `EXPOSE 8080`; `CMD ["/app/rsswipe"]` | gleicher Pfad, gleicher Build-Context, `SERVICE_TYPE` steuert wie bisher, Port 8080, kein `command` im Deployment nötig außer dem Migrations-Job |
 | `.github/workflows/build-deploy.yml` | **keine Änderung** | Build-Context `./backend`, Tag `ghcr.io/importantus/rsswipe-backend:main` bleiben |
 | `docker/docker-compose.yml` | keine Änderung nötig (Image + Env gleich; Migration jetzt zusätzlich beim API-Start) | |
 | `docker-compose.yml` (Root, Dev) | Backend-Service wechselt von `node:20 … npm run dev` auf einen Rust-Dev-Container (`cargo watch`/`cargo run`) | nur Entwickler-Setup, nicht Deployment |
-| `backend/package.json`, `package-lock.json`, `tsconfig.json`, `src/`, `prisma/`, `static/`, `openapi.json` | werden in Phase 6 **gelöscht**, sobald alles grün ist. Es bleibt **kein** `package.json` im Backend (der Shim ersetzt `npm`) | Das Frontend hat sein eigenes `package.json` und bleibt unberührt |
+| `backend/package.json`, `package-lock.json`, `tsconfig.json`, `src/`, `prisma/`, `static/`, `openapi.json` | werden in Phase 6 **gelöscht**, sobald alles grün ist. Es bleibt kein `package.json` im Backend | Das Frontend hat sein eigenes `package.json` und bleibt unberührt |
 | `README.md` | Local-Setup/Migrationen auf `cargo`/`rsswipe migrate` umgestellt | |
-| `rsswipe-deployment` | **keine Änderung nötig.** Optional (nur mit Freigabe): `migrate-job.yml`-Command und Entfernen von `NODE_OPTIONS` | |
+| `rsswipe-deployment/backend/migrate-job.yml` | `command: ["rsswipe","migrate"]`; in `deployment.yml` entfällt `NODE_OPTIONS` | lokal committet, nicht gepusht; wirksam erst zusammen mit dem neuen Image |
 
-Health: `GET /` bleibt (öffentlich, JSON-Liste der Versionen) und genügt für alle drei Probes. Start schneller als Node (Startup-Probe: 5 s + 10×2 s). Kein `HEALTHCHECK` im Dockerfile (wie heute).
-Speicher: Limit 2500Mi/300Mi Request bleiben unproblematisch; Rust braucht deutlich weniger.
+Health: `GET /` bleibt (öffentlich, JSON-Liste der Versionen) und genügt für alle drei Probes. Kein `HEALTHCHECK` im Dockerfile (wie heute).
 
 ## 8. Risiken
 
@@ -189,16 +185,17 @@ Speicher: Limit 2500Mi/300Mi Request bleiben unproblematisch; Rust braucht deutl
 | R6 | Collation-Verhalten (E-Mail case-insensitive, PAD SPACE) | Verbindung mit `utf8mb4`/`utf8mb4_unicode_ci`, Contract-Test für `A@b.de` vs. `a@b.de` |
 | R7 | Zeitzonen/DATETIME(3) | Pool-Session `time_zone='+00:00'`; Tests für Daten um Mitternacht |
 | R8 | Swagger-UI-Assets werden beim Build heruntergeladen | im Docker-Build Netzzugriff vorhanden (wie bei `npm ci`); alternativ lokales Zip per `SWAGGER_UI_DOWNLOAD_URL` |
-| R9 | Hintergrund-Fetches ohne SSRF-Schutz | Neu: Blockliste für Loopback/Link-Local/Private-Ranges bei user-getriggerten Fetches (`POST /feeds`, Import, Content). Kann Self-Hosting im LAN betreffen → Q7 |
 
-## 9. Entscheidungen, die ich von dir brauche
+## 9. Entscheidungen (von dir bestätigt)
 
-- **Q1 – Migrations-Shim:** `npm`-Shim im Image (Deployment bleibt unverändert) – einverstanden? Alternative: du erlaubst die Ein-Zeilen-Änderung im `rsswipe-deployment`.
-- **Q2 – Auto-Migration beim Start von `api`/`all`:** einverstanden?
-- **Q3 – Fehlerformat:** `{message, code, errors?}` wie in §4 – einverstanden? (`message` bleibt, deshalb sollten bestehende Clients weiter funktionieren.)
-- **Q4 – Kategorien:** `GET /categories` → `[]`, `category: null` bleibt als Feld, Tabelle `Category` bleibt vorerst. Oder soll alles (Endpunkt, Feld, Parameter, Tabelle) ganz raus?
-- **Q5 – Auth-Header:** tolerant wie bisher (beliebiges Schema) oder strikt `Bearer`?
-- **Q6 – Artikelinhalt-Zugriff (B13) und `feeds`-Begrenzung (B7):** auf abonnierte Feeds beschränken, wie in §4? Ein neu hinzugefügter Artikel eines nicht abonnierten Feeds wäre dann nicht mehr abrufbar.
-- **Q7 – SSRF-Schutz** für user-getriggerte Abrufe (private Adressen blockieren): ja/nein? Betrifft nur Self-Hoster mit Feeds im LAN; per Env abschaltbar machbar.
-- **Q8 – Neue optionale Env-Variablen** `FEED_PARSER_CONCURRENCY`, `DB_MAX_CONNECTIONS` (Defaults, nichts muss gesetzt werden): okay?
-- **Q9 – Deployment-Repo:** soll ich nach Abschluss die zwei optionalen Änderungen vorschlagen (nur als Diff, nichts committen)?
+| # | Entscheidung |
+|---|---|
+| Q1 | Migrations-Command im Deployment auf `rsswipe migrate` ändern, kein npm-Shim |
+| Q2 | Keine Migration bei Pod-Start; nur im CI-Migrationsjob. Schema-Mismatch nur als Warnung |
+| Q3 | Fehlerformat `{message, code, errors?}` |
+| Q4 | Categories bleiben (Endpunkt, Feld, Tabelle); Schalter `ENABLE_FEED_CLASSIFICATION` bleibt wirksam |
+| Q5 | Auth-Header tolerant |
+| Q6 | Kein Beschränken auf abonnierte Feeds/Artikel (B7/B13 sind gewollt, keine Bugs) |
+| Q7 | Kein SSRF-Schutz |
+| Q8 | Optionale Env: `DB_MAX_CONNECTIONS` (Override, Default pro Modus: API 10, Jobs 5), `FEED_PARSER_CONCURRENCY` (Default 4) |
+| Q9 | Deployment-Änderungen direkt anwenden, aber nichts pushen, bevor die App gemergt ist |

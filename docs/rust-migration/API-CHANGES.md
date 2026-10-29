@@ -25,13 +25,8 @@ Auswirkung: 🔴 Client muss/sollte angepasst werden · 🟡 Verhalten ändert s
 | S1 | `POST/DELETE /v1/starred/:article` | Antwort kann alten Zustand zeigen (Race, B3) | Antwort zeigt neuen Zustand | 🟢 |
 | F1 | `POST /v1/feeds` | `openInApp` ignoriert (B4) | wird gespeichert | 🟢 |
 | F2 | `POST /v1/feeds` | relative Feed-URL aus `<link rel=alternate>` unverändert gespeichert (B10) | gegen Seiten-URL aufgelöst | 🟢 |
-| A1 | `GET /v1/articles` | `feeds` nicht auf Abos begrenzt (B7) | nur abonnierte Feeds; fremde IDs ignoriert | 🟡 (Q6) |
 | A2 | `GET /v1/articles` | `limit` fehlt/ungültig → Verhalten undefiniert (B8, in Phase 3 gemessen) | definiert: Zahl 1–100, sonst 400 | 🟡 |
-| A3 | `GET /v1/articles/:id/content` | beliebige Artikel abrufbar (B13) | nur Artikel abonnierter Feeds, sonst 404 | 🟡 (Q6) |
 | ST1 | `GET /v1/statistics/recent` | Tageszuordnung über Tag-im-Monat (B9) | UTC-Kalendertag | 🟡 Zahlen bei ≥ 28 Tagen |
-| C1 | `GET /v1/categories` | liefert Kategorien, wenn aktiviert (in Produktion: immer `[]`) | immer `[]` | 🟢 |
-| C2 | `category` in Artikeln | Objekt oder `null` | immer `null` | 🟢 |
-| C3 | `categories`-Query | filtert | akzeptiert, wirkt nicht | 🟢 |
 | D1 | `GET /v1/api-docs` | statische `openapi.json`, teils veraltet (B14) | aus den Handlern generiert, + `/v1/api-docs/openapi.json` | 🟢 |
 
 ## HTTP-Ebene
@@ -44,4 +39,5 @@ Auswirkung: 🔴 Client muss/sollte angepasst werden · 🟡 Verhalten ändert s
 | H4 | Header `Keep-Alive`/`Connection` Express-Standard | Standard von hyper | 🟢 |
 
 ## Unverändert (bewusst)
+`GET /articles?feeds=…` und `GET /articles/:id/content` bleiben für jeden angemeldeten User auf alle Feeds/Artikel möglich (geteilte Artikel). Kategorien-Endpunkt, `category`-Feld und `categories`-Filter bleiben (Schalter `ENABLE_FEED_CLASSIFICATION`); nur das automatische Kategorisieren entfällt. Auth-Header bleibt tolerant. Kein SSRF-Schutz.
 Routen und Methoden, Auth (JWT HS256, bestehende Tokens und bcrypt-Hashes gültig), Token-Format, CORS (`*`), Datumsformat (ISO-8601 UTC mit Millisekunden), JSON-Feldnamen der Erfolgsantworten, `null`-Verhalten, Env-Variablen (Namen/Defaults), Port 8080, `GET /` als Health-Probe, `/v1/system`-Felder und -Typen.
