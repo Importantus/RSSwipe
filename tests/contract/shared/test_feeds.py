@@ -130,13 +130,14 @@ def test_export_opml(user):
 
 
 def test_export_escapes_xml(user):
-    u = PUBLISHER + "/feed/rss.xml?a=1&b=2"
-    fid = wait_for(lambda: None) or str(uuid.uuid4())
+    tag = uuid.uuid4().hex[:8]
+    u = PUBLISHER + f"/feed/rss.xml?a=1&b={tag}"
+    fid = str(uuid.uuid4())
     db(f"INSERT INTO Feed (id,title,link) VALUES ('{fid}','A <b> & \\\"q\\\" ''x''','{u}')")
     db(f"INSERT INTO FeedList (userId,feedId) VALUES ('{user.id}','{fid}')")
     t = user.get("/v1/feeds/export").text
     assert 'text="A &lt;b&gt; &amp; &quot;q&quot; &apos;x&apos;"' in t
-    assert "xmlUrl=\"" + PUBLISHER + "/feed/rss.xml?a=1&amp;b=2\"" in t
+    assert "xmlUrl=\"" + PUBLISHER + f"/feed/rss.xml?a=1&amp;b={tag}\"" in t
 
 
 def opml(*outlines):
