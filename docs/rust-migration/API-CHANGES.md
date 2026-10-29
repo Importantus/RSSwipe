@@ -1,0 +1,47 @@
+# API-Änderungen gegenüber dem TypeScript-Backend
+
+Zentrale Liste **aller** von außen sichtbaren Abweichungen. Gedacht für die Anpassung der Clients. Jede Zeile hat eine stabile ID; die Contract-Suite (`tests/contract/deviations/`) prüft Alt- und Neuverhalten pro ID.
+
+Status: **Entwurf aus Phase 2.** Wird während Phase 3/4 mit gemessenen Ist-Werten ergänzt. Interne Fixes ohne Außenwirkung stehen in `BUGFIXES.md`.
+
+Auswirkung: 🔴 Client muss/sollte angepasst werden · 🟡 Verhalten ändert sich, Clients laufen meist weiter · 🟢 kaum bemerkbar
+
+## Fehlerformat
+
+| ID | Ist (TS) | Neu (Rust) | Auswirkung |
+|---|---|---|---|
+| E1 | `{"message":"Bad request: <superstruct-Text>"}` | `{"message":"<Satz>","code":"validation_error","errors":[{"field","message"}]}` | 🟡 `message` bleibt, Text ändert sich; neue Felder `code`, `errors` |
+| E2 | Alle APIErrors nur `{"message"}` | zusätzlich stabiles `code` (`not_authorized`, `forbidden`, `not_found`, `bad_request`, `invalid_json`, `payload_too_large`, `internal_error`, …) | 🟢 |
+| E3 | Präfixe `Bad request: `, `Internal server error: ` | entfallen | 🟡 Clients, die auf Präfixe matchen |
+| E4 | unerwartete Fehler: `{"message":<interner Text>,"stack":""}` | `{"message":"Internal server error","code":"internal_error"}` | 🟡 |
+| E5 | 404 für unbekannte Pfade: `{"message":"Not Found - <url>","stack":""}` | `{"message":"Not found","code":"route_not_found"}` | 🟡 |
+| E6 | kaputtes JSON → 500 | 400 `invalid_json` | 🔴 Statuscode |
+| E7 | Body > 100 kB → 500 | 413 `payload_too_large` | 🔴 Statuscode |
+
+## Endpunkte
+
+| ID | Endpunkt | Ist | Neu | Auswirkung |
+|---|---|---|---|---|
+| S1 | `POST/DELETE /v1/starred/:article` | Antwort kann alten Zustand zeigen (Race, B3) | Antwort zeigt neuen Zustand | 🟢 |
+| F1 | `POST /v1/feeds` | `openInApp` ignoriert (B4) | wird gespeichert | 🟢 |
+| F2 | `POST /v1/feeds` | relative Feed-URL aus `<link rel=alternate>` unverändert gespeichert (B10) | gegen Seiten-URL aufgelöst | 🟢 |
+| A1 | `GET /v1/articles` | `feeds` nicht auf Abos begrenzt (B7) | nur abonnierte Feeds; fremde IDs ignoriert | 🟡 (Q6) |
+| A2 | `GET /v1/articles` | `limit` fehlt/ungültig → Verhalten undefiniert (B8, in Phase 3 gemessen) | definiert: Zahl 1–100, sonst 400 | 🟡 |
+| A3 | `GET /v1/articles/:id/content` | beliebige Artikel abrufbar (B13) | nur Artikel abonnierter Feeds, sonst 404 | 🟡 (Q6) |
+| ST1 | `GET /v1/statistics/recent` | Tageszuordnung über Tag-im-Monat (B9) | UTC-Kalendertag | 🟡 Zahlen bei ≥ 28 Tagen |
+| C1 | `GET /v1/categories` | liefert Kategorien, wenn aktiviert (in Produktion: immer `[]`) | immer `[]` | 🟢 |
+| C2 | `category` in Artikeln | Objekt oder `null` | immer `null` | 🟢 |
+| C3 | `categories`-Query | filtert | akzeptiert, wirkt nicht | 🟢 |
+| D1 | `GET /v1/api-docs` | statische `openapi.json`, teils veraltet (B14) | aus den Handlern generiert, + `/v1/api-docs/openapi.json` | 🟢 |
+
+## HTTP-Ebene
+
+| ID | Ist | Neu | Auswirkung |
+|---|---|---|---|
+| H1 | `X-Powered-By: Express` | entfällt | 🟢 |
+| H2 | schwaches `ETag` + 304 | entfällt | 🟢 |
+| H3 | Pfade case-insensitive | case-sensitive (Trailing Slash bleibt tolerant) | 🟢 |
+| H4 | Header `Keep-Alive`/`Connection` Express-Standard | Standard von hyper | 🟢 |
+
+## Unverändert (bewusst)
+Routen und Methoden, Auth (JWT HS256, bestehende Tokens und bcrypt-Hashes gültig), Token-Format, CORS (`*`), Datumsformat (ISO-8601 UTC mit Millisekunden), JSON-Feldnamen der Erfolgsantworten, `null`-Verhalten, Env-Variablen (Namen/Defaults), Port 8080, `GET /` als Health-Probe, `/v1/system`-Felder und -Typen.

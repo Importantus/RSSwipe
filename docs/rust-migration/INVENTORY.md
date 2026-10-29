@@ -359,3 +359,35 @@ Es gibt **keine** automatisierten Tests, keinen Test-Runner in `package.json`, k
 **F11 – Zeitzone.** Läuft der Backend-Prozess in UTC (Statistik nutzt die Prozess-Zeitzone)? Ich nehme UTC an.
 
 **F12 – Swagger UI / OpenAPI.** Soll `/v1/api-docs` in Rust weiter die bestehende, teils veraltete `openapi.json` ausliefern (identisch), oder darf ich sie korrigieren?
+
+---
+
+## 12. Nachtrag: Erkenntnisse aus `../rsswipe-deployment` und deine Antworten
+
+Quelle: Repo `rsswipe-deployment` (K8s-Manifeste, per `mo` templated, Workflow `apply.yml`). Damit sind F1, F2, F9, F11 beantwortet:
+
+| Workload | Manifest | Wie es das Backend-Image nutzt |
+|---|---|---|
+| API | `backend/deployment.yml` | Image `ghcr.io/importantus/rsswipe-backend:main`, **kein** `command`, Env `SERVICE_TYPE=api`, `NODE_OPTIONS=--max-old-space-size=256`, 2–4 Replikate (HPA), Port 8080, Service `:80 → 8080`. Probes: `httpGet /` auf 8080 (startup, liveness, readiness). Limits: 100m/300Mi Requests, 900m/2500Mi Limits |
+| Feed-Parser | `backend/feedParser-cron.yml` | CronJob `*/15 * * * *`, `concurrencyPolicy: Forbid`, `activeDeadlineSeconds: 3500`, `backoffLimit: 0`, `restartPolicy: OnFailure`, `SERVICE_TYPE=feedParser`. **Der Prozess muss nach einem Durchlauf selbst mit Exit-Code 0 enden** |
+| Garbage-Collector | `backend/garbageCollector.yml` | CronJob `0 3 * * *`, `SERVICE_TYPE=garbageCollector`, `restartPolicy: OnFailure`. Muss ebenfalls selbst enden |
+| Migration | `backend/migrate-job.yml` | suspendierter CronJob `rsswipe-migration-template`; Job wird vom CI-Workflow aus ihm erzeugt. **`command: ["npm","run","migrate:deploy"]`**, nur Env `DATABASE_URL`, gleiches Image |
+| Gemeinsame Env | `backend/configMap.yml` | `JWT_EXPIRATION=365d`, `DATABASE_URL`, `JWT_SECRET`, `MAX_CONTENT_LENGTH=8000000`, `MAX_FEED_ERROR_COUNT=99`, `EXTERNAL_CRONJOB=true` (für alle Workloads, auch die API) |
+| DB | `backend/database.yml` | **`mariadb:10.5`** (nicht `mariadb:10`), 1 Replikat, Longhorn-Volume |
+| Ingress | `ingress.yml` | `backend.rsswipe.mcloud.digital` und `backend.rsswipe.k8s.draculente.eu` → Backend-Service; Frontend greift also per CORS zu |
+
+Folgerungen:
+- `SERVICE_TYPE=categorizer` wird **nirgends** deployt, `ENABLE_FEED_CLASSIFICATION` ist nicht gesetzt (also `false`). → Klassifikation entfällt (deine Entscheidung).
+- `EXTERNAL_CRONJOB=true` gilt auch für die API: dort hat es keinen Effekt. Das Problem B2 (`all` + `EXTERNAL_CRONJOB`) betrifft das Deployment nicht.
+- Zeitzone: kein `TZ` gesetzt, Image `node:24-slim` → **UTC**.
+- Die einzige externe Aufrufschnittstelle des Images ist also: Default-`CMD` + `SERVICE_TYPE`/Env, `GET /` als Health-Probe, und der Befehl `npm run migrate:deploy`.
+- Testdatenbank in Phase 3 daher mit `mariadb:10.5`.
+
+Entscheidungen von dir (Stand nach Phase 1):
+- Klassifikation/Categorizer komplett streichen.
+- Kleine Abweichungen beim Feed-/HTML-Parsing sind in Ordnung.
+- Fehlertexte und -formate dürfen sinnvoll verbessert werden, wenn alle Abweichungen zentral dokumentiert sind (→ `API-CHANGES.md`).
+- OpenAPI soll aus den Endpunkten generiert werden.
+- Express-spezifische Header (u. a. `X-Powered-By`) entfallen.
+- Alle Bugs dürfen behoben werden; sichtbare Änderungen kommen nach `API-CHANGES.md`.
+- Änderungen an `rsswipe-deployment` nur nach Rückfrage.
