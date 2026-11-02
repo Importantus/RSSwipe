@@ -35,9 +35,9 @@ services:
     ports: ["19000:9000"]
 
   # --- TypeScript reference ---------------------------------------------------
+  # build the reference once:  git worktree add /tmp/rsswipe-ts 213af20 && docker build -t rsswipe-ts:contract /tmp/rsswipe-ts/backend
   ts-migrate:
     profiles: [ts]
-    build: ../../backend
     image: rsswipe-ts:contract
     command: ["npm", "run", "migrate:deploy"]
     environment: { DATABASE_URL: "mysql://root:test@db:3306/rsswipe" }
@@ -60,5 +60,34 @@ services:
   ts-gc:
     profiles: [ts-jobs]
     image: rsswipe-ts:contract
+    environment: { <<: *backend-env, SERVICE_TYPE: garbageCollector }
+    restart: "no"
+
+  # --- Rust implementation (same database: it starts from the schema Prisma created) ---------
+  rust-migrate:
+    profiles: [rust]
+    build: ../../backend
+    image: rsswipe-rust:contract
+    command: ["rsswipe", "migrate"]
+    environment: { DATABASE_URL: "mysql://root:test@db:3306/rsswipe" }
+    depends_on: { db: { condition: service_healthy } }
+    restart: "no"
+
+  rust-api:
+    profiles: [rust]
+    image: rsswipe-rust:contract
+    environment: { <<: *backend-env, SERVICE_TYPE: api }
+    ports: ["18081:8080"]
+    depends_on: { rust-migrate: { condition: service_completed_successfully } }
+
+  rust-feedparser:
+    profiles: [rust-jobs]
+    image: rsswipe-rust:contract
+    environment: { <<: *backend-env, SERVICE_TYPE: feedParser }
+    restart: "no"
+
+  rust-gc:
+    profiles: [rust-jobs]
+    image: rsswipe-rust:contract
     environment: { <<: *backend-env, SERVICE_TYPE: garbageCollector }
     restart: "no"

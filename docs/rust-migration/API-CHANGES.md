@@ -16,7 +16,7 @@ Auswirkung: 🔴 Client muss/sollte angepasst werden · 🟡 Verhalten ändert s
 | E4 | unerwartete Fehler: `{"message":<interner Text>,"stack":""}` | `{"message":"Internal server error","code":"internal_error"}` | 🟡 |
 | E5 | 404 für unbekannte Pfade: `{"message":"Not Found - <url>","stack":""}` | `{"message":"Not found","code":"route_not_found"}` | 🟡 |
 | E6 | kaputtes JSON → 500 | 400 `invalid_json` | 🔴 Statuscode |
-| E7 | Body > 100 kB → 500 | 413 `payload_too_large` | 🔴 Statuscode |
+| E7 | JSON-/Formular-Body > 100 kB → 500; OPML-Import > 5 MB → 400 | beides 413 `payload_too_large` | 🔴 Statuscode |
 
 ## Endpunkte
 

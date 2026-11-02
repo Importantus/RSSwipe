@@ -188,7 +188,3 @@ def test_import_bad_bodies_are_400(user, body, ctype):
 
 def test_import_json_body_is_400(user):
     assert user.post("/v1/feeds/import", json={"a": 1}).status_code == 400
-
-
-def test_import_over_5mb_is_400(user):
-    assert imp(user, "x" * 5_500_000, "application/xml").status_code == 400

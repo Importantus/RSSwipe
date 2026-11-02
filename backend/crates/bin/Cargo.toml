@@ -1,0 +1,11 @@
+[package]
+name = "rsswipe"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+rsswipe-core = { path = "../core" }
+rsswipe-api = { path = "../api" }
+tokio.workspace = true
+tracing.workspace = true

@@ -1,0 +1,27 @@
+[workspace]
+resolver = "2"
+members = ["crates/core", "crates/api", "crates/bin"]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+publish = false
+
+[workspace.dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "time", "sync", "net"] }
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "tls-rustls-ring-webpki", "mysql", "chrono", "macros", "migrate"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4"] }
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "registry"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream", "gzip", "deflate", "brotli"] }
+futures-util = "0.3"
+url = "2"
+
+[profile.release]
+lto = "thin"
+strip = true
+codegen-units = 4

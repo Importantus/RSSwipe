@@ -1,0 +1,32 @@
+[package]
+name = "rsswipe-core"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+tokio.workspace = true
+sqlx.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+reqwest.workspace = true
+futures-util.workspace = true
+url.workspace = true
+jsonwebtoken = "9"
+bcrypt = "0.17"
+feed-rs = "2"
+scraper = "0.23"
+ammonia = "4"
+encoding_rs = "0.8"
+quick-xml = "0.37"
+dom_smoothie = "0.19"
+regex = "1"
+utoipa = { version = "5", optional = true, features = ["chrono"] }
+
+[features]
+openapi = ["dep:utoipa"]

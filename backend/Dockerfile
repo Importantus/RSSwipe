@@ -1,47 +1,34 @@
-# --- STAGE 1: Builder ---
-FROM node:24-slim AS builder
+# --- STAGE 1: build ---
+FROM rust:1-bookworm AS builder
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-    python3 \
-    make \
-    g++ \
-    openssl \
-    && rm -rf /var/lib/apt/lists/*
+COPY Cargo.toml Cargo.lock ./
+COPY crates ./crates
+COPY migrations ./migrations
 
-COPY package*.json ./
-COPY prisma ./prisma/
+# the cache mounts keep downloaded crates and incremental build output between CI runs
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/app/target \
+    cargo build --release --locked -p rsswipe \
+    && cp target/release/rsswipe /rsswipe
 
-RUN npm ci
+# --- STAGE 2: runtime ---
+FROM debian:bookworm-slim AS runner
 
-COPY . .
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --system --uid 10001 rsswipe
 
-RUN npx prisma generate
-RUN npm run build
+ENV TZ=UTC
 
-RUN npm prune --production
+COPY --from=builder /rsswipe /usr/local/bin/rsswipe
 
-# --- STAGE 2: Runner ---
-FROM node:24-slim AS runner
-
+USER rsswipe
 WORKDIR /app
-
-ENV NODE_ENV=production
-
-RUN apt-get update && apt-get install -y \
-    openssl \
-    libssl3 \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY package*.json ./
-
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/static ./static
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/openapi.json ./openapi.json
 
 EXPOSE 8080
 
-CMD ["node", "dist/index.js"]
+# SERVICE_TYPE selects the workload (all | api | feedParser | garbageCollector); `rsswipe migrate` applies migrations
+CMD ["rsswipe"]

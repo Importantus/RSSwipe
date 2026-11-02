@@ -83,7 +83,7 @@ def test_garbage_collector_job(user):
     old = "NOW() - INTERVAL 10 DAY"
     keep_feed = add_feed(user, PUBLISHER + fresh("/feed/rss.xml"))
     orphan = str(uuid.uuid4())
-    db(f"INSERT INTO Feed (id,title,link) VALUES ('{orphan}','orphan','{PUBLISHER}{fresh('/orphan')}')")
+    db(f"INSERT INTO Feed (id,title,link,createdAt) VALUES ('{orphan}','orphan','{PUBLISHER}{fresh('/orphan')}',NOW() - INTERVAL 1 HOUR)")
     followed_empty = add_feed(user, PUBLISHER + fresh("/followed-empty"))
 
     a_unused = mk_article(keep_feed, old, old)

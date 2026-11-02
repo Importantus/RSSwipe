@@ -66,6 +66,11 @@ def test_E7_json_body_over_100kb(anon):
         assert r.status_code == 413 and r.json()["code"] == "payload_too_large"
 
 
+def test_E7_opml_import_over_5mb(user):
+    r = user.post("/v1/feeds/import", content="x" * 5_500_000, headers={"Content-Type": "application/xml"})
+    assert r.status_code == (400 if ts else 413)
+
+
 # --- endpoints -------------------------------------------------------------------------------
 def test_S1_star_response_reflects_new_state(user):
     feed, arts = follow_and_wait(user)
@@ -165,3 +170,14 @@ def test_H1_H2_express_headers(anon):
 
 def test_H3_paths_are_case_sensitive(user):
     assert user.get("/V1/User").status_code == (200 if ts else 404)
+
+
+def test_B12_fresh_unused_feed_survives_garbage_collection(user):
+    """A feed row that was just created (follower not linked yet) is no longer deleted by a concurrent GC run."""
+    from conftest import run_job
+    import pytest as _p
+    _p.importorskip("subprocess")
+    fid = str(uuid.uuid4())
+    db(f"INSERT INTO Feed (id,title,link) VALUES ('{fid}','fresh','{PUBLISHER}{fresh('/fresh-orphan')}')")
+    assert run_job("gc").returncode == 0
+    assert db(f"SELECT COUNT(*) FROM Feed WHERE id='{fid}'") == ("0" if ts else "1")
