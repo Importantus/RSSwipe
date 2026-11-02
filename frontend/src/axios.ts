@@ -27,12 +27,12 @@ instance.interceptors.response.use((response) => {
     return response;
 }, (error) => {
     // Go to 404 page if 404 error
-    if (error.response.status === 404) {
+    if (error.response?.status === 404) {
         router.push('/404')
     }
 
     // When the token is expired or invalid, logout the user
-    if (error.response.status === 401) {
+    if (error.response?.status === 401) {
         const authStore = useAuthStore()
         authStore.logout()
         router.push('/login')

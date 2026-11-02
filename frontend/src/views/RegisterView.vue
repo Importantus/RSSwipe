@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { apiErrorMessage } from '@/apiError';
 import TextInputIcon from '@/components/global/TextInputField.vue';
 import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
@@ -30,9 +31,7 @@ async function handleSubmit() {
         router.push('/');
     } catch (e: any) {
         console.log("Fehler: " + e);
-        if (e?.response?.data?.message)
-            error.value = e.response.data.message;
-        else error.value = e.message;
+        error.value = await apiErrorMessage(e, e.message);
     }
 }
 </script>

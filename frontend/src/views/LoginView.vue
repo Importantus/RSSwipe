@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { apiErrorMessage } from '@/apiError';
 import { onMounted, ref } from 'vue';
 import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
@@ -36,9 +37,7 @@ async function handleLogin() {
             }
         }
     } catch (e: any) {
-        if (e?.response?.data?.message)
-            error.value = e.response.data.message;
-        else error.value = e.message;
+        error.value = await apiErrorMessage(e, e.message);
     }
 }
 </script>

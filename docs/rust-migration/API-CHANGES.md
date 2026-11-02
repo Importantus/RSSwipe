@@ -45,3 +45,10 @@ Auswirkung: 🔴 Client muss/sollte angepasst werden · 🟡 Verhalten ändert s
 ## Unverändert (bewusst)
 `GET /articles?feeds=…` und `GET /articles/:id/content` bleiben für jeden angemeldeten User auf alle Feeds/Artikel möglich (geteilte Artikel). Kategorien-Endpunkt, `category`-Feld und `categories`-Filter bleiben (Schalter `ENABLE_FEED_CLASSIFICATION`); nur das automatische Kategorisieren entfällt. Auth-Header bleibt tolerant. Kein SSRF-Schutz.
 Routen und Methoden, Auth (JWT HS256, bestehende Tokens und bcrypt-Hashes gültig), Token-Format, CORS (`*`), Datumsformat (ISO-8601 UTC mit Millisekunden), JSON-Feldnamen der Erfolgsantworten, `null`-Verhalten, Env-Variablen (Namen/Defaults), Port 8080, `GET /` als Health-Probe, `/v1/system`-Felder und -Typen.
+
+## Anpassung des Clients (`frontend/`)
+Der Client wertet nur `message` sowie die Statuscodes 401/403/404 aus und ignoriert die Antworten der Starred-Endpunkte; die Änderungen oben brechen ihn daher nicht. Angepasst wurde:
+- `src/apiError.ts` (neu): Typ `ApiErrorBody` und `apiErrorMessage()`; zeigt bei `validation_error` die Feldmeldungen, liest auch Blob-Antworten (Export) und überlebt Netzwerkfehler ohne Antwort.
+- `stores/feeds.ts`, `stores/userdata.ts`, `views/LoginView.vue`, `views/RegisterView.vue` nutzen den Helfer statt `error.response.data.message`.
+- `axios.ts`: der Interceptor greift mit `error.response?.status` zu (Netzwerkfehler warfen vorher eine TypeError).
+- Unverändert nötig: nichts. `limit` sendet der Client immer (`STORED_ARTICLES + …`), `feeds[]`/`categories[]` werden vom Server weiter akzeptiert, `openInApp` beim Anlegen wird jetzt tatsächlich gespeichert.

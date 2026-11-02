@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from '@/axios'
+import { apiErrorMessage } from '@/apiError'
 import { useHomeStore } from './home';
 import { StoreStatus } from './readingList';
 
@@ -24,19 +25,6 @@ export interface ImportResult {
     imported: number,
     skipped: number,
     failed: { url: string, reason: string }[]
-}
-
-// Error responses are Blobs when the request used responseType 'blob'
-async function getErrorMessage(error: any, fallback: string): Promise<string> {
-    const data = error.response?.data
-    if (data instanceof Blob) {
-        try {
-            return JSON.parse(await data.text()).message ?? fallback
-        } catch {
-            return fallback
-        }
-    }
-    return data?.message ?? fallback
 }
 
 export const useFeedStore = defineStore("feedList", {
@@ -70,7 +58,7 @@ export const useFeedStore = defineStore("feedList", {
                     description: feed.description
                 }))
             } catch (error: any) {
-                this.error = error.response.data.message
+                this.error = await apiErrorMessage(error, "Request failed")
                 console.log(this.error)
             }
             this.state = StoreStatus.READY
@@ -95,7 +83,7 @@ export const useFeedStore = defineStore("feedList", {
                     description: response.data.description
                 })
             } catch (error: any) {
-                this.error = error.response.data.message
+                this.error = await apiErrorMessage(error, "Request failed")
                 console.log(this.error)
             }
             this.state = StoreStatus.READY
@@ -118,7 +106,7 @@ export const useFeedStore = defineStore("feedList", {
                 link.click()
                 window.URL.revokeObjectURL(url)
             } catch (error: any) {
-                this.error = await getErrorMessage(error, "Export failed")
+                this.error = await apiErrorMessage(error, "Export failed")
                 console.log(this.error)
             }
             this.state = StoreStatus.READY
@@ -137,7 +125,7 @@ export const useFeedStore = defineStore("feedList", {
                 result = response.data
                 await this.getFeedList()
             } catch (error: any) {
-                this.error = await getErrorMessage(error, "Import failed")
+                this.error = await apiErrorMessage(error, "Import failed")
                 console.log(this.error)
             }
             this.state = StoreStatus.READY

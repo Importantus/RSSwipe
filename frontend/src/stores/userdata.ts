@@ -1,4 +1,5 @@
 import axios from "@/axios";
+import { apiErrorMessage } from '@/apiError'
 import { defineStore } from "pinia";
 import { useAuthStore } from "./auth";
 import router from "@/router";
@@ -33,7 +34,7 @@ export const useUserdataStore = defineStore({
                 }
             } catch (error: any) {
                 console.error('Failed to update user data', error);
-                this.error = error.response.data.message;
+                this.error = await apiErrorMessage(error, 'Request failed');
             }
         },
         async updateUserPassword(password: string, oldPassword: string) {
@@ -48,10 +49,10 @@ export const useUserdataStore = defineStore({
                 }
             } catch (error: any) {
                 console.error('Failed to update user password', error);
-                if (error.response.status === 403) {
+                if (error.response?.status === 403) {
                     this.error = 'Old password is incorrect';
                 } else {
-                    this.error = error.response.data.message;
+                    this.error = await apiErrorMessage(error, 'Request failed');
                 }
             }
         },
@@ -70,7 +71,7 @@ export const useUserdataStore = defineStore({
                 this.userdata.createdAt = new Date(this.userdata.createdAt);
             } catch (error: any) {
                 console.error('Failed to fetch user data', error);
-                this.error = error.response.data.message;
+                this.error = await apiErrorMessage(error, 'Request failed');
             }
         },
         async deleteUser(password: string) {
@@ -92,10 +93,10 @@ export const useUserdataStore = defineStore({
                 }
             } catch (error: any) {
                 console.error('Failed to delete user', error);
-                if (error.response.status === 403) {
+                if (error.response?.status === 403) {
                     this.error = 'Password is incorrect';
                 } else {
-                    this.error = error.response.data.message;
+                    this.error = await apiErrorMessage(error, 'Request failed');
                 }
             }
         }
