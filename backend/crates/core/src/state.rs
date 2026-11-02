@@ -17,7 +17,12 @@ pub struct Core {
 impl Core {
     pub fn new(pool: MySqlPool, config: Config) -> crate::Result<Self> {
         let fetcher = Fetcher::new(config.max_content_length)?;
-        Ok(Self { pool, config: Arc::new(config), fetcher, extraction_locks: Default::default() })
+        Ok(Self {
+            pool,
+            config: Arc::new(config),
+            fetcher,
+            extraction_locks: Default::default(),
+        })
     }
 }
 

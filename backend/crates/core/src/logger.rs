@@ -41,7 +41,12 @@ where
     S: Subscriber + for<'a> LookupSpan<'a>,
     N: for<'a> FormatFields<'a> + 'static,
 {
-    fn format_event(&self, _ctx: &FmtContext<'_, S, N>, mut w: Writer<'_>, event: &Event<'_>) -> fmt::Result {
+    fn format_event(
+        &self,
+        _ctx: &FmtContext<'_, S, N>,
+        mut w: Writer<'_>,
+        event: &Event<'_>,
+    ) -> fmt::Result {
         let mut f = Fields::default();
         event.record(&mut f);
         let now = chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true);

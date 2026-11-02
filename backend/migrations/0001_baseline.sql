@@ -104,7 +104,6 @@ CREATE TABLE IF NOT EXISTS `ArticleList` (
   `seen` tinyint(1) NOT NULL DEFAULT 0,
   `starred` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`articleId`,`userId`),
-  KEY `ArticleList_userId_fkey` (`userId`),
   CONSTRAINT `ArticleList_articleId_fkey` FOREIGN KEY (`articleId`) REFERENCES `Article` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `ArticleList_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -12,7 +12,11 @@ pub struct OpmlFeed {
 }
 
 fn escape(v: &str) -> String {
-    v.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;").replace('\'', "&apos;")
+    v.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&apos;")
 }
 
 pub fn build(feeds: &[(String, String)]) -> String {
@@ -21,15 +25,25 @@ pub fn build(feeds: &[(String, String)]) -> String {
         r#"<opml version="2.0">"#.to_string(),
         "\t<head>".to_string(),
         "\t\t<title>Subscriptions</title>".to_string(),
-        format!("\t\t<dateCreated>{}</dateCreated>", chrono::Utc::now().format("%a, %d %b %Y %H:%M:%S GMT")),
+        format!(
+            "\t\t<dateCreated>{}</dateCreated>",
+            chrono::Utc::now().format("%a, %d %b %Y %H:%M:%S GMT")
+        ),
         "\t</head>".to_string(),
         "\t<body>".to_string(),
     ];
     for (title, link) in feeds {
         let t = escape(if title.is_empty() { link } else { title });
-        out.push(format!("\t\t<outline text=\"{t}\" title=\"{t}\" type=\"rss\" xmlUrl=\"{}\" />", escape(link)));
+        out.push(format!(
+            "\t\t<outline text=\"{t}\" title=\"{t}\" type=\"rss\" xmlUrl=\"{}\" />",
+            escape(link)
+        ));
     }
-    out.extend(["\t</body>".to_string(), "</opml>".to_string(), String::new()]);
+    out.extend([
+        "\t</body>".to_string(),
+        "</opml>".to_string(),
+        String::new(),
+    ]);
     out.join("\n")
 }
 
@@ -40,7 +54,11 @@ fn normalize_url(url: &str) -> Option<String> {
         return None;
     }
     let path = u.path();
-    let path = if path.len() > 1 && path.ends_with('/') { &path[..path.len() - 1] } else { path };
+    let path = if path.len() > 1 && path.ends_with('/') {
+        &path[..path.len() - 1]
+    } else {
+        path
+    };
     let mut s = format!("{}://{}", u.scheme(), u.host_str()?);
     if let Some(p) = u.port() {
         s.push_str(&format!(":{p}"));
@@ -74,7 +92,10 @@ pub fn parse(xml: &str) -> Result<Vec<OpmlFeed>> {
                 } else if name == "outline" && in_body {
                     let (mut xml_url, mut title, mut text) = (None, None, None);
                     for a in e.attributes().flatten() {
-                        let v = a.unescape_value().map(|v| v.to_string()).unwrap_or_default();
+                        let v = a
+                            .unescape_value()
+                            .map(|v| v.to_string())
+                            .unwrap_or_default();
                         match a.key.as_ref() {
                             b"xmlUrl" => xml_url = Some(v),
                             b"title" => title = Some(v),
@@ -83,8 +104,14 @@ pub fn parse(xml: &str) -> Result<Vec<OpmlFeed>> {
                         }
                     }
                     if let Some(u) = xml_url.filter(|u| !u.trim().is_empty()) {
-                        let t = title.filter(|t| !t.trim().is_empty()).or(text).filter(|t| !t.trim().is_empty());
-                        found.push(OpmlFeed { title: t, xml_url: u });
+                        let t = title
+                            .filter(|t| !t.trim().is_empty())
+                            .or(text)
+                            .filter(|t| !t.trim().is_empty());
+                        found.push(OpmlFeed {
+                            title: t,
+                            xml_url: u,
+                        });
                     }
                 }
             }
@@ -98,7 +125,12 @@ pub fn parse(xml: &str) -> Result<Vec<OpmlFeed>> {
     let mut seen = HashSet::new();
     Ok(found
         .into_iter()
-        .filter_map(|f| normalize_url(&f.xml_url).map(|u| OpmlFeed { title: f.title, xml_url: u }))
+        .filter_map(|f| {
+            normalize_url(&f.xml_url).map(|u| OpmlFeed {
+                title: f.title,
+                xml_url: u,
+            })
+        })
         .filter(|f| seen.insert(f.xml_url.clone()))
         .collect())
 }
@@ -112,7 +144,13 @@ mod tests {
         let xml = r#"<opml version="2.0"><body><outline text="F"><outline text="A" xmlUrl="http://a/x/"/></outline>
             <outline title="B" text="b" xmlUrl="ftp://b"/><outline text="dup" xmlUrl="http://a/x"/></body></opml>"#;
         let f = parse(xml).unwrap();
-        assert_eq!(f, vec![OpmlFeed { title: Some("A".into()), xml_url: "http://a/x".into() }]);
+        assert_eq!(
+            f,
+            vec![OpmlFeed {
+                title: Some("A".into()),
+                xml_url: "http://a/x".into()
+            }]
+        );
     }
 
     #[test]

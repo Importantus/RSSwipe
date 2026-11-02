@@ -17,7 +17,12 @@ pub struct PageMeta {
 fn first_attr(doc: &Html, queries: &[(&str, &str)]) -> Option<String> {
     queries.iter().find_map(|(q, attr)| {
         let sel = Selector::parse(q).ok()?;
-        doc.select(&sel).next()?.value().attr(attr).filter(|v| !v.is_empty()).map(str::to_string)
+        doc.select(&sel)
+            .next()?
+            .value()
+            .attr(attr)
+            .filter(|v| !v.is_empty())
+            .map(str::to_string)
     })
 }
 
@@ -30,12 +35,20 @@ pub fn parse_date(s: &str) -> Option<DateTime<Utc>> {
     if let Ok(d) = DateTime::parse_from_rfc2822(s) {
         return Some(d.with_timezone(&Utc));
     }
-    for f in ["%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M:%S%.f", "%Y-%m-%d %H:%M"] {
+    for f in [
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%dT%H:%M:%S",
+        "%Y-%m-%dT%H:%M:%S%.f",
+        "%Y-%m-%d %H:%M",
+    ] {
         if let Ok(d) = NaiveDateTime::parse_from_str(s, f) {
             return Some(Utc.from_utc_datetime(&d));
         }
     }
-    NaiveDate::parse_from_str(s, "%Y-%m-%d").ok().and_then(|d| d.and_hms_opt(0, 0, 0)).map(|d| Utc.from_utc_datetime(&d))
+    NaiveDate::parse_from_str(s, "%Y-%m-%d")
+        .ok()
+        .and_then(|d| d.and_hms_opt(0, 0, 0))
+        .map(|d| Utc.from_utc_datetime(&d))
 }
 
 impl PageMeta {
@@ -84,23 +97,50 @@ impl PageMeta {
         let feed_link = first_attr(
             &doc,
             &[
-                (r#"link[rel="alternate"][type="application/rss+xml"]"#, "href"),
-                (r#"link[rel="alternate"][type="application/atom+xml"]"#, "href"),
+                (
+                    r#"link[rel="alternate"][type="application/rss+xml"]"#,
+                    "href",
+                ),
+                (
+                    r#"link[rel="alternate"][type="application/atom+xml"]"#,
+                    "href",
+                ),
             ],
         )
-        .and_then(|v| base.as_ref().and_then(|b| b.join(v.trim()).ok()).map(|u| u.to_string()));
-        Self { favicon, image, published_at, description, feed_link }
+        .and_then(|v| {
+            base.as_ref()
+                .and_then(|b| b.join(v.trim()).ok())
+                .map(|u| u.to_string())
+        });
+        Self {
+            favicon,
+            image,
+            published_at,
+            description,
+            feed_link,
+        }
     }
 }
 
 /// Combines the page's description with the one from the feed, as the old backend did (without a dangling separator).
 pub fn merge_description(page: Option<&str>, feed: Option<&str>) -> Option<String> {
-    let (p, f) = (page.map(str::trim).filter(|s| !s.is_empty()), feed.map(str::trim).filter(|s| !s.is_empty()));
+    let (p, f) = (
+        page.map(str::trim).filter(|s| !s.is_empty()),
+        feed.map(str::trim).filter(|s| !s.is_empty()),
+    );
     if p == f {
         return page.map(str::to_string).filter(|s| !s.trim().is_empty());
     }
-    let parts: Vec<&str> = [page, feed].into_iter().flatten().filter(|s| !s.trim().is_empty()).collect();
-    if parts.is_empty() { None } else { Some(parts.join(" - ")) }
+    let parts: Vec<&str> = [page, feed]
+        .into_iter()
+        .flatten()
+        .filter(|s| !s.trim().is_empty())
+        .collect();
+    if parts.is_empty() {
+        None
+    } else {
+        Some(parts.join(" - "))
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -128,7 +168,8 @@ fn sanitizer() -> ammonia::Builder<'static> {
 
 /// Runs Readability on the page and sanitizes the resulting HTML. CPU bound: call from `spawn_blocking`.
 pub fn extract_readable(html: &str, page_url: &str) -> Result<Extracted> {
-    let mut r = dom_smoothie::Readability::new(html.to_string(), Some(page_url), None).map_err(|e| Error::internal(e.to_string()))?;
+    let mut r = dom_smoothie::Readability::new(html.to_string(), Some(page_url), None)
+        .map_err(|e| Error::internal(e.to_string()))?;
     let a = r.parse().map_err(|_| Error::internal("Parsing failed"))?;
     Ok(Extracted {
         title: a.title,
@@ -149,10 +190,16 @@ mod tests {
 
     #[test]
     fn description_merging() {
-        assert_eq!(merge_description(Some("a"), Some("b")).as_deref(), Some("a - b"));
+        assert_eq!(
+            merge_description(Some("a"), Some("b")).as_deref(),
+            Some("a - b")
+        );
         assert_eq!(merge_description(Some("a"), None).as_deref(), Some("a"));
         assert_eq!(merge_description(None, Some("b")).as_deref(), Some("b"));
-        assert_eq!(merge_description(Some(" a "), Some("a")).as_deref(), Some(" a "));
+        assert_eq!(
+            merge_description(Some(" a "), Some("a")).as_deref(),
+            Some(" a ")
+        );
         assert_eq!(merge_description(None, None), None);
     }
 

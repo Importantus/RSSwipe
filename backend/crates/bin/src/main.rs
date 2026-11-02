@@ -36,21 +36,31 @@ fn mode(arg: Option<String>, service_type: &str) -> Result<Mode, String> {
         "api" => Ok(Mode::Api),
         "feedParser" => Ok(Mode::FeedParser),
         "garbageCollector" => Ok(Mode::GarbageCollector),
-        "categorizer" => Err("SERVICE_TYPE=categorizer was removed: articles are no longer classified".into()),
-        other => Err(format!("Unknown SERVICE_TYPE `{other}`. Use: all | api | feedParser | garbageCollector")),
+        "categorizer" => {
+            Err("SERVICE_TYPE=categorizer was removed: articles are no longer classified".into())
+        }
+        other => Err(format!(
+            "Unknown SERVICE_TYPE `{other}`. Use: all | api | feedParser | garbageCollector"
+        )),
     }
 }
 
 async fn shutdown_signal(tx: watch::Sender<bool>) {
-    let ctrl_c = tokio::signal::ctrl_c();
     #[cfg(unix)]
     {
-        let mut term = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()).expect("install SIGTERM handler");
-        tokio::select! { _ = ctrl_c => {}, _ = term.recv() => {} }
+        use tokio::signal::unix::{signal, SignalKind};
+        match signal(SignalKind::terminate()) {
+            Ok(mut term) => {
+                tokio::select! { _ = tokio::signal::ctrl_c() => {}, _ = term.recv() => {} }
+            }
+            Err(_) => {
+                let _ = tokio::signal::ctrl_c().await;
+            }
+        }
     }
     #[cfg(not(unix))]
     {
-        let _ = ctrl_c.await;
+        let _ = tokio::signal::ctrl_c().await;
     }
     let _ = tx.send(true);
 }
@@ -62,7 +72,10 @@ async fn wait(mut rx: watch::Receiver<bool>) {
 #[tokio::main]
 async fn main() -> ExitCode {
     logger::init();
-    let service_type = std::env::var("SERVICE_TYPE").ok().filter(|v| !v.is_empty()).unwrap_or_else(|| "all".into());
+    let service_type = std::env::var("SERVICE_TYPE")
+        .ok()
+        .filter(|v| !v.is_empty())
+        .unwrap_or_else(|| "all".into());
     let mode = match mode(std::env::args().nth(1), &service_type) {
         Ok(m) => m,
         Err(e) => {
@@ -89,8 +102,14 @@ async fn run(mode: Mode) -> Result<(), String> {
         return Err("Environment variable JWT_SECRET not found".into());
     }
 
-    let pool_size = if matches!(mode, Mode::Api | Mode::All) { API_POOL } else { JOB_POOL };
-    let pool = db::connect(&config, if mode == Mode::Migrate { 2 } else { pool_size }).await.map_err(|e| format!("Could not connect to the database: {e}"))?;
+    let pool_size = if matches!(mode, Mode::Api | Mode::All) {
+        API_POOL
+    } else {
+        JOB_POOL
+    };
+    let pool = db::connect(&config, if mode == Mode::Migrate { 2 } else { pool_size })
+        .await
+        .map_err(|e| format!("Could not connect to the database: {e}"))?;
 
     if mode == Mode::Migrate {
         db::migrate(&pool).await.map_err(|e| e.to_string())?;
@@ -100,7 +119,10 @@ async fn run(mode: Mode) -> Result<(), String> {
     db::warn_if_outdated(&pool).await;
 
     let external = config.external_cronjobs;
-    let (feed_interval, gc_interval) = (Duration::from_millis(config.feed_interval_ms()), Duration::from_millis(config.gc_interval_ms()));
+    let (feed_interval, gc_interval) = (
+        Duration::from_millis(config.feed_interval_ms()),
+        Duration::from_millis(config.gc_interval_ms()),
+    );
     let port = config.backend_port;
     let core = Core::new(pool, config).map_err(|e| e.to_string())?;
 
@@ -110,20 +132,38 @@ async fn run(mode: Mode) -> Result<(), String> {
     let feed_job = {
         let (core, rx) = (core.clone(), rx.clone());
         async move {
-            rsswipe_core::info!(FEEDPARSER, "Initializing Feed Parser with an intervall of {}ms", feed_interval.as_millis());
-            run_loop(FEEDPARSER, external, feed_interval, rx, || feed_parser_once(&core)).await
+            rsswipe_core::info!(
+                FEEDPARSER,
+                "Initializing Feed Parser with an intervall of {}ms",
+                feed_interval.as_millis()
+            );
+            run_loop(FEEDPARSER, external, feed_interval, rx, || {
+                feed_parser_once(&core)
+            })
+            .await
         }
     };
     let gc_job = {
         let (core, rx) = (core.clone(), rx.clone());
         async move {
-            rsswipe_core::info!(GARBAGE_COLLECTOR, "Initialising garbage collector with interval of {}ms", gc_interval.as_millis());
-            run_loop(GARBAGE_COLLECTOR, external, gc_interval, rx, || async { garbage_collect_once(&core).await.map(|_| ()) }).await
+            rsswipe_core::info!(
+                GARBAGE_COLLECTOR,
+                "Initialising garbage collector with interval of {}ms",
+                gc_interval.as_millis()
+            );
+            run_loop(GARBAGE_COLLECTOR, external, gc_interval, rx, || async {
+                garbage_collect_once(&core).await.map(|_| ())
+            })
+            .await
         }
     };
     let api = {
         let (core, rx) = (core.clone(), rx.clone());
-        async move { rsswipe_api::serve(core, port, wait(rx)).await.map_err(|e| format!("Server error: {e}")) }
+        async move {
+            rsswipe_api::serve(core, port, wait(rx))
+                .await
+                .map_err(|e| format!("Server error: {e}"))
+        }
     };
 
     match mode {

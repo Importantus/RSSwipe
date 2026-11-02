@@ -39,7 +39,9 @@ fn string(name: &str, default: &str) -> String {
 }
 
 fn num<T: std::str::FromStr>(name: &str, default: T) -> T {
-    var(name).and_then(|v| v.trim().parse().ok()).unwrap_or(default)
+    var(name)
+        .and_then(|v| v.trim().parse().ok())
+        .unwrap_or(default)
 }
 
 impl Config {
@@ -86,6 +88,9 @@ impl Config {
     }
 
     pub fn gc_interval_ms(&self) -> u64 {
-        self.garbage_collector_interval.trim().parse().unwrap_or(3_600_000)
+        self.garbage_collector_interval
+            .trim()
+            .parse()
+            .unwrap_or(3_600_000)
     }
 }

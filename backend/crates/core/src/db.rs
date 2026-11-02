@@ -34,12 +34,74 @@ const PRISMA_MIGRATIONS: [&str; 19] = [
 /// Columns the code relies on; checked before the baseline is applied to an existing database.
 const EXPECTED_COLUMNS: &[(&str, &[&str])] = &[
     ("User", &["id", "name", "email", "password", "createdAt"]),
-    ("Feed", &["id", "title", "link", "createdAt", "faviconUrl", "lastUpdate", "active", "error_count", "errormessage", "description"]),
+    (
+        "Feed",
+        &[
+            "id",
+            "title",
+            "link",
+            "createdAt",
+            "faviconUrl",
+            "lastUpdate",
+            "active",
+            "error_count",
+            "errormessage",
+            "description",
+        ],
+    ),
     ("FeedList", &["userId", "feedId", "openInApp", "followedAt"]),
-    ("Article", &["id", "title", "link", "imageUrl", "createdAt", "feedId", "publishedAt", "categoryId"]),
-    ("ArticleContent", &["articleId", "title", "content", "textContent", "excerpt", "byline", "dir", "siteName", "lang", "length", "status", "attempts", "lastError", "lastAttempt", "fetchedAt"]),
-    ("Settings", &["id", "userId", "expTimeRead", "expTimeUnread"]),
-    ("ArticleList", &["articleId", "userId", "saved", "read", "dateSaved", "dateRead", "dateSeen", "dateStar", "seen", "starred"]),
+    (
+        "Article",
+        &[
+            "id",
+            "title",
+            "link",
+            "imageUrl",
+            "createdAt",
+            "feedId",
+            "publishedAt",
+            "categoryId",
+        ],
+    ),
+    (
+        "ArticleContent",
+        &[
+            "articleId",
+            "title",
+            "content",
+            "textContent",
+            "excerpt",
+            "byline",
+            "dir",
+            "siteName",
+            "lang",
+            "length",
+            "status",
+            "attempts",
+            "lastError",
+            "lastAttempt",
+            "fetchedAt",
+        ],
+    ),
+    (
+        "Settings",
+        &["id", "userId", "expTimeRead", "expTimeUnread"],
+    ),
+    (
+        "ArticleList",
+        &[
+            "articleId",
+            "userId",
+            "saved",
+            "read",
+            "dateSaved",
+            "dateRead",
+            "dateSeen",
+            "dateStar",
+            "seen",
+            "starred",
+        ],
+    ),
     ("Category", &["id", "name", "createdAt"]),
 ];
 
@@ -50,19 +112,33 @@ struct PrismaParams {
 }
 
 fn split_prisma_params(url: &str) -> (String, PrismaParams) {
-    let mut params = PrismaParams { connection_limit: None, accept_invalid_certs: false };
-    let Some((base, query)) = url.split_once('?') else { return (url.to_string(), params) };
+    let mut params = PrismaParams {
+        connection_limit: None,
+        accept_invalid_certs: false,
+    };
+    let Some((base, query)) = url.split_once('?') else {
+        return (url.to_string(), params);
+    };
     let mut keep = Vec::new();
     for pair in query.split('&').filter(|p| !p.is_empty()) {
         let (k, v) = pair.split_once('=').unwrap_or((pair, ""));
         match k {
             "connection_limit" => params.connection_limit = v.parse().ok(),
             "sslaccept" => params.accept_invalid_certs = v == "accept_invalid_certs",
-            "pool_timeout" | "connect_timeout" | "socket_timeout" | "schema" | "pgbouncer" | "statement_cache_size" => {}
+            "pool_timeout"
+            | "connect_timeout"
+            | "socket_timeout"
+            | "schema"
+            | "pgbouncer"
+            | "statement_cache_size" => {}
             _ => keep.push(pair),
         }
     }
-    let url = if keep.is_empty() { base.to_string() } else { format!("{base}?{}", keep.join("&")) };
+    let url = if keep.is_empty() {
+        base.to_string()
+    } else {
+        format!("{base}?{}", keep.join("&"))
+    };
     (url, params)
 }
 
@@ -78,7 +154,10 @@ pub async fn connect(config: &Config, default_pool: u32) -> Result<MySqlPool> {
         opts = opts.ssl_mode(MySqlSslMode::Required);
     }
     let opts = opts.log_statements(tracing::log::LevelFilter::Debug);
-    let max = config.db_max_connections.or(prisma.connection_limit).unwrap_or(default_pool);
+    let max = config
+        .db_max_connections
+        .or(prisma.connection_limit)
+        .unwrap_or(default_pool);
     Ok(MySqlPoolOptions::new()
         .max_connections(max)
         .acquire_timeout(Duration::from_secs(30))
@@ -103,13 +182,19 @@ pub async fn preflight(pool: &MySqlPool) -> Result<()> {
             .iter()
             .map(|r| r.get::<String, _>(0))
             .collect();
-        let missing: Vec<&&str> = PRISMA_MIGRATIONS.iter().filter(|m| !applied.iter().any(|a| a == **m)).collect();
+        let missing: Vec<&&str> = PRISMA_MIGRATIONS
+            .iter()
+            .filter(|m| !applied.iter().any(|a| a == **m))
+            .collect();
         if !missing.is_empty() {
             return Err(Error::internal(format!(
                 "The database is missing Prisma migrations: {missing:?}. Roll out the previous release (which applies them) first."
             )));
         }
-        let unknown: Vec<&String> = applied.iter().filter(|a| !PRISMA_MIGRATIONS.contains(&a.as_str())).collect();
+        let unknown: Vec<&String> = applied
+            .iter()
+            .filter(|a| !PRISMA_MIGRATIONS.contains(&a.as_str()))
+            .collect();
         if !unknown.is_empty() {
             return Err(Error::internal(format!("The database contains unknown Prisma migrations: {unknown:?}. Refusing to continue.")));
         }
@@ -121,7 +206,10 @@ pub async fn preflight(pool: &MySqlPool) -> Result<()> {
                 .bind(*table)
                 .fetch_all(pool)
                 .await?;
-            let missing: Vec<&&str> = columns.iter().filter(|c| !found.iter().any(|f| f.eq_ignore_ascii_case(c))).collect();
+            let missing: Vec<&&str> = columns
+                .iter()
+                .filter(|c| !found.iter().any(|f| f.eq_ignore_ascii_case(c)))
+                .collect();
             if !missing.is_empty() {
                 return Err(Error::internal(format!("Table {table} lacks the expected columns {missing:?}; the schema does not match.")));
             }
@@ -133,14 +221,20 @@ pub async fn preflight(pool: &MySqlPool) -> Result<()> {
 /// Applies pending migrations (preflight first). Safe to run repeatedly; `sqlx` holds a `GET_LOCK` meanwhile.
 pub async fn migrate(pool: &MySqlPool) -> Result<()> {
     preflight(pool).await?;
-    MIGRATOR.run(pool).await.map_err(|e| Error::internal(format!("Migration failed: {e}")))?;
+    MIGRATOR
+        .run(pool)
+        .await
+        .map_err(|e| Error::internal(format!("Migration failed: {e}")))?;
     Ok(())
 }
 
 /// For services that must not migrate: warn if the schema is behind this binary.
 pub async fn warn_if_outdated(pool: &MySqlPool) {
     let latest = MIGRATOR.iter().map(|m| m.version).max().unwrap_or(0);
-    let applied: std::result::Result<Option<i64>, _> = sqlx::query_scalar("SELECT MAX(version) FROM _sqlx_migrations WHERE success = 1").fetch_one(pool).await;
+    let applied: std::result::Result<Option<i64>, _> =
+        sqlx::query_scalar("SELECT MAX(version) FROM _sqlx_migrations WHERE success = 1")
+            .fetch_one(pool)
+            .await;
     match applied {
         Ok(Some(v)) if v >= latest => {}
         _ => crate::warn!(crate::logger::API, "Database schema is not up to date (expected migration {latest}). Run `rsswipe migrate`."),

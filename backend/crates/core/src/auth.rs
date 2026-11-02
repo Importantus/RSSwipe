@@ -18,7 +18,9 @@ struct Claims {
 /// Parses `expiresIn` like the `ms` package: `365d`, `12h`, `30 minutes`, a bare number is milliseconds.
 pub fn parse_ms(input: &str) -> Option<f64> {
     let s = input.trim().to_lowercase();
-    let idx = s.find(|c: char| !(c.is_ascii_digit() || c == '.' || c == '-')).unwrap_or(s.len());
+    let idx = s
+        .find(|c: char| !(c.is_ascii_digit() || c == '.' || c == '-'))
+        .unwrap_or(s.len());
     let (num, unit) = s.split_at(idx);
     let n: f64 = num.parse().ok()?;
     const SEC: f64 = 1000.0;
@@ -37,10 +39,20 @@ pub fn parse_ms(input: &str) -> Option<f64> {
 
 pub fn issue_token(user_id: &str, secret: &str, expires_in: &str) -> Result<String> {
     let iat = chrono::Utc::now().timestamp();
-    let seconds = parse_ms(expires_in).ok_or_else(|| Error::internal("JWT_EXPIRATION is not a valid duration"))? / 1000.0;
-    let claims = Claims { id: user_id.to_string(), iat, exp: Some((iat as f64 + seconds).floor() as i64) };
-    jsonwebtoken::encode(&Header::new(Algorithm::HS256), &claims, &EncodingKey::from_secret(secret.as_bytes()))
-        .map_err(|e| Error::internal(format!("Could not sign token: {e}")))
+    let seconds = parse_ms(expires_in)
+        .ok_or_else(|| Error::internal("JWT_EXPIRATION is not a valid duration"))?
+        / 1000.0;
+    let claims = Claims {
+        id: user_id.to_string(),
+        iat,
+        exp: Some((iat as f64 + seconds).floor() as i64),
+    };
+    jsonwebtoken::encode(
+        &Header::new(Algorithm::HS256),
+        &claims,
+        &EncodingKey::from_secret(secret.as_bytes()),
+    )
+    .map_err(|e| Error::internal(format!("Could not sign token: {e}")))
 }
 
 /// Returns the user id of a valid token. Like the old middleware, the user's existence is not checked.
@@ -63,21 +75,30 @@ pub fn token_from_header(value: &str) -> Option<&str> {
 /// node-bcrypt hashes the password up to the first NUL byte, at most 72 bytes.
 fn prepare(password: &str) -> Vec<u8> {
     let bytes = password.as_bytes();
-    let end = bytes.iter().position(|b| *b == 0).unwrap_or(bytes.len()).min(72);
+    let end = bytes
+        .iter()
+        .position(|b| *b == 0)
+        .unwrap_or(bytes.len())
+        .min(72);
     bytes[..end].to_vec()
 }
 
 pub async fn hash_password(password: &str) -> Result<String> {
     let p = prepare(password);
-    tokio::task::spawn_blocking(move || bcrypt::hash_with_result(p, BCRYPT_COST).map(|h| h.format_for_version(bcrypt::Version::TwoB)))
-        .await
-        .map_err(Error::internal)?
-        .map_err(|e| Error::internal(format!("Could not hash password: {e}")))
+    tokio::task::spawn_blocking(move || {
+        bcrypt::hash_with_result(p, BCRYPT_COST)
+            .map(|h| h.format_for_version(bcrypt::Version::TwoB))
+    })
+    .await
+    .map_err(Error::internal)?
+    .map_err(|e| Error::internal(format!("Could not hash password: {e}")))
 }
 
 pub async fn verify_password(password: &str, hash: &str) -> bool {
     let (p, h) = (prepare(password), hash.to_string());
-    tokio::task::spawn_blocking(move || bcrypt::verify(p, &h).unwrap_or(false)).await.unwrap_or(false)
+    tokio::task::spawn_blocking(move || bcrypt::verify(p, &h).unwrap_or(false))
+        .await
+        .unwrap_or(false)
 }
 
 #[cfg(test)]
@@ -103,11 +124,23 @@ mod tests {
 
     #[tokio::test]
     async fn legacy_hashes_from_node_bcrypt() {
-        assert!(verify_password("legacy-password", "$2b$10$Vhy0KzRbnLh4eiI2MuJeUuOft8AEaKxlOa0p1YLEvpjbG7OYDL74y").await);
+        assert!(
+            verify_password(
+                "legacy-password",
+                "$2b$10$Vhy0KzRbnLh4eiI2MuJeUuOft8AEaKxlOa0p1YLEvpjbG7OYDL74y"
+            )
+            .await
+        );
         let long80 = "$2b$10$/zyuLYN8K9CLsiX.zP3EOe3V8Grw.wpy58NDz06SIs85A7DzlhshG";
         assert!(verify_password(&"A".repeat(80), long80).await);
         assert!(verify_password(&"A".repeat(72), long80).await);
         assert!(!verify_password(&"A".repeat(71), long80).await);
-        assert!(verify_password("pässwörd-üß€", "$2b$10$rqUmlIl0IcQZWPOkC2q76OoM.OVYqdC4kozrFOM/LUPoz4saUAmsq").await);
+        assert!(
+            verify_password(
+                "pässwörd-üß€",
+                "$2b$10$rqUmlIl0IcQZWPOkC2q76OoM.OVYqdC4kozrFOM/LUPoz4saUAmsq"
+            )
+            .await
+        );
     }
 }

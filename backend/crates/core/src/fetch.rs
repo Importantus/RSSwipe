@@ -7,7 +7,8 @@ use std::time::Duration;
 use url::Url;
 
 const UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0";
-const COOKIE_VALUE: &str = "DSGVO_ZUSAGE_V1=true;cookieconsent_status=allow;waconcookiemanagement=min;";
+const COOKIE_VALUE: &str =
+    "DSGVO_ZUSAGE_V1=true;cookieconsent_status=allow;waconcookiemanagement=min;";
 
 #[derive(Clone)]
 pub struct Fetcher {
@@ -31,20 +32,37 @@ impl Fetcher {
             .timeout(Duration::from_secs(20))
             .build()
             .map_err(|e| Error::internal(format!("Could not build HTTP client: {e}")))?;
-        Ok(Self { client, max_len: max_content_length })
+        Ok(Self {
+            client,
+            max_len: max_content_length,
+        })
     }
 
     pub async fn get(&self, url: &str) -> Result<Fetched> {
-        let res = self.client.get(url).send().await.map_err(|e| Error::internal(describe(e)))?;
+        let res = self
+            .client
+            .get(url)
+            .send()
+            .await
+            .map_err(|e| Error::internal(describe(e)))?;
         let status = res.status();
         if !status.is_success() {
-            return Err(Error::internal(format!("Request failed with status code {}", status.as_u16())));
+            return Err(Error::internal(format!(
+                "Request failed with status code {}",
+                status.as_u16()
+            )));
         }
-        let ctype = res.headers().get(CONTENT_TYPE).and_then(|v| v.to_str().ok()).map(|s| s.to_lowercase());
+        let ctype = res
+            .headers()
+            .get(CONTENT_TYPE)
+            .and_then(|v| v.to_str().ok())
+            .map(|s| s.to_lowercase());
         if let Some(c) = &ctype {
             let mime = c.split(';').next().unwrap_or("").trim();
             if mime == "application/pdf" || mime == "application/x-pdf" {
-                return Err(Error::internal(format!("Failed to load {url}. This is a pdf!")));
+                return Err(Error::internal(format!(
+                    "Failed to load {url}. This is a pdf!"
+                )));
             }
         }
         let charset = ctype.as_deref().and_then(charset_of);
@@ -54,11 +72,18 @@ impl Fetcher {
         while let Some(chunk) = stream.next().await {
             let chunk = chunk.map_err(|e| Error::internal(describe(e)))?;
             if bytes.len() + chunk.len() > self.max_len {
-                return Err(Error::internal(format!("maxContentLength size of {} exceeded", self.max_len)));
+                return Err(Error::internal(format!(
+                    "maxContentLength size of {} exceeded",
+                    self.max_len
+                )));
             }
             bytes.extend_from_slice(&chunk);
         }
-        Ok(Fetched { final_url, bytes, charset })
+        Ok(Fetched {
+            final_url,
+            bytes,
+            charset,
+        })
     }
 }
 
@@ -74,7 +99,9 @@ fn describe(e: reqwest::Error) -> String {
 
 fn charset_of(content_type: &str) -> Option<String> {
     let re = regex::Regex::new(r#"charset=\W?([^;\s"']*)"#).ok()?;
-    re.captures(content_type).map(|c| c[1].to_lowercase()).filter(|c| !c.is_empty())
+    re.captures(content_type)
+        .map(|c| c[1].to_lowercase())
+        .filter(|c| !c.is_empty())
 }
 
 impl Fetched {
@@ -118,9 +145,11 @@ fn resolve(base: &Url, href: &str) -> Option<String> {
 /// Parses an RSS/Atom/RDF/JSON feed. `base` is the (final) feed url, used to resolve relative links.
 pub fn parse_feed(text: &str, base: &Url) -> Result<ParsedFeed> {
     // the text is already decoded, so the declared encoding must not be applied a second time
-    let re = regex::Regex::new(r#"(?i)(<\?xml[^>]*encoding\s*=\s*["'])[^"']*(["'])"#).map_err(Error::internal)?;
+    let re = regex::Regex::new(r#"(?i)(<\?xml[^>]*encoding\s*=\s*["'])[^"']*(["'])"#)
+        .map_err(Error::internal)?;
     let text = re.replace(text, "${1}utf-8${2}");
-    let feed = feed_rs::parser::parse(text.as_bytes()).map_err(|_| Error::internal("Not a feed"))?;
+    let feed =
+        feed_rs::parser::parse(text.as_bytes()).map_err(|_| Error::internal("Not a feed"))?;
 
     let site_link = feed
         .links
@@ -144,7 +173,11 @@ pub fn parse_feed(text: &str, base: &Url) -> Result<ParsedFeed> {
                 .next()
                 .and_then(|u| resolve(base, &u));
             Some(FeedItem {
-                title: e.title.as_ref().map(|t| t.content.trim().to_string()).filter(|t| !t.is_empty()),
+                title: e
+                    .title
+                    .as_ref()
+                    .map(|t| t.content.trim().to_string())
+                    .filter(|t| !t.is_empty()),
                 link: resolve(base, href)?,
                 published: e.published.or(e.updated),
                 image,
@@ -152,9 +185,15 @@ pub fn parse_feed(text: &str, base: &Url) -> Result<ParsedFeed> {
         })
         .collect();
     Ok(ParsedFeed {
-        title: feed.title.map(|t| t.content.trim().to_string()).filter(|t| !t.is_empty()),
+        title: feed
+            .title
+            .map(|t| t.content.trim().to_string())
+            .filter(|t| !t.is_empty()),
         link: site_link.and_then(|l| resolve(base, l)),
-        description: feed.description.map(|t| t.content.trim().to_string()).filter(|t| !t.is_empty()),
+        description: feed
+            .description
+            .map(|t| t.content.trim().to_string())
+            .filter(|t| !t.is_empty()),
         items,
     })
 }

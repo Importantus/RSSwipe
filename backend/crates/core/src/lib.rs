@@ -14,5 +14,5 @@ pub mod opml;
 pub mod state;
 pub mod time;
 
-pub use state::{new_id, Core};
 pub use error::{Error, FieldError, Result};
+pub use state::{new_id, Core};

@@ -42,7 +42,12 @@ pub struct ContentRow {
 const COLS: &str = "title, content, textContent, excerpt, byline, dir, siteName, lang, length, status, attempts, lastError, lastAttempt";
 
 async fn stored(core: &Core, article_id: &str) -> Result<Option<ContentRow>> {
-    Ok(sqlx::query_as(&format!("SELECT {COLS} FROM ArticleContent WHERE articleId = ?")).bind(article_id).fetch_optional(&core.pool).await?)
+    Ok(sqlx::query_as(&format!(
+        "SELECT {COLS} FROM ArticleContent WHERE articleId = ?"
+    ))
+    .bind(article_id)
+    .fetch_optional(&core.pool)
+    .await?)
 }
 
 fn truncate(s: &str, chars: usize) -> String {
@@ -52,7 +57,11 @@ fn truncate(s: &str, chars: usize) -> String {
 /// Content of one article. Extracts it from the publisher's page when it is not stored yet,
 /// unless extraction failed permanently or the retry delay has not passed.
 pub async fn for_article(core: &Core, article_id: &str) -> Result<ContentView> {
-    let link: String = sqlx::query_scalar("SELECT link FROM Article WHERE id = ?").bind(article_id).fetch_optional(&core.pool).await?.ok_or(Error::NotFound)?;
+    let link: String = sqlx::query_scalar("SELECT link FROM Article WHERE id = ?")
+        .bind(article_id)
+        .fetch_optional(&core.pool)
+        .await?
+        .ok_or(Error::NotFound)?;
     let row = stored(core, article_id).await?;
     if let Some(r) = &row {
         if r.status == "OK" {
@@ -60,23 +69,39 @@ pub async fn for_article(core: &Core, article_id: &str) -> Result<ContentView> {
         }
         if r.status == "FAILED" {
             let exhausted = r.attempts as i64 >= core.config.max_extraction_attempts;
-            let backoff = r.last_attempt.is_some_and(|t| (now() - t).num_milliseconds() < core.config.extraction_retry_delay_ms);
+            let backoff = r.last_attempt.is_some_and(|t| {
+                (now() - t).num_milliseconds() < core.config.extraction_retry_delay_ms
+            });
             if exhausted || backoff {
-                crate::warn!(crate::logger::API, "Not extracting content of article {link} (attempts: {})", r.attempts);
-                return Err(Error::ExtractionFailed(r.last_error.clone().unwrap_or_else(|| "Article extraction failed".into())));
+                crate::warn!(
+                    crate::logger::API,
+                    "Not extracting content of article {link} (attempts: {})",
+                    r.attempts
+                );
+                return Err(Error::ExtractionFailed(
+                    r.last_error
+                        .clone()
+                        .unwrap_or_else(|| "Article extraction failed".into()),
+                ));
             }
         }
     }
     let result = extract_and_store(core, article_id, &link, None).await?;
     if result.status != "OK" {
-        return Err(Error::ExtractionFailed(result.last_error.unwrap_or_else(|| "Article extraction failed".into())));
+        return Err(Error::ExtractionFailed(
+            result
+                .last_error
+                .unwrap_or_else(|| "Article extraction failed".into()),
+        ));
     }
     Ok(result.view)
 }
 
 /// Stored content of many articles, no live extraction. Ids without content map to `null`.
 pub async fn batch(core: &Core, ids: &[String]) -> Result<Map<String, Value>> {
-    let mut b: QueryBuilder<MySql> = QueryBuilder::new(format!("SELECT articleId, {COLS} FROM ArticleContent WHERE status = 'OK' AND articleId IN ("));
+    let mut b: QueryBuilder<MySql> = QueryBuilder::new(format!(
+        "SELECT articleId, {COLS} FROM ArticleContent WHERE status = 'OK' AND articleId IN ("
+    ));
     let mut sep = b.separated(", ");
     for id in ids {
         sep.push_bind(id);
@@ -99,10 +124,20 @@ pub async fn batch(core: &Core, ids: &[String]) -> Result<Map<String, Value>> {
 /// Extracts and persists the content. Publisher side problems (network, parsing) are stored as `FAILED`
 /// and never returned as errors; database errors are.
 /// `html` is an already downloaded page; concurrent calls for one article share the result.
-pub async fn extract_and_store(core: &Core, article_id: &str, link: &str, html: Option<String>) -> Result<ContentRow> {
+pub async fn extract_and_store(
+    core: &Core,
+    article_id: &str,
+    link: &str,
+    html: Option<String>,
+) -> Result<ContentRow> {
     let lock = {
-        let mut map = core.extraction_locks.lock().map_err(|_| Error::internal("lock poisoned"))?;
-        map.entry(article_id.to_string()).or_insert_with(|| Arc::new(tokio::sync::Mutex::new(()))).clone()
+        let mut map = core
+            .extraction_locks
+            .lock()
+            .map_err(|_| Error::internal("lock poisoned"))?;
+        map.entry(article_id.to_string())
+            .or_insert_with(|| Arc::new(tokio::sync::Mutex::new(())))
+            .clone()
     };
     let _guard = lock.lock().await;
     let result = perform(core, article_id, link, html).await;
@@ -114,7 +149,12 @@ pub async fn extract_and_store(core: &Core, article_id: &str, link: &str, html: 
     result
 }
 
-async fn perform(core: &Core, article_id: &str, link: &str, html: Option<String>) -> Result<ContentRow> {
+async fn perform(
+    core: &Core,
+    article_id: &str,
+    link: &str,
+    html: Option<String>,
+) -> Result<ContentRow> {
     // somebody else may have finished while we waited for the lock
     if let Some(r) = stored(core, article_id).await? {
         if r.status == "OK" {
@@ -128,7 +168,9 @@ async fn perform(core: &Core, article_id: &str, link: &str, html: Option<String>
             None => core.fetcher.get(link).await?.text(),
         };
         let link = link.to_string();
-        tokio::task::spawn_blocking(move || extract_readable(&html, &link)).await.map_err(Error::internal)?
+        tokio::task::spawn_blocking(move || extract_readable(&html, &link))
+            .await
+            .map_err(Error::internal)?
     }
     .await;
 
@@ -136,7 +178,10 @@ async fn perform(core: &Core, article_id: &str, link: &str, html: Option<String>
         Ok(data) => save_ok(core, article_id, data, n).await?,
         Err(e) => {
             let msg = truncate(&e.to_string(), 500);
-            crate::warn!(crate::logger::API, "Error extracting content of article {link}: {msg}");
+            crate::warn!(
+                crate::logger::API,
+                "Error extracting content of article {link}: {msg}"
+            );
             sqlx::query(
                 "INSERT INTO ArticleContent (articleId, status, attempts, lastError, lastAttempt) VALUES (?, 'FAILED', 1, ?, ?) \
                  ON DUPLICATE KEY UPDATE status = 'FAILED', attempts = attempts + 1, lastError = VALUES(lastError), lastAttempt = VALUES(lastAttempt)",

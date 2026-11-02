@@ -48,9 +48,17 @@ pub struct FeedView {
 impl FeedView {
     pub fn new(f: FeedRow, open_in_app: bool) -> Self {
         Self {
-            id: f.id, title: f.title, link: f.link, description: f.description, created_at: f.created_at,
-            favicon_url: f.favicon_url, last_update: f.last_update, active: f.active, errormessage: f.errormessage,
-            error_count: f.error_count, open_in_app,
+            id: f.id,
+            title: f.title,
+            link: f.link,
+            description: f.description,
+            created_at: f.created_at,
+            favicon_url: f.favicon_url,
+            last_update: f.last_update,
+            active: f.active,
+            errormessage: f.errormessage,
+            error_count: f.error_count,
+            open_in_app,
         }
     }
 }
@@ -64,7 +72,12 @@ struct WithFlag {
 }
 
 pub async fn by_link(core: &Core, link: &str) -> Result<Option<FeedRow>> {
-    Ok(sqlx::query_as(&format!("SELECT {FEED_COLS} FROM Feed f WHERE f.link = ?")).bind(link).fetch_optional(&core.pool).await?)
+    Ok(
+        sqlx::query_as(&format!("SELECT {FEED_COLS} FROM Feed f WHERE f.link = ?"))
+            .bind(link)
+            .fetch_optional(&core.pool)
+            .await?,
+    )
 }
 
 pub async fn followed(core: &Core, user_id: &str) -> Result<Vec<FeedView>> {
@@ -74,7 +87,10 @@ pub async fn followed(core: &Core, user_id: &str) -> Result<Vec<FeedView>> {
     .bind(user_id)
     .fetch_all(&core.pool)
     .await?;
-    Ok(rows.into_iter().map(|r| FeedView::new(r.feed, r.open_in_app)).collect())
+    Ok(rows
+        .into_iter()
+        .map(|r| FeedView::new(r.feed, r.open_in_app))
+        .collect())
 }
 
 /// 404 both if the feed does not exist and if the user does not follow it.
@@ -86,23 +102,43 @@ pub async fn info(core: &Core, user_id: &str, feed_id: &str) -> Result<FeedView>
     .bind(feed_id)
     .fetch_optional(&core.pool)
     .await?;
-    row.map(|r| FeedView::new(r.feed, r.open_in_app)).ok_or(Error::NotFound)
+    row.map(|r| FeedView::new(r.feed, r.open_in_app))
+        .ok_or(Error::NotFound)
 }
 
-pub async fn update(core: &Core, user_id: &str, feed_id: &str, open_in_app: Option<bool>) -> Result<()> {
-    let r = sqlx::query("SELECT 1 FROM FeedList WHERE userId = ? AND feedId = ?").bind(user_id).bind(feed_id).fetch_optional(&core.pool).await?;
+pub async fn update(
+    core: &Core,
+    user_id: &str,
+    feed_id: &str,
+    open_in_app: Option<bool>,
+) -> Result<()> {
+    let r = sqlx::query("SELECT 1 FROM FeedList WHERE userId = ? AND feedId = ?")
+        .bind(user_id)
+        .bind(feed_id)
+        .fetch_optional(&core.pool)
+        .await?;
     if r.is_none() {
         return Err(Error::NotFound);
     }
     if let Some(v) = open_in_app {
-        sqlx::query("UPDATE FeedList SET openInApp = ? WHERE userId = ? AND feedId = ?").bind(v).bind(user_id).bind(feed_id).execute(&core.pool).await?;
+        sqlx::query("UPDATE FeedList SET openInApp = ? WHERE userId = ? AND feedId = ?")
+            .bind(v)
+            .bind(user_id)
+            .bind(feed_id)
+            .execute(&core.pool)
+            .await?;
     }
     Ok(())
 }
 
 pub async fn unfollow(core: &Core, user_id: &str, feed_id: &str) -> Result<()> {
     let mut tx = core.pool.begin().await?;
-    let n = sqlx::query("DELETE FROM FeedList WHERE userId = ? AND feedId = ?").bind(user_id).bind(feed_id).execute(&mut *tx).await?.rows_affected();
+    let n = sqlx::query("DELETE FROM FeedList WHERE userId = ? AND feedId = ?")
+        .bind(user_id)
+        .bind(feed_id)
+        .execute(&mut *tx)
+        .await?
+        .rows_affected();
     if n == 0 {
         return Err(Error::bad_request("User does not follow this feed"));
     }

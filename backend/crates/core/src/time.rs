@@ -1,6 +1,6 @@
 //! Timestamps are serialized like JavaScript's `Date#toJSON`: `2024-03-31T14:43:54.123Z`.
 use chrono::{DateTime, SecondsFormat, Utc};
-use serde::{Serializer};
+use serde::Serializer;
 
 pub fn now() -> DateTime<Utc> {
     // DATETIME(3) stores milliseconds

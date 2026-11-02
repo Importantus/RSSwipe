@@ -64,10 +64,20 @@ pub async fn recent(core: &Core, user_id: &str) -> Result<Statistics> {
     let mut days: Vec<DayStats> = Vec::new();
     let mut i = 0;
     while i * DAY_MS < max_age {
-        days.push(DayStats { date: n - Duration::milliseconds(i * DAY_MS), seen: 0, read: 0, starred: 0, saved: 0 });
+        days.push(DayStats {
+            date: n - Duration::milliseconds(i * DAY_MS),
+            seen: 0,
+            read: 0,
+            starred: 0,
+            saved: 0,
+        });
         i += 1;
     }
-    let index: HashMap<NaiveDate, usize> = days.iter().enumerate().map(|(i, d)| (d.date.date_naive(), i)).collect();
+    let index: HashMap<NaiveDate, usize> = days
+        .iter()
+        .enumerate()
+        .map(|(i, d)| (d.date.date_naive(), i))
+        .collect();
 
     let feed_rows = sqlx::query("SELECT fl.feedId, f.faviconUrl, f.title FROM FeedList fl JOIN Feed f ON f.id = fl.feedId WHERE fl.userId = ? ORDER BY fl.feedId")
         .bind(user_id)
@@ -75,12 +85,23 @@ pub async fn recent(core: &Core, user_id: &str) -> Result<Statistics> {
         .await?;
     let mut feeds: Vec<FeedStats> = feed_rows
         .iter()
-        .map(|r| Ok(FeedStats { feed_id: r.try_get("feedId")?, favicon_url: r.try_get("faviconUrl")?, title: r.try_get("title")?, read: 0 }))
+        .map(|r| {
+            Ok(FeedStats {
+                feed_id: r.try_get("feedId")?,
+                favicon_url: r.try_get("faviconUrl")?,
+                title: r.try_get("title")?,
+                read: 0,
+            })
+        })
         .collect::<Result<_>>()?;
 
     for r in &rows {
         for (flag, date, apply) in [
-            ("seen", "dateSeen", (|d: &mut DayStats| d.seen += 1) as fn(&mut DayStats)),
+            (
+                "seen",
+                "dateSeen",
+                (|d: &mut DayStats| d.seen += 1) as fn(&mut DayStats),
+            ),
             ("read", "dateRead", |d| d.read += 1),
             ("starred", "dateStar", |d| d.starred += 1),
             ("saved", "dateSaved", |d| d.saved += 1),

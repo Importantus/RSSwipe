@@ -28,11 +28,18 @@ where
 }
 
 fn content_type(req: &Request) -> String {
-    req.headers().get(header::CONTENT_TYPE).and_then(|v| v.to_str().ok()).unwrap_or("").to_lowercase()
+    req.headers()
+        .get(header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_lowercase()
 }
 
 async fn read_limited(body: AxumBody, limit: usize, label: &str) -> Result<Vec<u8>, ApiError> {
-    axum::body::to_bytes(body, limit).await.map(|b| b.to_vec()).map_err(|_| ApiError::payload_too_large(label))
+    axum::body::to_bytes(body, limit)
+        .await
+        .map(|b| b.to_vec())
+        .map_err(|_| ApiError::payload_too_large(label))
 }
 
 /// Body as a JSON value: `application/json` (objects and arrays only), urlencoded forms, otherwise `{}`.
@@ -43,9 +50,15 @@ async fn body_value(req: Request) -> Result<Value, ApiError> {
         if bytes.iter().all(|b| b.is_ascii_whitespace()) {
             return Ok(Value::Object(Map::new()));
         }
-        let first = bytes.iter().find(|b| !b.is_ascii_whitespace()).copied().unwrap_or(b' ');
+        let first = bytes
+            .iter()
+            .find(|b| !b.is_ascii_whitespace())
+            .copied()
+            .unwrap_or(b' ');
         if first != b'{' && first != b'[' {
-            return Err(ApiError::invalid_json("only objects and arrays are accepted"));
+            return Err(ApiError::invalid_json(
+                "only objects and arrays are accepted",
+            ));
         }
         serde_json::from_slice(&bytes).map_err(ApiError::invalid_json)
     } else if ct.starts_with("application/x-www-form-urlencoded") {
@@ -64,13 +77,28 @@ fn field_errors<E: std::fmt::Display>(e: &serde_path_to_error::Error<E>) -> Vec<
     let path = e.path().to_string();
     let msg = e.inner().to_string();
     // "missing field `x`" / "unknown field `x`" are reported on the root, name the field instead
-    let named = |marker: &str| msg.find(marker).map(|i| msg[i + marker.len()..].split('`').next().unwrap_or("").to_string());
+    let named = |marker: &str| {
+        msg.find(marker).map(|i| {
+            msg[i + marker.len()..]
+                .split('`')
+                .next()
+                .unwrap_or("")
+                .to_string()
+        })
+    };
     let (field, message) = if let Some(f) = named("missing field `") {
         (f, "is required".to_string())
     } else if let Some(f) = named("unknown field `") {
         (f, "is not allowed".to_string())
     } else {
-        (if path == "." { "body".to_string() } else { path }, msg.split(" at line ").next().unwrap_or(&msg).to_string())
+        (
+            if path == "." {
+                "body".to_string()
+            } else {
+                path
+            },
+            msg.split(" at line ").next().unwrap_or(&msg).to_string(),
+        )
     };
     vec![FieldError::new(field, message)]
 }
@@ -85,9 +113,14 @@ where
     type Rejection = ApiError;
     async fn from_request(req: Request, state: &AppState) -> Result<Self, ApiError> {
         let value = body_value(req).await?;
-        let parsed: T = serde_path_to_error::deserialize(value).map_err(|e| ApiError::validation(field_errors(&e)))?;
+        let parsed: T = serde_path_to_error::deserialize(value)
+            .map_err(|e| ApiError::validation(field_errors(&e)))?;
         let errors = parsed.validate(state);
-        if errors.is_empty() { Ok(Body(parsed)) } else { Err(ApiError::validation(errors)) }
+        if errors.is_empty() {
+            Ok(Body(parsed))
+        } else {
+            Err(ApiError::validation(errors))
+        }
     }
 }
 
@@ -115,7 +148,11 @@ pub struct UserId(pub String);
 impl<S: Send + Sync> FromRequestParts<S> for UserId {
     type Rejection = ApiError;
     async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Self, ApiError> {
-        parts.extensions.get::<UserId>().cloned().ok_or_else(|| Error::NotAuthorized.into())
+        parts
+            .extensions
+            .get::<UserId>()
+            .cloned()
+            .ok_or_else(|| Error::NotAuthorized.into())
     }
 }
 
@@ -134,29 +171,45 @@ impl<S: Send + Sync> FromRequestParts<S> for RawArticlesQuery {
     type Rejection = ApiError;
     async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Self, ApiError> {
         let mut q = RawArticlesQuery::default();
-        for (key, value) in url::form_urlencoded::parse(parts.uri.query().unwrap_or("").as_bytes()) {
+        for (key, value) in url::form_urlencoded::parse(parts.uri.query().unwrap_or("").as_bytes())
+        {
             let (name, bracket) = match key.split_once('[') {
                 Some((n, rest)) => (n.to_string(), Some(rest.trim_end_matches(']').to_string())),
                 None => (key.to_string(), None),
             };
             match name.as_str() {
                 "feeds" | "categories" => {
-                    if bracket.as_deref().is_some_and(|b| !b.is_empty() && !b.chars().all(|c| c.is_ascii_digit())) {
-                        q.errors.push(FieldError::new(&name, "must be a list of ids"));
+                    if bracket
+                        .as_deref()
+                        .is_some_and(|b| !b.is_empty() && !b.chars().all(|c| c.is_ascii_digit()))
+                    {
+                        q.errors
+                            .push(FieldError::new(&name, "must be a list of ids"));
                         continue;
                     }
-                    let list = if name == "feeds" { &mut q.feeds } else { &mut q.categories };
+                    let list = if name == "feeds" {
+                        &mut q.feeds
+                    } else {
+                        &mut q.categories
+                    };
                     list.get_or_insert_with(Vec::new).push(value.into_owned());
                 }
                 "limit" | "startDate" | "endDate" => {
-                    let slot = match name.as_str() { "limit" => &mut q.limit, "startDate" => &mut q.start_date, _ => &mut q.end_date };
+                    let slot = match name.as_str() {
+                        "limit" => &mut q.limit,
+                        "startDate" => &mut q.start_date,
+                        _ => &mut q.end_date,
+                    };
                     if bracket.is_some() || slot.is_some() {
-                        q.errors.push(FieldError::new(&name, "must be a single value"));
+                        q.errors
+                            .push(FieldError::new(&name, "must be a single value"));
                     } else {
                         *slot = Some(value.into_owned());
                     }
                 }
-                _ => q.errors.push(FieldError::new(key.as_ref(), "is not a known parameter")),
+                _ => q
+                    .errors
+                    .push(FieldError::new(key.as_ref(), "is not a known parameter")),
             }
         }
         Ok(q)

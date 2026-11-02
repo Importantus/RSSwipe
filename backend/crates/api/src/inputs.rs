@@ -8,7 +8,10 @@ use utoipa::ToSchema;
 fn len_between(field: &str, v: &str, min: usize, max: usize, out: &mut Vec<FieldError>) {
     let n = v.chars().count();
     if n < min || n > max {
-        out.push(FieldError::new(field, format!("must be between {min} and {max} characters long (got {n})")));
+        out.push(FieldError::new(
+            field,
+            format!("must be between {min} and {max} characters long (got {n})"),
+        ));
     }
 }
 
@@ -76,10 +79,18 @@ pub struct UserUpdateInput {
 impl Validate for UserUpdateInput {
     fn validate(&self, _: &AppState) -> Vec<FieldError> {
         let mut e = vec![];
-        if let Some(v) = &self.name { len_between("name", v, 1, 30, &mut e); }
-        if let Some(v) = &self.email { email("email", v, &mut e); }
-        if let Some(v) = &self.password { len_between("password", v, 8, 100, &mut e); }
-        if let Some(v) = &self.old_password { len_between("oldPassword", v, 8, 100, &mut e); }
+        if let Some(v) = &self.name {
+            len_between("name", v, 1, 30, &mut e);
+        }
+        if let Some(v) = &self.email {
+            email("email", v, &mut e);
+        }
+        if let Some(v) = &self.password {
+            len_between("password", v, 8, 100, &mut e);
+        }
+        if let Some(v) = &self.old_password {
+            len_between("oldPassword", v, 8, 100, &mut e);
+        }
         e
     }
 }
@@ -160,7 +171,10 @@ impl Validate for ContentBatchInput {
         let mut e = vec![];
         let max = s.core.config.content_prefetch_max_ids;
         if self.ids.is_empty() || self.ids.len() > max {
-            e.push(FieldError::new("ids", format!("must contain between 1 and {max} ids")));
+            e.push(FieldError::new(
+                "ids",
+                format!("must contain between 1 and {max} ids"),
+            ));
         }
         for (i, id) in self.ids.iter().enumerate() {
             uuid(&format!("ids[{i}]"), id, &mut e);

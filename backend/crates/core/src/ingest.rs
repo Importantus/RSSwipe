@@ -1,8 +1,11 @@
 //! Getting feeds and their articles into the database: following feeds, OPML import and the per-feed update.
-use crate::html::{merge_description, PageMeta};
 use crate::fetch::{parse_feed, FeedItem, ParsedFeed};
+use crate::html::{merge_description, PageMeta};
 use crate::logger::{API, FEEDPARSER};
-use crate::models::{content, feeds::{self, FeedRow, FEED_COLS}};
+use crate::models::{
+    content,
+    feeds::{self, FeedRow, FEED_COLS},
+};
 use crate::state::{new_id, Core};
 use crate::time::now;
 use crate::{error::is_duplicate, opml, Error, Result};
@@ -37,13 +40,26 @@ async fn create_feed(core: &Core, url: &str) -> Result<FeedRow> {
     insert_feed(core, url, &meta, parsed).await
 }
 
-async fn insert_feed(core: &Core, link: &str, meta: &PageMeta, parsed: ParsedFeed) -> Result<FeedRow> {
-    let description = merge_description(meta.description.as_deref(), parsed.description.as_deref()).map(|d| truncate(&d, 1000));
+async fn insert_feed(
+    core: &Core,
+    link: &str,
+    meta: &PageMeta,
+    parsed: ParsedFeed,
+) -> Result<FeedRow> {
+    let description = merge_description(meta.description.as_deref(), parsed.description.as_deref())
+        .map(|d| truncate(&d, 1000));
     let title = truncate(parsed.title.as_deref().unwrap_or(link), 1000);
     let id = new_id();
-    let ins = sqlx::query("INSERT INTO Feed (id, title, link, faviconUrl, description) VALUES (?, ?, ?, ?, ?)")
-        .bind(&id).bind(title).bind(link).bind(&meta.favicon).bind(description)
-        .execute(&core.pool).await;
+    let ins = sqlx::query(
+        "INSERT INTO Feed (id, title, link, faviconUrl, description) VALUES (?, ?, ?, ?, ?)",
+    )
+    .bind(&id)
+    .bind(title)
+    .bind(link)
+    .bind(&meta.favicon)
+    .bind(description)
+    .execute(&core.pool)
+    .await;
     match ins {
         Ok(_) => {}
         // created concurrently by somebody else
@@ -58,7 +74,10 @@ pub async fn follow(core: &Core, user_id: &str, url: &str, open_in_app: bool) ->
     let feed = match feeds::by_link(core, url).await? {
         Some(f) => {
             if !f.active {
-                sqlx::query("UPDATE Feed SET active = 1 WHERE id = ?").bind(&f.id).execute(&core.pool).await?;
+                sqlx::query("UPDATE Feed SET active = 1 WHERE id = ?")
+                    .bind(&f.id)
+                    .execute(&core.pool)
+                    .await?;
             }
             f
         }
@@ -71,11 +90,16 @@ pub async fn follow(core: &Core, user_id: &str, url: &str, open_in_app: bool) ->
         },
     };
     let ins = sqlx::query("INSERT INTO FeedList (userId, feedId, openInApp) VALUES (?, ?, ?)")
-        .bind(user_id).bind(&feed.id).bind(open_in_app)
-        .execute(&core.pool).await;
+        .bind(user_id)
+        .bind(&feed.id)
+        .bind(open_in_app)
+        .execute(&core.pool)
+        .await;
     match ins {
         Ok(_) => {}
-        Err(e) if is_duplicate(&e) => return Err(Error::bad_request("User already follows this feed")),
+        Err(e) if is_duplicate(&e) => {
+            return Err(Error::bad_request("User already follows this feed"))
+        }
         Err(e) => return Err(e.into()),
     }
     let (c, f) = (core.clone(), feed.clone());
@@ -89,10 +113,24 @@ pub async fn update_feed(core: &Core, feed: &FeedRow) {
     if let Err(e) = try_update_feed(core, feed).await {
         crate::error!(FEEDPARSER, "Error while parsing feed {}: {e}", feed.title);
         let msg = e.to_string();
-        let msg = if msg.is_empty() { "Unknown error while parsing feed".to_string() } else { truncate(&msg, 255) };
-        let r = sqlx::query("UPDATE Feed SET errormessage = ?, error_count = error_count + 1 WHERE id = ?").bind(msg).bind(&feed.id).execute(&core.pool).await;
+        let msg = if msg.is_empty() {
+            "Unknown error while parsing feed".to_string()
+        } else {
+            truncate(&msg, 255)
+        };
+        let r = sqlx::query(
+            "UPDATE Feed SET errormessage = ?, error_count = error_count + 1 WHERE id = ?",
+        )
+        .bind(msg)
+        .bind(&feed.id)
+        .execute(&core.pool)
+        .await;
         if let Err(e) = r {
-            crate::error!(FEEDPARSER, "Could not record the error of feed {}: {e}", feed.title);
+            crate::error!(
+                FEEDPARSER,
+                "Could not record the error of feed {}: {e}",
+                feed.title
+            );
         }
     }
 }
@@ -103,7 +141,10 @@ async fn try_update_feed(core: &Core, feed: &FeedRow) -> Result<()> {
 
     let site_link = match &parsed.link {
         Some(l) => l.clone(),
-        None => Url::parse(&feed.link).map_err(|e| Error::internal(e.to_string()))?.origin().ascii_serialization(),
+        None => Url::parse(&feed.link)
+            .map_err(|e| Error::internal(e.to_string()))?
+            .origin()
+            .ascii_serialization(),
     };
     let page = core.fetcher.get(&site_link).await?;
     let meta = PageMeta::from_html(&page.text(), &site_link, 1000);
@@ -111,29 +152,59 @@ async fn try_update_feed(core: &Core, feed: &FeedRow) -> Result<()> {
     if let Some(t) = &parsed.title {
         let t = truncate(t, 1000);
         if t != feed.title {
-            sqlx::query("UPDATE Feed SET title = ? WHERE id = ?").bind(t).bind(&feed.id).execute(&core.pool).await?;
+            sqlx::query("UPDATE Feed SET title = ? WHERE id = ?")
+                .bind(t)
+                .bind(&feed.id)
+                .execute(&core.pool)
+                .await?;
         }
     }
-    let description = merge_description(meta.description.as_deref(), parsed.description.as_deref()).map(|d| truncate(&d, 1000));
+    let description = merge_description(meta.description.as_deref(), parsed.description.as_deref())
+        .map(|d| truncate(&d, 1000));
     if feed.description != description {
-        sqlx::query("UPDATE Feed SET description = ? WHERE id = ?").bind(&description).bind(&feed.id).execute(&core.pool).await?;
+        sqlx::query("UPDATE Feed SET description = ? WHERE id = ?")
+            .bind(&description)
+            .bind(&feed.id)
+            .execute(&core.pool)
+            .await?;
     }
     let favicon = meta.favicon.clone().or_else(|| feed.favicon_url.clone());
     if favicon != feed.favicon_url {
-        sqlx::query("UPDATE Feed SET faviconUrl = ? WHERE id = ?").bind(&favicon).bind(&feed.id).execute(&core.pool).await?;
+        sqlx::query("UPDATE Feed SET faviconUrl = ? WHERE id = ?")
+            .bind(&favicon)
+            .bind(&feed.id)
+            .execute(&core.pool)
+            .await?;
     }
-    sqlx::query("UPDATE Feed SET lastUpdate = ? WHERE id = ?").bind(now()).bind(&feed.id).execute(&core.pool).await?;
+    sqlx::query("UPDATE Feed SET lastUpdate = ? WHERE id = ?")
+        .bind(now())
+        .bind(&feed.id)
+        .execute(&core.pool)
+        .await?;
 
     if let Err(e) = add_articles(core, &feed.id, &parsed.items).await {
-        crate::error!(FEEDPARSER, "Error while adding articles of feed {} to database: {e}", feed.title);
+        crate::error!(
+            FEEDPARSER,
+            "Error while adding articles of feed {} to database: {e}",
+            feed.title
+        );
         return Err(e);
     }
-    sqlx::query("UPDATE Feed SET error_count = 0, errormessage = NULL WHERE id = ?").bind(&feed.id).execute(&core.pool).await?;
+    sqlx::query("UPDATE Feed SET error_count = 0, errormessage = NULL WHERE id = ?")
+        .bind(&feed.id)
+        .execute(&core.pool)
+        .await?;
     Ok(())
 }
 
 async fn add_articles(core: &Core, feed_id: &str, items: &[FeedItem]) -> Result<()> {
-    let mut known: HashSet<String> = sqlx::query_scalar("SELECT link FROM Article WHERE feedId = ?").bind(feed_id).fetch_all(&core.pool).await?.into_iter().collect();
+    let mut known: HashSet<String> =
+        sqlx::query_scalar("SELECT link FROM Article WHERE feedId = ?")
+            .bind(feed_id)
+            .fetch_all(&core.pool)
+            .await?
+            .into_iter()
+            .collect();
     let max_age = chrono::Duration::milliseconds(core.config.max_article_age_ms());
     let mut added = 0;
 
@@ -154,7 +225,12 @@ async fn add_articles(core: &Core, feed_id: &str, items: &[FeedItem]) -> Result<
     Ok(())
 }
 
-async fn add_article(core: &Core, feed_id: &str, item: &FeedItem, max_age: chrono::Duration) -> Result<bool> {
+async fn add_article(
+    core: &Core,
+    feed_id: &str,
+    item: &FeedItem,
+    max_age: chrono::Duration,
+) -> Result<bool> {
     let page = core.fetcher.get(&item.link).await?;
     let html = page.text();
     let meta = PageMeta::from_html(&html, &item.link, core.config.max_image_url_length);
@@ -163,7 +239,10 @@ async fn add_article(core: &Core, feed_id: &str, item: &FeedItem, max_age: chron
     if published.is_some_and(|p| p < now() - max_age) {
         return Ok(false);
     }
-    let image = meta.image.clone().or_else(|| item.image.clone().filter(|i| i.chars().count() <= 1000));
+    let image = meta
+        .image
+        .clone()
+        .or_else(|| item.image.clone().filter(|i| i.chars().count() <= 1000));
     let id = new_id();
     let title = truncate(item.title.as_deref().unwrap_or("No title set"), 1000);
     let r = sqlx::query(
@@ -177,7 +256,11 @@ async fn add_article(core: &Core, feed_id: &str, item: &FeedItem, max_age: chron
     }
     // the page is already downloaded, so Readability needs no further request; failures must not affect the article
     if let Err(e) = content::extract_and_store(core, &id, &item.link, Some(html)).await {
-        crate::error!(FEEDPARSER, "Error storing content of article {}: {e}", item.link);
+        crate::error!(
+            FEEDPARSER,
+            "Error storing content of article {}: {e}",
+            item.link
+        );
     }
     Ok(true)
 }
@@ -209,7 +292,10 @@ pub async fn import_opml(core: &Core, user_id: &str, xml: &str) -> Result<Import
     let mut valid = Vec::new();
     for e in entries {
         if e.xml_url.chars().count() > core.config.max_url_length {
-            result.failed.push(ImportFailure { url: e.xml_url, reason: "URL too long".into() });
+            result.failed.push(ImportFailure {
+                url: e.xml_url,
+                reason: "URL too long".into(),
+            });
         } else {
             valid.push(e);
         }
@@ -218,15 +304,23 @@ pub async fn import_opml(core: &Core, user_id: &str, xml: &str) -> Result<Import
         return Ok(result);
     }
 
-    let mut q: QueryBuilder<MySql> = QueryBuilder::new(format!("SELECT {FEED_COLS} FROM Feed f WHERE f.link IN ("));
+    let mut q: QueryBuilder<MySql> =
+        QueryBuilder::new(format!("SELECT {FEED_COLS} FROM Feed f WHERE f.link IN ("));
     let mut sep = q.separated(", ");
     for e in &valid {
         sep.push_bind(&e.xml_url);
     }
     q.push(")");
     let existing: Vec<FeedRow> = q.build_query_as().fetch_all(&core.pool).await?;
-    let by_link: HashMap<String, FeedRow> = existing.into_iter().map(|f| (f.link.clone(), f)).collect();
-    let followed: HashSet<String> = sqlx::query_scalar("SELECT feedId FROM FeedList WHERE userId = ?").bind(user_id).fetch_all(&core.pool).await?.into_iter().collect();
+    let by_link: HashMap<String, FeedRow> =
+        existing.into_iter().map(|f| (f.link.clone(), f)).collect();
+    let followed: HashSet<String> =
+        sqlx::query_scalar("SELECT feedId FROM FeedList WHERE userId = ?")
+            .bind(user_id)
+            .fetch_all(&core.pool)
+            .await?
+            .into_iter()
+            .collect();
 
     let mut created = Vec::new();
     for e in valid {
@@ -235,13 +329,20 @@ pub async fn import_opml(core: &Core, user_id: &str, xml: &str) -> Result<Import
                 Some(f) => f.clone(),
                 None => {
                     let title = truncate(e.title.as_deref().unwrap_or(&e.xml_url), 1000);
-                    let ins = sqlx::query("INSERT INTO Feed (id, title, link) VALUES (?, ?, ?)").bind(new_id()).bind(title).bind(&e.xml_url).execute(&core.pool).await;
+                    let ins = sqlx::query("INSERT INTO Feed (id, title, link) VALUES (?, ?, ?)")
+                        .bind(new_id())
+                        .bind(title)
+                        .bind(&e.xml_url)
+                        .execute(&core.pool)
+                        .await;
                     match ins {
                         Err(err) if !is_duplicate(&err) => return Err(err.into()),
                         Err(_) => {} // created concurrently
                         Ok(_) => {}
                     }
-                    let f = feeds::by_link(core, &e.xml_url).await?.ok_or(Error::NotFound)?;
+                    let f = feeds::by_link(core, &e.xml_url)
+                        .await?
+                        .ok_or(Error::NotFound)?;
                     created.push(f.clone());
                     f
                 }
@@ -250,9 +351,17 @@ pub async fn import_opml(core: &Core, user_id: &str, xml: &str) -> Result<Import
                 return Ok(false);
             }
             if !feed.active {
-                sqlx::query("UPDATE Feed SET active = 1 WHERE id = ?").bind(&feed.id).execute(&core.pool).await?;
+                sqlx::query("UPDATE Feed SET active = 1 WHERE id = ?")
+                    .bind(&feed.id)
+                    .execute(&core.pool)
+                    .await?;
             }
-            match sqlx::query("INSERT INTO FeedList (userId, feedId) VALUES (?, ?)").bind(user_id).bind(&feed.id).execute(&core.pool).await {
+            match sqlx::query("INSERT INTO FeedList (userId, feedId) VALUES (?, ?)")
+                .bind(user_id)
+                .bind(&feed.id)
+                .execute(&core.pool)
+                .await
+            {
                 Err(err) if is_duplicate(&err) => Ok(false),
                 Err(err) => Err(err.into()),
                 Ok(_) => Ok(true),
@@ -264,17 +373,22 @@ pub async fn import_opml(core: &Core, user_id: &str, xml: &str) -> Result<Import
             Ok(false) => result.skipped += 1,
             Err(err) => {
                 crate::error!(API, "Error while importing feed {}: {err}", e.xml_url);
-                result.failed.push(ImportFailure { url: e.xml_url, reason: err.to_string() });
+                result.failed.push(ImportFailure {
+                    url: e.xml_url,
+                    reason: err.to_string(),
+                });
             }
         }
     }
 
     let c = core.clone();
     tokio::spawn(async move {
-        futures_util::stream::iter(created).for_each_concurrent(IMPORT_PARSE_CONCURRENCY, |f| {
-            let c = c.clone();
-            async move { update_feed(&c, &f).await }
-        }).await;
+        futures_util::stream::iter(created)
+            .for_each_concurrent(IMPORT_PARSE_CONCURRENCY, |f| {
+                let c = c.clone();
+                async move { update_feed(&c, &f).await }
+            })
+            .await;
     });
     Ok(result)
 }

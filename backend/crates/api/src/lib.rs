@@ -30,11 +30,23 @@ pub struct AppState {
 
 /// Mounts that require a valid token for every path and method beneath them (as in the old app).
 const PROTECTED: [&str; 8] = [
-    "/v1/user", "/v1/settings", "/v1/feeds", "/v1/articles", "/v1/readinglist", "/v1/starred", "/v1/categories", "/v1/statistics",
+    "/v1/user",
+    "/v1/settings",
+    "/v1/feeds",
+    "/v1/articles",
+    "/v1/readinglist",
+    "/v1/starred",
+    "/v1/categories",
+    "/v1/statistics",
 ];
 
 fn is_protected(path: &str) -> bool {
-    PROTECTED.iter().any(|p| path == *p || path.strip_prefix(p).is_some_and(|rest| rest.starts_with('/')))
+    PROTECTED.iter().any(|p| {
+        path == *p
+            || path
+                .strip_prefix(p)
+                .is_some_and(|rest| rest.starts_with('/'))
+    })
 }
 
 async fn auth_middleware(State(s): State<AppState>, mut req: Request, next: Next) -> Response {
@@ -57,12 +69,17 @@ async fn auth_middleware(State(s): State<AppState>, mut req: Request, next: Next
 /// A known path with an unsupported method is a 404 like in the old app (not 405).
 async fn method_not_allowed_is_404(req: Request, next: Next) -> Response {
     let res = next.run(req).await;
-    if res.status() == StatusCode::METHOD_NOT_ALLOWED { ApiError::route_not_found().into_response() } else { res }
+    if res.status() == StatusCode::METHOD_NOT_ALLOWED {
+        ApiError::route_not_found().into_response()
+    } else {
+        res
+    }
 }
 
 /// express' cors answers a preflight with 204 and no body (tower-http uses 200).
 async fn preflight_is_204(req: Request, next: Next) -> Response {
-    let preflight = req.method() == axum::http::Method::OPTIONS && req.headers().contains_key(axum::http::header::ORIGIN);
+    let preflight = req.method() == axum::http::Method::OPTIONS
+        && req.headers().contains_key(axum::http::header::ORIGIN);
     let res = next.run(req).await;
     if preflight && res.status() == StatusCode::OK {
         let (mut parts, _) = res.into_parts();
@@ -84,7 +101,12 @@ impl Modify for Security {
         let c = openapi.components.get_or_insert_with(Default::default);
         c.add_security_scheme(
             "bearer",
-            SecurityScheme::Http(HttpBuilder::new().scheme(HttpAuthScheme::Bearer).bearer_format("JWT").build()),
+            SecurityScheme::Http(
+                HttpBuilder::new()
+                    .scheme(HttpAuthScheme::Bearer)
+                    .bearer_format("JWT")
+                    .build(),
+            ),
         );
     }
 }
@@ -103,27 +125,43 @@ impl Modify for Security {
 struct ApiDoc;
 
 pub fn router(core: Core) -> Router {
-    let state = AppState { core, started: Instant::now() };
+    let state = AppState {
+        core,
+        started: Instant::now(),
+    };
     let (router, api) = routes::router().split_for_parts();
     let api = {
         let mut doc = ApiDoc::openapi();
         doc.merge(api);
         doc
     };
-    let router = router
-        .route("/v1/articles/content", get(routes::content_as_id).put(routes::content_as_id))
+    router
+        .route(
+            "/v1/articles/content",
+            get(routes::content_as_id).put(routes::content_as_id),
+        )
         .merge(SwaggerUi::new("/v1/api-docs").url("/v1/api-docs/openapi.json", api))
         .fallback(fallback)
         .with_state(state.clone())
         .layer(middleware::from_fn(method_not_allowed_is_404))
         .layer(middleware::from_fn_with_state(state, auth_middleware))
-        .layer(CorsLayer::new().allow_origin(AllowOrigin::any()).allow_methods(AllowMethods::list([
-            axum::http::Method::GET, axum::http::Method::HEAD, axum::http::Method::PUT,
-            axum::http::Method::PATCH, axum::http::Method::POST, axum::http::Method::DELETE,
-        ])).allow_headers(AllowHeaders::mirror_request()))
+        .layer(
+            CorsLayer::new()
+                .allow_origin(AllowOrigin::any())
+                .allow_methods(AllowMethods::list([
+                    axum::http::Method::GET,
+                    axum::http::Method::HEAD,
+                    axum::http::Method::PUT,
+                    axum::http::Method::PATCH,
+                    axum::http::Method::POST,
+                    axum::http::Method::DELETE,
+                ]))
+                .allow_headers(AllowHeaders::mirror_request()),
+        )
         .layer(middleware::from_fn(preflight_is_204))
-        .layer(CatchPanicLayer::custom(|_| ApiError::from(Error::internal("handler panicked")).into_response()));
-    router
+        .layer(CatchPanicLayer::custom(|_| {
+            ApiError::from(Error::internal("handler panicked")).into_response()
+        }))
 }
 
 /// `/v1/user/` is the same as `/v1/user` (express is not strict about trailing slashes). Swagger UI keeps its slash.
@@ -144,11 +182,21 @@ fn trim_trailing_slash(mut req: Request) -> Request {
 }
 
 /// Serves the API until `shutdown` resolves; in-flight requests are finished first.
-pub async fn serve(core: Core, port: u16, shutdown: impl std::future::Future<Output = ()> + Send + 'static) -> std::io::Result<()> {
+pub async fn serve(
+    core: Core,
+    port: u16,
+    shutdown: impl std::future::Future<Output = ()> + Send + 'static,
+) -> std::io::Result<()> {
     let app = router(core).map_request(trim_trailing_slash);
     let listener = tokio::net::TcpListener::bind(SocketAddr::from(([0, 0, 0, 0], port))).await?;
-    rsswipe_core::info!(rsswipe_core::logger::API, "Server started at http://localhost:{port}");
-    axum::serve(listener, axum::ServiceExt::<Request>::into_make_service(app))
-        .with_graceful_shutdown(shutdown)
-        .await
+    rsswipe_core::info!(
+        rsswipe_core::logger::API,
+        "Server started at http://localhost:{port}"
+    );
+    axum::serve(
+        listener,
+        axum::ServiceExt::<Request>::into_make_service(app),
+    )
+    .with_graceful_shutdown(shutdown)
+    .await
 }
