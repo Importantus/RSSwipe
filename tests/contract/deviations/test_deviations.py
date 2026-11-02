@@ -181,3 +181,4 @@ def test_B12_fresh_unused_feed_survives_garbage_collection(user):
     db(f"INSERT INTO Feed (id,title,link) VALUES ('{fid}','fresh','{PUBLISHER}{fresh('/fresh-orphan')}')")
     assert run_job("gc").returncode == 0
     assert db(f"SELECT COUNT(*) FROM Feed WHERE id='{fid}'") == ("0" if ts else "1")
+

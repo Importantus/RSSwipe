@@ -3,7 +3,7 @@
 
 RSSwipe is a RSS reader that allows you to find your next article just like you would find your next date. Swipe left to skip, swipe right to save for later. It's that simple. 
 
-This repo contains the code for the frontend, a progressive web app written in Vuejs, and the backend, an expressjs server with a prisma database exposing a REST api.
+This repo contains the code for the frontend, a progressive web app written in Vuejs, and the backend, a Rust server (axum, sqlx, MariaDB) exposing a REST api. Its OpenAPI documentation is served at `/v1/api-docs`.
 
 RSSwipe was originally developed as a project for a web engineering course at the University of Applied Sciences Lübeck. We took a lot of inspiration from [Fox RSS](https://github.com/16arpi/Fox-RSS) - a similar app for swiping articles but it runs natively on Android and has no backend.
 
@@ -89,37 +89,31 @@ git clone https://github.com/Importantus/RSSwipe.git
 ```
 
 Create an .env file in the root directory of the project and copy the content of the .env.local file into it.
-Do the same for the .env file in the /backend/prisma directory.
 
-Start the app:
+Start the app (the backend container applies the database migrations and rebuilds on restart):
 
 ```sh
 cd RSSwipe/
 docker compose up
 ```
 
-Run migrations:
+Without Docker you need a Rust toolchain and a running MariaDB:
 
 ```sh
 cd backend/
-npx prisma migrate deploy
+export DATABASE_URL=mysql://user:password@localhost:3306/rsswipe JWT_SECRET=change-me
+cargo run -p rsswipe -- migrate   # apply migrations
+cargo run -p rsswipe              # API + background jobs
+cargo test && cargo clippy --all-targets -- -D warnings
 ```
 
-Generate the prisma client:
-
-```sh
-npx prisma generate
-```
+The services of the backend are selected with `SERVICE_TYPE` (`all`, `api`, `feedParser`, `garbageCollector`); see
+[docs/rust-migration/README.md](docs/rust-migration/README.md) for build, start, migrations and the contract tests.
 
 ### How to make changes to the database
 
-Make changes to the schema.prisma file
-
-Create a migration:
-
-```sh
-npx prisma migrate dev --name <name of migration>
-```
+Add a SQL file to `backend/migrations/` (e.g. `0004_my_change.sql`). Migrations must be additive and safe to run on a live database.
+They are applied by `rsswipe migrate` (in Kubernetes: the migration job of the deployment).
 
 ### Troubleshooting
 

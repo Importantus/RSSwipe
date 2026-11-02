@@ -31,16 +31,18 @@ services:
     networks:
       - vwprog-net
   vwprg-backend:
-    image: node:20
+    image: rust:1-bookworm
     working_dir: /usr/src/app
-    command: bash -c "npm install && npm run dev"
+    # applies migrations, then runs the API and the background jobs (SERVICE_TYPE=all); rebuilds on restart
+    command: bash -c "cargo run -p rsswipe -- migrate && cargo run -p rsswipe"
     ports:
       - "8080:8080"
     env_file:
       - .env
     volumes:
       - ./backend/:/usr/src/app
-      - /usr/app/node_modules
+      - vwprog-cargo:/usr/local/cargo/registry
+      - vwprog-target:/usr/src/app/target
     networks:
       - vwprog-net
     depends_on:
@@ -68,4 +70,8 @@ networks:
     driver: bridge
 volumes:
   vwprog-mariadb:
+    driver: local
+  vwprog-cargo:
+    driver: local
+  vwprog-target:
     driver: local

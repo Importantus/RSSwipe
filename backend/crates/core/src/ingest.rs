@@ -73,11 +73,14 @@ async fn insert_feed(
 pub async fn follow(core: &Core, user_id: &str, url: &str, open_in_app: bool) -> Result<FeedRow> {
     let feed = match feeds::by_link(core, url).await? {
         Some(f) => {
-            if !f.active {
-                sqlx::query("UPDATE Feed SET active = 1 WHERE id = ?")
-                    .bind(&f.id)
-                    .execute(&core.pool)
-                    .await?;
+            // following a switched-off or hopelessly failing feed again gives it a fresh start
+            if !f.active || f.error_count as i64 > core.config.max_feed_error_count {
+                sqlx::query(
+                    "UPDATE Feed SET active = 1, error_count = 0, errormessage = NULL WHERE id = ?",
+                )
+                .bind(&f.id)
+                .execute(&core.pool)
+                .await?;
             }
             f
         }

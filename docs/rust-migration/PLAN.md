@@ -199,3 +199,17 @@ Health: `GET /` bleibt (öffentlich, JSON-Liste der Versionen) und genügt für 
 | Q7 | Kein SSRF-Schutz |
 | Q8 | Optionale Env: `DB_MAX_CONNECTIONS` (Override, Default pro Modus: API 10, Jobs 5), `FEED_PARSER_CONCURRENCY` (Default 4) |
 | Q9 | Deployment-Änderungen direkt anwenden, aber nichts pushen, bevor die App gemergt ist |
+
+## 10. Abweichungen der Umsetzung vom Plan
+
+| Plan | Umsetzung | Grund |
+|---|---|---|
+| Crates `core`, `fetch`, `api`, `jobs`, `bin` | `core` (enthält Fetch, HTML, OPML, Ingest, Jobs), `api`, `bin` | weniger Zwischenschichten; die Grenzen sind als Module erhalten |
+| `sqlx` mit `query!`-Makros und `.sqlx/`-Cache | `sqlx` mit zur Laufzeit geprüften Abfragen (`query`, `query_as`, `QueryBuilder`) | kein Offline-Cache im Docker-Build nötig, viele Abfragen sind ohnehin dynamisch; abgesichert durch die Contract-Tests und die Migrationsprüfung |
+| `garde` für Validierung | serde mit `deny_unknown_fields` + eigene `validate()`-Methoden | exakte Kontrolle über „null ist ein Fehler“, unbekannte Felder und Feldnamen in den Fehlern |
+| `tower-http` `NormalizePath` | eigene `map_request`-Funktion | Swagger UI braucht seinen Slash (`/v1/api-docs/`) |
+| `GET /articles/:id/content` und `feeds` auf Abos begrenzen | **nicht** begrenzt | Entscheidung Q6: geteilte Artikel müssen öffnbar sein |
+| Auto-Migration bei API-Start | nur `rsswipe migrate` | Entscheidung Q2 |
+| `npm`-Shim im Image | kein Shim, Migrations-Command im Deployment geändert | Entscheidung Q1 |
+| SSRF-Schutz | keiner | Entscheidung Q7 |
+| Baseline mit explizitem Index `ArticleList_userId_fkey` | Index entfällt in der Baseline | InnoDB entfernt ihn im Prisma-Pfad, sobald `0002` einen abdeckenden Index anlegt; so ergeben beide Wege dasselbe Schema (vom Migrationstest geprüft) |

@@ -14,6 +14,15 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
       retries: 3
       timeout: 5s
+  # applies pending database migrations and exits; the backend starts afterwards
+  migrate:
+    image: ghcr.io/importantus/rsswipe-backend:main
+    command: ["rsswipe", "migrate"]
+    environment:
+      DATABASE_URL: "${DATABASE_URL}"
+    depends_on:
+      mariadb:
+        condition: service_healthy
   backend:
     image: ghcr.io/importantus/rsswipe-backend:main
     ports:
@@ -22,8 +31,8 @@ services:
       - .env
     restart: unless-stopped
     depends_on:
-      mariadb:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
   frontend:
     image: ghcr.io/importantus/rsswipe-frontend:main
     restart: unless-stopped
