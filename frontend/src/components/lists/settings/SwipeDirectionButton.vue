@@ -11,10 +11,12 @@ const props = defineProps<Props>();
 </script>
 
 <template>
-    <div @click="onClick" :class="{ 'bg-background-900 bg-opacity-30': !selected, 'bg-primary-600': selected }"
-        class="cursor-pointer w-full p-3 flex flex-col items-center gap-2 justify-center rounded-lg transition-colors ease-out duration-300">
-        <props.ownDirection.icon :style="{ color: (selected ? 'white' : props.ownDirection.color) }" class="opacity-70"
-            :class="{ 'opacity-100 ': selected }" />
-        <span class="text-center">{{ props.ownDirection.name }}</span>
-    </div>
+    <button type="button" @click="onClick" :aria-pressed="selected"
+        :class="selected ? 'bg-primary-600/20 border-primary-500' : 'bg-white/5 border-transparent'"
+        class="w-full px-2 py-3 flex flex-col items-center gap-2 justify-center rounded-xl border transition active:scale-[0.97]">
+        <props.ownDirection.icon :size="22" :style="{ color: props.ownDirection.color }"
+            :class="selected ? 'opacity-100' : 'opacity-60'" />
+        <span class="text-center text-xs font-text-detail leading-tight"
+            :class="selected ? 'text-white' : 'text-background-300'">{{ props.ownDirection.name }}</span>
+    </button>
 </template>

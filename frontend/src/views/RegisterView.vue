@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { apiErrorMessage } from '@/apiError';
+import AppButton from '@/components/global/AppButton.vue';
 import TextInputIcon from '@/components/global/TextInputField.vue';
 import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
@@ -43,7 +44,7 @@ async function handleSubmit() {
         </div>
         <div class="w-full flex flex-col gap-5 items-center relative">
             <img src="/images/login-background.png" alt="Hero" class="absolute bottom-20 -right-10 z-0 object-cover" />
-            <div v-if="error" class="w-full bg-red-500 rounded-lg p-3 z-10">{{ error }}</div>
+            <div v-if="error" role="alert" class="w-full bg-red-500/90 rounded-xl p-3 z-10 text-sm">{{ error }}</div>
             <form @submit.prevent="handleSubmit" class="w-full z-10">
                 <div class="flex flex-col gap-5">
                     <TextInputIcon v-model="backendUrl" placeholder="https://backend.example.com" :icon="Link2"
@@ -55,12 +56,11 @@ async function handleSubmit() {
                     <TextInputIcon v-model="password" placeholder="Password" type="password" :icon="KeyRound"
                         :required="true" title="Enter your password" />
                 </div>
-                <button type="submit" class="w-full h-14 bg-amber-600 rounded-lg mt-10 hover:bg-amber-700 transition"
-                    title="Create account">Register</button>
+                <AppButton type="submit" class="!h-14 mt-8" title="Create account">Register</AppButton>
             </form>
-            <div>
+            <div class="text-sm text-background-300 z-10">
                 Already have an account?
-                <router-link to="/login" class="underline z-10" title="Account login">Login</router-link>
+                <router-link to="/login" class="underline underline-offset-4 text-primary-400 z-10" title="Account login">Login</router-link>
             </div>
         </div>
     </div>

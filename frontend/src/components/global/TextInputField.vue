@@ -16,44 +16,34 @@ const props = defineProps({
     required: {
         type: Boolean,
         default: false
-    }
+    },
+    autocomplete: String
 })
 
 const emit = defineEmits(['update:modelValue'])
 
 const showPassword = ref(false)
-const inputType = ref(props.type)
 const updateValue = (event: any) => {
     emit('update:modelValue', event.target.value)
-}
-
-function togglePassword() {
-    showPassword.value = !showPassword.value
-    if (showPassword.value) {
-        inputType.value = 'text'
-    } else {
-        inputType.value = 'password'
-    }
 }
 </script>
 
 <template>
-    <div class="relative">
-        <input :type="inputType" :value="modelValue" @input="updateValue" :placeholder="placeholder" :required="required"
-            class="w-full h-14 bg-neutral-700 bg-opacity-60 rounded-lg border border-neutral-700 backdrop-blur-sm pl-12 placeholder:text-neutral-600" />
-        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <props.icon :size="24" :class="{ 'stroke-white': modelValue, 'stroke-neutral-600': !modelValue }"
-                class="transition-all" />
+    <div class="relative group">
+        <input :type="type === 'password' && showPassword ? 'text' : type" :value="modelValue" @input="updateValue"
+            :placeholder="placeholder" :aria-label="placeholder" :required="required" :autocomplete="autocomplete"
+            class="w-full h-14 bg-white/[0.07] rounded-xl border border-white/10 backdrop-blur-sm pl-12 transition focus:border-primary-500 focus:bg-white/10 placeholder:text-secondary-400"
+            :class="type === 'password' ? 'pr-12' : 'pr-4'" />
+        <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+            <props.icon :size="20" :class="modelValue ? 'text-white' : 'text-secondary-400'"
+                class="transition-colors group-focus-within:text-primary-400" />
         </div>
-        <div v-if="type == 'password'" class="absolute inset-y-0 right-0 flex items-center pr-3" @click="togglePassword">
-            <div v-if="showPassword">
-                <Eye :size="24" :class="{ 'stroke-white': modelValue, 'stroke-neutral-600': !modelValue }"
-                    class="transition-all" />
-            </div>
-            <div v-else>
-                <EyeOff :size="24" :class="{ 'stroke-white': modelValue, 'stroke-neutral-600': !modelValue }"
-                    class="transition-all" />
-            </div>
-        </div>
+        <button v-if="type === 'password'" type="button" tabindex="-1"
+            :title="showPassword ? 'Hide password' : 'Show password'"
+            class="absolute inset-y-0 right-0 w-12 flex items-center justify-center"
+            @click="showPassword = !showPassword">
+            <component :is="showPassword ? Eye : EyeOff" :size="20"
+                :class="modelValue ? 'text-white' : 'text-secondary-400'" class="transition-colors" />
+        </button>
     </div>
 </template>

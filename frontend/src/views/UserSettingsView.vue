@@ -1,11 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import TitleNavigationBar from '@/components/global/TitleNavigationBar.vue'
+import AppModal from '@/components/global/AppModal.vue'
+import AppButton from '@/components/global/AppButton.vue'
+import SettingsSection from '@/components/global/SettingsSection.vue'
+import SettingsRow from '@/components/global/SettingsRow.vue'
+import FeedAvatar from '@/components/feeds/FeedAvatar.vue'
 import { useUserdataStore } from '@/stores/userdata'
+import { useSnackbarStore } from '@/stores/snackbar'
 import TextInputIcon from '@/components/global/TextInputField.vue'
-import { Mail, User, KeyRound, X } from 'lucide-vue-next'
+import { Mail, User, KeyRound, Trash2 } from 'lucide-vue-next'
 
 const store = useUserdataStore()
+const snackbar = useSnackbarStore()
 
 const password = ref('')
 const oldPassword = ref('')
@@ -13,61 +20,103 @@ const deletionPassword = ref('')
 const showDeleteAccountModal = ref(false)
 
 store.fetchUserData()
+
+// Feedback comes from the store; show it as a snackbar instead of a banner that pushes the form down.
+watch(
+  () => store.success,
+  (message) => {
+    if (!message) return
+    snackbar.show(message)
+    store.success = '' // reset so an identical message triggers again
+    password.value = ''
+    oldPassword.value = ''
+  }
+)
+watch(
+  () => store.error,
+  (message) => {
+    if (!message) return
+    snackbar.show(message)
+    store.error = ''
+  }
+)
 </script>
 
 <template>
   <div class="overflow-y-scroll h-full">
-    <Transition name="popup-fade">
-      <div v-if="showDeleteAccountModal"
-        class="fixed z-40 top-0 bottom-0 left-0 right-0 h-screen w-screen bg-opacity-40 bg-black flex justify-center items-center">
-        <div class="w-[90%] max-w-lg bg-background-950 rounded-xl p-5 relative">
-          <X class="absolute top-5 right-5 cursor-pointer" size="32" @click="showDeleteAccountModal = false" />
-          <div class="text-xl">Delete Account?</div>
-          <div class="text-background-600 mb-5">Please enter your password to confirm.</div>
-          <form @submit.prevent="store.deleteUser(deletionPassword)" class="flex flex-col gap-3">
-            <TextInputIcon type="password" v-model="deletionPassword" placeholder="Password" :icon="KeyRound"
-              :required="true" />
-            <button type="submit" class="w-full h-14 bg-red-500 rounded-lg hover:bg-red-600 transition">
-              Delete Account
-            </button>
-          </form>
-        </div>
-      </div>
-    </Transition>
-    <div class="px-5 pb-10 z-10">
+    <AppModal :show="showDeleteAccountModal" title="Delete account?" @close="showDeleteAccountModal = false">
+      <p class="text-sm text-background-300 mb-4">
+        This permanently deletes your account and all your data. Enter your password to confirm.
+      </p>
+      <form class="flex flex-col gap-3" @submit.prevent="store.deleteUser(deletionPassword)">
+        <TextInputIcon
+          v-model="deletionPassword"
+          type="password"
+          placeholder="Password"
+          autocomplete="current-password"
+          :icon="KeyRound"
+          :required="true"
+        />
+        <AppButton type="submit" variant="danger">Delete account</AppButton>
+      </form>
+    </AppModal>
+
+    <div class="px-5 pb-10">
       <TitleNavigationBar title="Account" backNavigationPath="/settings" />
-      <Transition name="fade">
-        <div v-if="store.error || store.success">
-          <div v-if="store.error" class="w-full bg-red-500 rounded-lg p-3 z-10 mb-5">{{ store.error }}</div>
-          <div v-if="store.success" class="w-full bg-green-500 rounded-lg p-3 z-10 mb-5">
-            {{ store.success }}
+
+      <div class="flex flex-col gap-8">
+        <div v-if="store.userdata.name" class="flex flex-col items-center gap-3 pt-1 pb-2">
+          <FeedAvatar :title="store.userdata.name" :size="80" rounded="rounded-full" />
+          <div class="text-center">
+            <div class="text-xl font-title">{{ store.userdata.name }}</div>
+            <div v-if="store.userdata.createdAt" class="text-xs font-text-detail text-background-400 mt-1">
+              Member since {{ store.userdata.createdAt.toLocaleDateString() }}
+            </div>
           </div>
         </div>
-      </Transition>
-      <h2 class="mb-5 mt-5 text-xl">Update Data</h2>
-      <form @submit.prevent="store.updateUserDetails" class="flex flex-col gap-3">
-        <TextInputIcon v-model="store.userdata.name" placeholder="Name" :icon="User" :required="true" />
-        <TextInputIcon v-model="store.userdata.email" placeholder="Email" :icon="Mail" :required="true" />
-        <button type="submit" class="w-full h-14 bg-amber-600 rounded-lg hover:bg-amber-700 transition">
-          Update Details
-        </button>
-      </form>
-      <h2 class="mb-5 mt-10 text-xl">Change Password</h2>
-      <form @submit.prevent="store.updateUserPassword(password, oldPassword)" class="flex flex-col gap-3">
-        <TextInputIcon type="password" v-model="oldPassword" placeholder="Old Password" :icon="KeyRound"
-          :required="true" />
-        <TextInputIcon type="password" v-model="password" placeholder="Password" :icon="KeyRound" :required="true" />
-        <button :disabled="password.length < 8 || oldPassword.length < 8" type="submit"
-          class="disabled:opacity-50 w-full h-14 bg-amber-600 rounded-lg hover:bg-amber-700 transition">
-          Update Password
-        </button>
-      </form>
-      <h2 class="mb-5 mt-10 text-xl">Danger Zone</h2>
-      <div class="flex flex-col gap-2">
-        <button @click="showDeleteAccountModal = true"
-          class="w-full h-14 border-red-500 border-2 rounded-lg hover:bg-red-600 transition">
-          Delete Account
-        </button>
+
+        <SettingsSection title="Profile">
+          <form class="p-4 flex flex-col gap-3" @submit.prevent="store.updateUserDetails">
+            <TextInputIcon v-model="store.userdata.name" placeholder="Name" autocomplete="name" :icon="User" :required="true" />
+            <TextInputIcon
+              v-model="store.userdata.email"
+              type="email"
+              placeholder="Email"
+              autocomplete="email"
+              :icon="Mail"
+              :required="true"
+            />
+            <AppButton type="submit">Save changes</AppButton>
+          </form>
+        </SettingsSection>
+
+        <SettingsSection title="Password" footer="Use at least 8 characters.">
+          <form class="p-4 flex flex-col gap-3" @submit.prevent="store.updateUserPassword(password, oldPassword)">
+            <TextInputIcon
+              v-model="oldPassword"
+              type="password"
+              placeholder="Current password"
+              autocomplete="current-password"
+              :icon="KeyRound"
+              :required="true"
+            />
+            <TextInputIcon
+              v-model="password"
+              type="password"
+              placeholder="New password"
+              autocomplete="new-password"
+              :icon="KeyRound"
+              :required="true"
+            />
+            <AppButton type="submit" :disabled="password.length < 8 || oldPassword.length < 8">
+              Update password
+            </AppButton>
+          </form>
+        </SettingsSection>
+
+        <SettingsSection footer="Deleting your account removes all feeds, lists and statistics. This cannot be undone.">
+          <SettingsRow button danger title="Delete account" :icon="Trash2" @click="showDeleteAccountModal = true" />
+        </SettingsSection>
       </div>
     </div>
   </div>

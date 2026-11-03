@@ -2,7 +2,12 @@
 import TitleNavigationBar from '@/components/global/TitleNavigationBar.vue';
 import SwipeDirectionItem from '@/components/lists/settings/SwipeDirectionButton.vue';
 import ArticleOrderButton from '@/components/lists/settings/ArticleOrderButton.vue';
-import SettingWrapper from '@/components/global/SettingWrapper.vue';
+import SettingsSection from '@/components/global/SettingsSection.vue';
+import SettingsRow from '@/components/global/SettingsRow.vue';
+import SwitchToggle from '@/components/global/SwitchToggle.vue';
+import NumberStepper from '@/components/global/NumberStepper.vue';
+import AppButton from '@/components/global/AppButton.vue';
+import { useSnackbarStore } from '@/stores/snackbar';
 import { useReadingListStore, StoreStatus, possibleSwipeDirections } from '@/stores/readingList';
 import { useStarredListStore } from '@/stores/starredList';
 import { ArrowLeftToLineIcon } from 'lucide-vue-next';
@@ -10,6 +15,9 @@ import { computed } from 'vue';
 
 const store = useReadingListStore();
 const starredStore = useStarredListStore();
+const snackbar = useSnackbarStore();
+
+const DEFAULT_EXPIRY_HOURS = 24;
 
 const expTimeUnread = computed({
     get: () => Math.floor(store.settings.expTimeUnread / 1000 / 60 / 60),
@@ -25,25 +33,17 @@ const expTimeRead = computed({
     },
 });
 
-const expTimeReadNever = computed({
-    get: () => store.settings.expTimeRead < 0,
+const expTimeReadEnabled = computed({
+    get: () => store.settings.expTimeRead >= 0,
     set: (value) => {
-        if (value) {
-            store.settings.expTimeRead = -1;
-        } else {
-            store.settings.expTimeRead = 0;
-        }
+        store.settings.expTimeRead = value ? DEFAULT_EXPIRY_HOURS * 1000 * 60 * 60 : -1;
     },
 });
 
-const expTimeUnreadNever = computed({
-    get: () => store.settings.expTimeUnread < 0,
+const expTimeUnreadEnabled = computed({
+    get: () => store.settings.expTimeUnread >= 0,
     set: (value) => {
-        if (value) {
-            store.settings.expTimeUnread = -1;
-        } else {
-            store.settings.expTimeUnread = 0;
-        }
+        store.settings.expTimeUnread = value ? DEFAULT_EXPIRY_HOURS * 1000 * 60 * 60 : -1;
     },
 });
 
@@ -57,35 +57,10 @@ function setSwipeDirection(id: string, isRightSwipe: boolean) {
     }
 }
 
-function updateSettings() {
-    store.updateSettings(store.settings);
-}
-
-function onInput(event: Event) {
-    let target = event.target as HTMLInputElement;
-    let value = JSON.parse(JSON.stringify(target.value.replace(/[^0-9]/g, '')))
-
-    // If the input is empty, add a 0
-    if (value.length === 0) {
-        value = '0';
-    }
-
-    // If the value has trailing zeros, remove them
-    if (value.length > 1 && value[0] === '0') {
-        value = value.slice(1);
-    }
-
-    // If the value has more than 3 digits, remove the last one
-    if (value.length > 3) {
-        value = value.slice(0, 3);
-    }
-
-    target.value = value;
-
-    // Set the value again after the input has been updated because Firefox doesn't update the value immediately
-    setTimeout(() => {
-        target.value = value;
-    }, 0)
+async function updateSettings() {
+    store.settingsStatus = StoreStatus.READY;
+    await store.updateSettings(store.settings);
+    snackbar.show((store.settingsStatus as StoreStatus) === StoreStatus.SUCCESS ? 'Settings saved' : 'Error saving settings');
 }
 
 store.loadSettings();
@@ -93,108 +68,61 @@ store.loadSettings();
 
 <template>
     <div class="px-5 overflow-y-scroll pb-10">
-        <TitleNavigationBar title="Reading List Settings" backNavigationPath="/readinglist" />
-        <div class="mb-5">
-            <div v-if="store.settingsStatus === StoreStatus.SUCCESS" class="w-full bg-green-500 rounded-lg p-3 z-10">
-                Settings saved successfully
-            </div>
-            <div v-if="store.settingsStatus === StoreStatus.ERROR" class="w-full bg-red-500 rounded-lg p-3 z-10">
-                Error saving settings
-            </div>
-        </div>
-        <div class="flex flex-col gap-10">
-            <SettingWrapper title="Time to expire" description="The time after which articles are removed from the
-                    readinglist">
-                <div class="flex flex-col gap-2">
-                    <div
-                        class="font-title flex justify-between min-h-[4rem] gap-5 p-3 px-5 items-center bg-background-900 bg-opacity-30 rounded-sm">
-                        Read Articles
-                        <div class="flex items-center  justify-end gap-x-5 gap-y-3 flex-wrap-reverse ">
-                            <Transition name="readinglistsettings">
-                                <div v-if="!expTimeReadNever" class="flex gap-2 items-center">
-                                    <input @input="onInput" v-model="expTimeRead" type="number" max="999" min="0"
-                                        class="w-14 text-center border-b-2 rounded-none bg-transparent text-lg" />
-                                    <div>hours</div>
-                                </div>
-                            </Transition>
-                            <div class="flex gap-3 items-center">
-                                <label for="expTimeReadNever">Never</label>
-                                <input class="h-5 w-5 bg-primary-300 accent-primary-600" type="checkbox"
-                                    name="expTimeReadNever" v-model="expTimeReadNever">
-                            </div>
-                        </div>
-                    </div>
-                    <div
-                        class="font-title flex justify-between min-h-[4rem]  gap-5 p-3 px-5 items-center bg-background-900 bg-opacity-30 rounded-sm">
-                        Unread Articles
-                        <div class="flex items-center justify-end gap-x-5 gap-y-3 flex-wrap-reverse">
-                            <Transition name="readinglistsettings">
-                                <div v-if="!expTimeUnreadNever" class="flex gap-2 items-center">
-                                    <input @input="onInput" v-model="expTimeUnread" type="number" max="999" min="0"
-                                        class="w-14 text-center border-b-2 rounded-none bg-transparent text-lg" />
-                                    <div>hours</div>
-                                </div>
-                            </Transition>
-                            <div class="flex gap-3 items-center">
-                                <label for="expTimeReadNever">Never</label>
-                                <input class="h-5 w-5 bg-primary-300 accent-primary-600" type="checkbox"
-                                    name="expTimeReadNever" v-model="expTimeUnreadNever">
-                            </div>
-                        </div>
-                    </div>
+        <TitleNavigationBar title="List Settings" backNavigationPath="/readinglist" />
+        <div class="flex flex-col gap-8">
+            <SettingsSection v-if="store.settings.expTimeRead !== undefined" title="Automatic removal"
+                footer="Articles are removed from your reading list after the chosen time.">
+                <SettingsRow title="Remove read articles">
+                    <SwitchToggle v-model="expTimeReadEnabled" title="Remove read articles automatically" />
+                </SettingsRow>
+                <SettingsRow v-if="expTimeReadEnabled" title="After">
+                    <NumberStepper v-model="expTimeRead" :min="0" :max="999" unit="h" label="Hours until read articles are removed" />
+                </SettingsRow>
+                <SettingsRow title="Remove unread articles">
+                    <SwitchToggle v-model="expTimeUnreadEnabled" title="Remove unread articles automatically" />
+                </SettingsRow>
+                <SettingsRow v-if="expTimeUnreadEnabled" title="After">
+                    <NumberStepper v-model="expTimeUnread" :min="0" :max="999" unit="h" label="Hours until unread articles are removed" />
+                </SettingsRow>
+                <div class="p-4">
+                    <AppButton @click="updateSettings">Save</AppButton>
                 </div>
-                <div>
-                    <button @click="updateSettings"
-                        class="w-full h-14 bg-primary-600 rounded-lg hover:bg-primary-800 transition font-semibold text-lg">Save</button>
-                </div>
-            </SettingWrapper>
-            <SettingWrapper title="Swipe Gestures" description="The actions that are performed when swiping an article to the
-                    left or right">
-                <div class="flex flex-col gap-5">
+            </SettingsSection>
+
+            <SettingsSection title="Swipe gestures"
+                footer="The action performed when you swipe an article in your lists.">
+                <div class="p-4 flex flex-col gap-5">
                     <div class="flex flex-col gap-2">
-                        <div class="flex font-title items-center gap-3 text-lg">
-                            <ArrowLeftToLineIcon size="30" class="text-white transform rotate-180" />
+                        <div class="flex items-center gap-2 text-sm text-background-300">
+                            <ArrowLeftToLineIcon :size="18" class="transform rotate-180" />
                             Swipe right
                         </div>
-                        <div class="flex gap-3 h-fit">
+                        <div class="flex gap-2">
                             <SwipeDirectionItem v-for="direction in possibleSwipeDirections" :key="direction.id"
                                 :ownDirection="direction" :selected="direction.id === store.swipeRight.id"
                                 :onClick="() => setSwipeDirection(direction.id, true)" />
                         </div>
                     </div>
                     <div class="flex flex-col gap-2">
-                        <div class="flex font-title items-center gap-3 text-lg">
-                            <ArrowLeftToLineIcon size="30" class="text-white" />
+                        <div class="flex items-center gap-2 text-sm text-background-300">
+                            <ArrowLeftToLineIcon :size="18" />
                             Swipe left
                         </div>
-                        <div class="flex gap-3">
+                        <div class="flex gap-2">
                             <SwipeDirectionItem v-for="direction in possibleSwipeDirections" :key="direction.id"
                                 :ownDirection="direction" :selected="direction.id === store.swipeLeft.id"
                                 :onClick="() => setSwipeDirection(direction.id, false)" />
                         </div>
                     </div>
                 </div>
-            </SettingWrapper>
-            <SettingWrapper title="Article Read Order" description="The order in which next articles are displayed when in the
-                    reader">
-                <div class="flex gap-3 h-fit">
+            </SettingsSection>
+
+            <SettingsSection title="Article order" footer="Which article opens next when you finish one in the reader.">
+                <div class="p-4 flex gap-2">
                     <ArticleOrderButton :is-only-unread="true" />
                     <ArticleOrderButton :is-only-unread="false" />
                 </div>
-            </SettingWrapper>
+            </SettingsSection>
         </div>
     </div>
 </template>
-
-<style scoped>
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-input[type=number] {
-    -moz-appearance: textfield;
-    appearance: textfield;
-}
-</style>
