@@ -110,6 +110,23 @@ pub async fn follow(core: &Core, user_id: &str, url: &str, open_in_app: bool) ->
     Ok(feed)
 }
 
+/// Fetches a followed feed right now, e.g. after the user tapped "retry". The outcome is stored on the feed like in
+/// the background job: success clears the error, a failure adds to the error count. A switched-off feed is switched on again.
+pub async fn retry_feed(core: &Core, user_id: &str, feed_id: &str) -> Result<()> {
+    // 404 unless the user follows the feed
+    feeds::info(core, user_id, feed_id).await?;
+    sqlx::query("UPDATE Feed SET active = 1 WHERE id = ?")
+        .bind(feed_id)
+        .execute(&core.pool)
+        .await?;
+    let feed: FeedRow = sqlx::query_as(&format!("SELECT {FEED_COLS} FROM Feed f WHERE f.id = ?"))
+        .bind(feed_id)
+        .fetch_one(&core.pool)
+        .await?;
+    update_feed(core, &feed).await;
+    Ok(())
+}
+
 /// Fetches a feed, refreshes its metadata and stores new articles. Never fails: errors are recorded on the feed.
 pub async fn update_feed(core: &Core, feed: &FeedRow) {
     crate::info!(FEEDPARSER, "Updating Feed {}", feed.title);

@@ -188,3 +188,34 @@ def test_import_bad_bodies_are_400(user, body, ctype):
 
 def test_import_json_body_is_400(user):
     assert user.post("/v1/feeds/import", json={"a": 1}).status_code == 400
+
+
+# --- retry -------------------------------------------------------------------------------------
+def test_retry_clears_the_error_of_a_broken_feed(user):
+    b = follow(user, "/feed/rss.xml").json()
+    wait_for(lambda: user.get(f"/v1/feeds/{b['id']}").json()["faviconUrl"])   # the first background import is done
+    db(f"UPDATE Feed SET error_count = 7, errormessage = 'HTTP 503', active = 0 WHERE id = '{b['id']}'")
+    r = user.post(f"/v1/feeds/{b['id']}/retry")
+    assert r.status_code == 200, r.text
+    got = r.json()
+    assert list(got) == FEED_KEYS
+    assert got["error_count"] == 0 and got["errormessage"] is None and got["active"] is True
+
+
+def test_retry_that_fails_again_keeps_the_error(user):
+    b = follow(user, "/feed/rss.xml").json()
+    wait_for(lambda: user.get(f"/v1/feeds/{b['id']}").json()["faviconUrl"])
+    db(f"UPDATE Feed SET link = 'http://does-not-exist.invalid/feed.xml', error_count = 4 WHERE id = '{b['id']}'")
+    got = user.post(f"/v1/feeds/{b['id']}/retry").json()
+    assert got["error_count"] == 5 and got["errormessage"]
+
+
+def test_retry_needs_a_followed_feed(user):
+    b = follow(user, "/feed/rss.xml").json()
+    other = Api()
+    r = other.post("/v1/register", json={"name": "B", "email": new_email(), "password": PASSWORD})
+    other.token = r.json()["token"]
+    assert other.post(f"/v1/feeds/{b['id']}/retry").status_code == 404
+    assert user.post(f"/v1/feeds/{uuid.uuid4()}/retry").status_code == 404
+    assert user.post("/v1/feeds/not-an-id/retry").status_code == 400
+    assert Api().post(f"/v1/feeds/{b['id']}/retry").status_code == 401

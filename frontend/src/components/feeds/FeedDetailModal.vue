@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ExternalLink, Info, Plus, Share2, Trash2 } from 'lucide-vue-next'
+import { ExternalLink, Info, Plus, RefreshCw, Share2, Trash2 } from 'lucide-vue-next'
 import AppModal from '@/components/global/AppModal.vue'
 import SwitchToggle from '@/components/global/SwitchToggle.vue'
 import CategoryChip from '@/components/categories/CategoryChip.vue'
@@ -30,6 +30,7 @@ const categories = useFeedCategoriesStore()
 const snackbar = useSnackbarStore()
 
 const showNew = ref(false)
+const retrying = ref(false)
 const canShare = ref(false)
 onMounted(() => {
   canShare.value = typeof navigator.share === 'function'
@@ -81,6 +82,14 @@ async function subscribe() {
   if (item) snackbar.show(`Subscribed to “${item.title}”`)
 }
 
+async function retry() {
+  if (!props.feedId || retrying.value) return
+  retrying.value = true
+  const item = await feedStore.retryFeed(props.feedId)
+  retrying.value = false
+  if (item && !item.errormessage) snackbar.show(`“${item.title}” works again`)
+}
+
 async function unfollow() {
   if (!props.feedId) return
   emit('close')
@@ -111,7 +120,17 @@ async function unfollow() {
             app can be reported <a class="underline" :href="REPORT_URL">here</a>.
           </p>
         </div>
-        <p class="bg-red-500 rounded-b-lg px-3 py-2 text-sm">{{ feed.errormessage }}</p>
+        <p class="bg-red-500 px-3 py-2 text-sm">{{ feed.errormessage }}</p>
+        <button
+          type="button"
+          class="w-full flex items-center justify-center gap-2 bg-red-900 rounded-b-lg px-3 py-3 text-sm font-semibold hover:bg-red-950 transition disabled:opacity-70"
+          :disabled="retrying"
+          @click="retry"
+        >
+          <RefreshCw :size="16" :class="{ 'animate-spin': retrying }" />
+          {{ retrying ? 'Trying again…' : 'Try again' }}
+        </button>
+        <p v-if="feedStore.error" class="text-sm text-red-400 mt-2" role="alert">{{ feedStore.error }}</p>
       </div>
       <p v-else-if="hasError" class="text-sm text-red-400">This feed could not be fetched recently.</p>
 

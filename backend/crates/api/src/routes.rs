@@ -289,6 +289,19 @@ pub async fn update_feed(
     Ok(ok(&feeds::info(&s.core, &id, &feed_id).await?))
 }
 
+/// Fetches the feed right away and returns it with the new state. Meant for feeds that are marked as broken.
+#[utoipa::path(post, path = "/v1/feeds/{feedId}/retry", tag = "feeds", security(("bearer" = [])), params(("feedId" = String, Path, description = "Feed id")),
+    responses((status = 200, body = FeedView), (status = 404, body = ErrorBody)))]
+pub async fn retry_feed(
+    State(s): State<AppState>,
+    UserId(id): UserId,
+    Path(feed_id): Path<String>,
+) -> ApiResult<Response> {
+    check_id(&feed_id)?;
+    ingest::retry_feed(&s.core, &id, &feed_id).await?;
+    Ok(ok(&feeds::info(&s.core, &id, &feed_id).await?))
+}
+
 #[utoipa::path(delete, path = "/v1/feeds/{feedId}", tag = "feeds", security(("bearer" = [])), params(("feedId" = String, Path, description = "Feed id")),
     responses((status = 200, body = Message), (status = 400, body = ErrorBody)))]
 pub async fn unfollow_feed(
@@ -624,6 +637,7 @@ pub fn router() -> OpenApiRouter<AppState> {
         .routes(routes!(export_feeds))
         .routes(routes!(import_feeds))
         .routes(routes!(get_feed, update_feed, unfollow_feed))
+        .routes(routes!(retry_feed))
         .routes(routes!(list_feed_categories, create_feed_category))
         .routes(routes!(update_feed_category, delete_feed_category))
         .routes(routes!(add_feed_to_category, remove_feed_from_category))

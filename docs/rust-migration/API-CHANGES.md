@@ -62,3 +62,7 @@ Der Client wertet nur `message` sowie die Statuscodes 401/403/404 aus und ignori
   - `PUT /v1/feed-categories/{id}` ändert `name`, `color` und ersetzt `feedIds`. `DELETE` löscht die Kategorie, die Feeds bleiben abonniert.
   - `PUT` und `DELETE /v1/feed-categories/{id}/feeds/{feedId}` fügen einen Feed hinzu oder entfernen ihn (idempotent).
   - Nur abonnierte Feeds sind zuweisbar. Beim Entfolgen eines Feeds verschwindet er aus den Kategorien des Nutzers. Maximal 50 Kategorien pro Nutzer.
+
+## Nachtrag: Feed erneut abrufen
+
+- **Neu:** `POST /v1/feeds/{feedId}/retry` ruft einen abonnierten Feed sofort ab und liefert ihn mit dem neuen Zustand zurück. Erfolg setzt `error_count` und `errormessage` zurück, ein erneuter Fehler erhöht `error_count` wie im Hintergrund-Job, ein abgeschalteter Feed wird wieder aktiviert. 404, wenn der Nutzer den Feed nicht abonniert hat.

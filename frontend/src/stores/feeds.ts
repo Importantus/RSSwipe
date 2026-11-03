@@ -153,6 +153,25 @@ export const useFeedStore = defineStore("feedList", {
             this.state = StoreStatus.READY
             return result
         },
+/** Fetches the feed right now. Returns the updated feed, or null if the request failed. */
+        async retryFeed(id: string): Promise<FeedItem | null> {
+            this.error = ""
+            try {
+                const response = await axios.post(`/feeds/${id}/retry`)
+                const item = this.feedList.find(feed => feed.id === id)
+                if (item) {
+                    item.title = response.data.title
+                    item.faviconUrl = response.data.faviconUrl
+                    item.error_count = response.data.error_count
+                    item.errormessage = response.data.errormessage ?? undefined
+                    item.description = response.data.description
+                }
+                return item ?? null
+            } catch (error: any) {
+                this.error = await apiErrorMessage(error, "Request failed")
+                return null
+            }
+        },
         async toggleOpenInApp(id: string) {
             const item = this.feedList.find(item => item.id === id)
             if (item) {
