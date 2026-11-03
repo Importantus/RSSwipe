@@ -33,7 +33,7 @@ function chipClasses(active: boolean) {
 
 <template>
   <div v-if="feedStore.feedList.length > 0" class="flex flex-row gap-2 w-full">
-    <div class="flex flex-row gap-2 overflow-x-auto no-scrollbar flex-grow min-w-0">
+    <div class="flex flex-row gap-2 overflow-x-auto no-scrollbar flex-grow min-w-0 py-1 -my-1">
       <button
         type="button"
         class="flex-none rounded-xl p-2 px-4 text-xs font-text-detail transition"
