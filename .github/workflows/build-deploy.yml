@@ -89,7 +89,7 @@ jobs:
           kubectl create job --from=cronjob/rsswipe-migration-template $JOB_NAME -n rsswipe
           
           echo "Warte auf Datenbank-Update..."
-          kubectl wait --for=condition=complete --timeout=120s job/$JOB_NAME -n rsswipe
+          kubectl wait --for=condition=complete --timeout=600s job/$JOB_NAME -n rsswipe
       
 
       - name: Restart Deployments
