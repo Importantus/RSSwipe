@@ -60,7 +60,6 @@ const EXPECTED_COLUMNS: &[(&str, &[&str])] = &[
             "createdAt",
             "feedId",
             "publishedAt",
-            "categoryId",
         ],
     ),
     (
@@ -102,7 +101,6 @@ const EXPECTED_COLUMNS: &[(&str, &[&str])] = &[
             "starred",
         ],
     ),
-    ("Category", &["id", "name", "createdAt"]),
 ];
 
 /// Prisma specific query parameters in `DATABASE_URL` that sqlx does not know.

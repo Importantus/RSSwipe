@@ -142,6 +142,11 @@ pub async fn unfollow(core: &Core, user_id: &str, feed_id: &str) -> Result<()> {
     if n == 0 {
         return Err(Error::bad_request("User does not follow this feed"));
     }
+    sqlx::query("DELETE m FROM FeedCategoryFeed m JOIN FeedCategory c ON c.id = m.categoryId WHERE c.userId = ? AND m.feedId = ?")
+        .bind(user_id)
+        .bind(feed_id)
+        .execute(&mut *tx)
+        .await?;
     // nobody follows it any more -> stop fetching it
     sqlx::query("UPDATE Feed SET active = 0 WHERE id = ? AND NOT EXISTS (SELECT 1 FROM FeedList WHERE feedId = ?)")
         .bind(feed_id).bind(feed_id)

@@ -52,3 +52,13 @@ Der Client wertet nur `message` sowie die Statuscodes 401/403/404 aus und ignori
 - `stores/feeds.ts`, `stores/userdata.ts`, `views/LoginView.vue`, `views/RegisterView.vue` nutzen den Helfer statt `error.response.data.message`.
 - `axios.ts`: der Interceptor greift mit `error.response?.status` zu (Netzwerkfehler warfen vorher eine TypeError).
 - Unverändert nötig: nichts. `limit` sendet der Client immer (`STORED_ARTICLES + …`), `feeds[]`/`categories[]` werden vom Server weiter akzeptiert, `openInApp` beim Anlegen wird jetzt tatsächlich gespeichert.
+
+## Nachtrag: Feed-Kategorien statt Klassifikation
+
+- **Entfernt:** `GET /v1/categories`, das Feld `category` an Artikeln (Liste, Detail, Lesezeichen, Starred), der Query-Parameter `categories` von `GET /v1/articles` (unbekannte Parameter sind ein 400), die Variablen `ENABLE_FEED_CLASSIFICATION` und `CATEGORIZER_INTERVAL` sowie die Fehlermeldung für `SERVICE_TYPE=categorizer` (jetzt „Unknown SERVICE_TYPE“). Migration `0005` löscht die Tabelle `Category` und die Spalte `Article.categoryId` samt Fremdschlüssel (nicht umkehrbar, ein Rollback auf das vorige Image ist danach nicht mehr möglich). Die Schema-Prüfung beim Start erwartet beides nicht mehr.
+- **Neu:** Nutzer legen eigene Kategorien an und ordnen ihnen Feeds zu (Migration `0004`, Tabellen `FeedCategory` und `FeedCategoryFeed`). Ein Feed kann in mehreren Kategorien sein.
+  - `GET /v1/feed-categories` liefert `[{id, name, color, position, createdAt, feedIds}]`.
+  - `POST /v1/feed-categories` (`name` 1-30 Zeichen, pro Nutzer eindeutig; optional `color` und `feedIds`) antwortet mit 201.
+  - `PUT /v1/feed-categories/{id}` ändert `name`, `color` und ersetzt `feedIds`. `DELETE` löscht die Kategorie, die Feeds bleiben abonniert.
+  - `PUT` und `DELETE /v1/feed-categories/{id}/feeds/{feedId}` fügen einen Feed hinzu oder entfernen ihn (idempotent).
+  - Nur abonnierte Feeds sind zuweisbar. Beim Entfolgen eines Feeds verschwindet er aus den Kategorien des Nutzers. Maximal 50 Kategorien pro Nutzer.

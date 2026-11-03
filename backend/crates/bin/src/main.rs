@@ -36,9 +36,6 @@ fn mode(arg: Option<String>, service_type: &str) -> Result<Mode, String> {
         "api" => Ok(Mode::Api),
         "feedParser" => Ok(Mode::FeedParser),
         "garbageCollector" => Ok(Mode::GarbageCollector),
-        "categorizer" => {
-            Err("SERVICE_TYPE=categorizer was removed: articles are no longer classified".into())
-        }
         other => Err(format!(
             "Unknown SERVICE_TYPE `{other}`. Use: all | api | feedParser | garbageCollector"
         )),

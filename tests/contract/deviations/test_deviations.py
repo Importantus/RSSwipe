@@ -156,7 +156,7 @@ def test_D1_openapi_is_generated_from_routes(anon):
     paths = set(spec["paths"])
     for p in ["/v1/login", "/v1/register", "/v1/user", "/v1/settings", "/v1/feeds", "/v1/feeds/export", "/v1/feeds/import",
               "/v1/feeds/{feedId}", "/v1/articles", "/v1/articles/{id}", "/v1/articles/{id}/content", "/v1/articles/content",
-              "/v1/readinglist", "/v1/readinglist/articles", "/v1/starred", "/v1/starred/{article}", "/v1/categories",
+              "/v1/readinglist", "/v1/readinglist/articles", "/v1/starred", "/v1/starred/{article}", "/v1/feed-categories",
               "/v1/statistics/recent", "/v1/system"]:
         assert p in paths, p
 

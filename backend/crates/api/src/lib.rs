@@ -36,7 +36,7 @@ const PROTECTED: [&str; 8] = [
     "/v1/articles",
     "/v1/readinglist",
     "/v1/starred",
-    "/v1/categories",
+    "/v1/feed-categories",
     "/v1/statistics",
 ];
 

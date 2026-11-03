@@ -2,8 +2,8 @@ import uuid
 import pytest
 from conftest import PASSWORD, Api, db, follow_and_wait, is_iso_date, new_email, wait_for, PUBLISHER
 
-LIST_KEYS = ["id", "title", "imageUrl", "link", "publishedAt", "createdAt", "category", "feed", "ArticleHasUser"]
-DETAIL_KEYS = ["id", "title", "imageUrl", "link", "publishedAt", "createdAt", "category", "feed",
+LIST_KEYS = ["id", "title", "imageUrl", "link", "publishedAt", "createdAt", "feed", "ArticleHasUser"]
+DETAIL_KEYS = ["id", "title", "imageUrl", "link", "publishedAt", "createdAt", "feed",
                "read", "saved", "starred", "seen", "dateRead", "dateSaved", "dateStarred", "dateSeen"]
 
 
@@ -20,7 +20,7 @@ def test_article_list_shape(user):
     a = arts[0]
     assert list(a) == LIST_KEYS
     assert list(a["feed"]) == ["id", "title", "link", "faviconUrl"] and a["feed"]["id"] == feed["id"]
-    assert a["category"] is None and a["ArticleHasUser"] == []
+    assert a["ArticleHasUser"] == []
     assert is_iso_date(a["publishedAt"]) and is_iso_date(a["createdAt"])
     assert a["imageUrl"] == PUBLISHER + "/img/1.png".replace("1", a["link"].rsplit("/", 1)[1])
     pubs = [x["publishedAt"] for x in arts]

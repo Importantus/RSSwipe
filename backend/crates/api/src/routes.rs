@@ -10,6 +10,7 @@ use chrono::NaiveDate;
 use rsswipe_core::models::{
     articles::{self, ArticleDetail, ArticleListItem, ArticleQuery, ArticleUpdate, ListedArticle},
     content::{self, ContentView},
+    feed_categories::{self, FeedCategoryView},
     feeds::{self, FeedView},
     lists,
     settings::{self, SettingsView},
@@ -105,7 +106,7 @@ pub async fn resources() -> Response {
         "articles",
         "readinglist",
         "starred",
-        "categories",
+        "feed-categories",
         "statistics",
         "system",
     ];
@@ -300,6 +301,95 @@ pub async fn unfollow_feed(
     Ok(message("Feed unfollowed"))
 }
 
+// ---- feed categories ------------------------------------------------------------------------
+
+/// The user's own categories with the ids of the feeds in them.
+#[utoipa::path(get, path = "/v1/feed-categories", tag = "feed-categories", security(("bearer" = [])), responses((status = 200, body = Vec<FeedCategoryView>)))]
+pub async fn list_feed_categories(State(s): State<AppState>, UserId(id): UserId) -> ApiResult<Response> {
+    Ok(ok(&feed_categories::list(&s.core, &id).await?))
+}
+
+/// Creates a category, optionally with initial feeds.
+#[utoipa::path(post, path = "/v1/feed-categories", tag = "feed-categories", security(("bearer" = [])), request_body = FeedCategoryCreateInput,
+    responses((status = 201, body = FeedCategoryView), (status = 400, body = ErrorBody)))]
+pub async fn create_feed_category(
+    State(s): State<AppState>,
+    UserId(id): UserId,
+    Body(b): Body<FeedCategoryCreateInput>,
+) -> ApiResult<Response> {
+    let c = feed_categories::create(
+        &s.core,
+        &id,
+        b.name.trim(),
+        b.color.as_deref().unwrap_or("amber"),
+        b.feed_ids.as_deref().unwrap_or(&[]),
+    )
+    .await?;
+    Ok(json_response(StatusCode::CREATED, &c))
+}
+
+#[utoipa::path(put, path = "/v1/feed-categories/{categoryId}", tag = "feed-categories", security(("bearer" = [])), params(("categoryId" = String, Path, description = "Category id")),
+    request_body = FeedCategoryUpdateInput, responses((status = 200, body = FeedCategoryView), (status = 400, body = ErrorBody), (status = 404, body = ErrorBody)))]
+pub async fn update_feed_category(
+    State(s): State<AppState>,
+    UserId(id): UserId,
+    Path(category_id): Path<String>,
+    Body(b): Body<FeedCategoryUpdateInput>,
+) -> ApiResult<Response> {
+    check_id(&category_id)?;
+    let c = feed_categories::update(
+        &s.core,
+        &id,
+        &category_id,
+        b.name.as_deref().map(str::trim),
+        b.color.as_deref(),
+        b.feed_ids.as_deref(),
+    )
+    .await?;
+    Ok(ok(&c))
+}
+
+/// Deletes the category. The feeds stay followed.
+#[utoipa::path(delete, path = "/v1/feed-categories/{categoryId}", tag = "feed-categories", security(("bearer" = [])), params(("categoryId" = String, Path, description = "Category id")),
+    responses((status = 200, body = Message), (status = 404, body = ErrorBody)))]
+pub async fn delete_feed_category(
+    State(s): State<AppState>,
+    UserId(id): UserId,
+    Path(category_id): Path<String>,
+) -> ApiResult<Response> {
+    check_id(&category_id)?;
+    feed_categories::delete(&s.core, &id, &category_id).await?;
+    Ok(message("Category deleted"))
+}
+
+/// Puts a followed feed into the category (idempotent).
+#[utoipa::path(put, path = "/v1/feed-categories/{categoryId}/feeds/{feedId}", tag = "feed-categories", security(("bearer" = [])),
+    params(("categoryId" = String, Path, description = "Category id"), ("feedId" = String, Path, description = "Feed id")),
+    responses((status = 200, body = FeedCategoryView), (status = 400, body = ErrorBody), (status = 404, body = ErrorBody)))]
+pub async fn add_feed_to_category(
+    State(s): State<AppState>,
+    UserId(id): UserId,
+    Path((category_id, feed_id)): Path<(String, String)>,
+) -> ApiResult<Response> {
+    check_id(&category_id)?;
+    check_id(&feed_id)?;
+    Ok(ok(&feed_categories::add_feed(&s.core, &id, &category_id, &feed_id).await?))
+}
+
+/// Takes a feed out of the category (idempotent).
+#[utoipa::path(delete, path = "/v1/feed-categories/{categoryId}/feeds/{feedId}", tag = "feed-categories", security(("bearer" = [])),
+    params(("categoryId" = String, Path, description = "Category id"), ("feedId" = String, Path, description = "Feed id")),
+    responses((status = 200, body = FeedCategoryView), (status = 404, body = ErrorBody)))]
+pub async fn remove_feed_from_category(
+    State(s): State<AppState>,
+    UserId(id): UserId,
+    Path((category_id, feed_id)): Path<(String, String)>,
+) -> ApiResult<Response> {
+    check_id(&category_id)?;
+    check_id(&feed_id)?;
+    Ok(ok(&feed_categories::remove_feed(&s.core, &id, &category_id, &feed_id).await?))
+}
+
 // ---- articles -------------------------------------------------------------------------------
 
 const DEFAULT_LIMIT: i64 = 50;
@@ -333,7 +423,6 @@ fn parse_date(field: &str, v: &str, errors: &mut Vec<FieldError>) -> Option<Naiv
 #[utoipa::path(get, path = "/v1/articles", tag = "articles", security(("bearer" = [])),
     params(("limit" = Option<i64>, Query, description = "Maximum number of articles, default 50, max 1000"),
            ("feeds" = Option<Vec<String>>, Query, description = "Feed ids, default: all followed feeds"),
-           ("categories" = Option<Vec<String>>, Query, description = "Category ids"),
            ("startDate" = Option<String>, Query, description = "YYYY-MM-DD"),
            ("endDate" = Option<String>, Query, description = "YYYY-MM-DD")),
     responses((status = 200, body = Vec<ArticleListItem>), (status = 400, body = ErrorBody)))]
@@ -370,7 +459,6 @@ pub async fn list_articles(
     let query = ArticleQuery {
         limit,
         feeds: q.feeds,
-        categories: q.categories.unwrap_or_default(),
         start_date,
         end_date,
     };
@@ -517,23 +605,6 @@ pub async fn unstar(
 
 // ---- misc -----------------------------------------------------------------------------------
 
-#[derive(Serialize, ToSchema)]
-pub struct CategoryItem {
-    pub id: String,
-    pub name: String,
-    #[serde(rename = "createdAt")]
-    pub created_at: String,
-}
-
-/// Categories, only when `ENABLE_FEED_CLASSIFICATION=true`; otherwise an empty list.
-#[utoipa::path(get, path = "/v1/categories", tag = "categories", security(("bearer" = [])), responses((status = 200, body = Vec<CategoryItem>)))]
-pub async fn categories(State(s): State<AppState>) -> ApiResult<Response> {
-    if !s.core.config.enable_feed_classification {
-        return Ok(ok(&Vec::<serde_json::Value>::new()));
-    }
-    Ok(ok(&rsswipe_core::models::categories::all(&s.core).await?))
-}
-
 /// Seen/read/starred/saved per day and read counts per feed for the retention window.
 #[utoipa::path(get, path = "/v1/statistics/recent", tag = "statistics", security(("bearer" = [])), responses((status = 200, body = Statistics)))]
 pub async fn statistics(State(s): State<AppState>, UserId(id): UserId) -> ApiResult<Response> {
@@ -553,6 +624,9 @@ pub fn router() -> OpenApiRouter<AppState> {
         .routes(routes!(export_feeds))
         .routes(routes!(import_feeds))
         .routes(routes!(get_feed, update_feed, unfollow_feed))
+        .routes(routes!(list_feed_categories, create_feed_category))
+        .routes(routes!(update_feed_category, delete_feed_category))
+        .routes(routes!(add_feed_to_category, remove_feed_from_category))
         .routes(routes!(list_articles))
         .routes(routes!(content_batch))
         .routes(routes!(get_article, update_article))
@@ -561,6 +635,5 @@ pub fn router() -> OpenApiRouter<AppState> {
         .routes(routes!(add_to_reading_list, remove_from_reading_list))
         .routes(routes!(starred))
         .routes(routes!(star, unstar))
-        .routes(routes!(categories))
         .routes(routes!(statistics))
 }

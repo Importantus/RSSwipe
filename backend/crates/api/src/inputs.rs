@@ -204,3 +204,80 @@ pub struct ReadingListClearInput {
     pub only_read: bool,
 }
 impl Validate for ReadingListClearInput {}
+
+fn category_name(field: &str, v: &str, out: &mut Vec<FieldError>) {
+    if v.trim().is_empty() {
+        out.push(FieldError::new(field, "must not be blank"));
+    } else {
+        len_between(field, v.trim(), 1, 30, out);
+    }
+}
+
+fn category_color(field: &str, v: &str, out: &mut Vec<FieldError>) {
+    if v.is_empty() || v.len() > 20 || !v.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+        out.push(FieldError::new(field, "must be a palette key (1-20 letters, digits or dashes)"));
+    }
+}
+
+fn feed_ids(field: &str, v: &[String], out: &mut Vec<FieldError>) {
+    if v.len() > 1000 {
+        out.push(FieldError::new(field, "must not contain more than 1000 feeds"));
+    }
+    for id in v {
+        uuid(field, id, out);
+    }
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(deny_unknown_fields)]
+pub struct FeedCategoryCreateInput {
+    /// 1-30 characters, unique per user
+    pub name: String,
+    /// Palette key, default `amber`
+    #[serde(default, deserialize_with = "present")]
+    pub color: Option<String>,
+    #[serde(default, rename = "feedIds", deserialize_with = "present")]
+    pub feed_ids: Option<Vec<String>>,
+}
+
+impl Validate for FeedCategoryCreateInput {
+    fn validate(&self, _: &AppState) -> Vec<FieldError> {
+        let mut e = vec![];
+        category_name("name", &self.name, &mut e);
+        if let Some(c) = &self.color {
+            category_color("color", c, &mut e);
+        }
+        if let Some(f) = &self.feed_ids {
+            feed_ids("feedIds", f, &mut e);
+        }
+        e
+    }
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(deny_unknown_fields)]
+pub struct FeedCategoryUpdateInput {
+    #[serde(default, deserialize_with = "present")]
+    pub name: Option<String>,
+    #[serde(default, deserialize_with = "present")]
+    pub color: Option<String>,
+    /// Replaces the feeds of the category
+    #[serde(default, rename = "feedIds", deserialize_with = "present")]
+    pub feed_ids: Option<Vec<String>>,
+}
+
+impl Validate for FeedCategoryUpdateInput {
+    fn validate(&self, _: &AppState) -> Vec<FieldError> {
+        let mut e = vec![];
+        if let Some(n) = &self.name {
+            category_name("name", n, &mut e);
+        }
+        if let Some(c) = &self.color {
+            category_color("color", c, &mut e);
+        }
+        if let Some(f) = &self.feed_ids {
+            feed_ids("feedIds", f, &mut e);
+        }
+        e
+    }
+}

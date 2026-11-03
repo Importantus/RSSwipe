@@ -9,15 +9,6 @@ use std::collections::HashMap;
 
 #[derive(Serialize, Debug, Clone)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
-pub struct CategoryView {
-    pub id: String,
-    pub name: String,
-    #[serde(rename = "createdAt", serialize_with = "ts")]
-    pub created_at: DateTime<Utc>,
-}
-
-#[derive(Serialize, Debug, Clone)]
-#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct FeedRef {
     pub id: String,
     pub title: String,
@@ -85,10 +76,9 @@ impl UserState {
 
 /// Columns every article query selects (aliased, see `ArticleCore::from_row`).
 pub const ARTICLE_SELECT: &str = "a.id AS a_id, a.title AS a_title, a.imageUrl AS a_image, a.link AS a_link, a.publishedAt AS a_pub, a.createdAt AS a_created, \
-     c.id AS c_id, c.name AS c_name, c.createdAt AS c_created, \
      f.id AS f_id, f.title AS f_title, f.link AS f_link, f.faviconUrl AS f_favicon, f.description AS f_desc";
 pub const ARTICLE_FROM: &str =
-    "FROM Article a JOIN Feed f ON f.id = a.feedId LEFT JOIN Category c ON c.id = a.categoryId";
+    "FROM Article a JOIN Feed f ON f.id = a.feedId";
 pub const LIST_STATE_SELECT: &str = "al.`read` AS al_read, al.saved AS al_saved, al.starred AS al_starred, al.seen AS al_seen, \
      al.dateRead AS al_date_read, al.dateSaved AS al_date_saved, al.dateStar AS al_date_star, al.dateSeen AS al_date_seen";
 
@@ -99,20 +89,11 @@ pub struct ArticleCore {
     pub link: String,
     pub published_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
-    pub category: Option<CategoryView>,
     pub feed: FeedRefWithDescription,
 }
 
 impl ArticleCore {
     pub fn from_row(r: &MySqlRow) -> Result<Self> {
-        let category = match r.try_get::<Option<String>, _>("c_id")? {
-            Some(id) => Some(CategoryView {
-                id,
-                name: r.try_get("c_name")?,
-                created_at: r.try_get("c_created")?,
-            }),
-            None => None,
-        };
         Ok(Self {
             id: r.try_get("a_id")?,
             title: r.try_get("a_title")?,
@@ -120,7 +101,6 @@ impl ArticleCore {
             link: r.try_get("a_link")?,
             published_at: r.try_get("a_pub")?,
             created_at: r.try_get("a_created")?,
-            category,
             feed: FeedRefWithDescription {
                 id: r.try_get("f_id")?,
                 title: r.try_get("f_title")?,
@@ -149,7 +129,6 @@ impl ArticleCore {
             link: self.link,
             published_at: self.published_at,
             created_at: self.created_at,
-            category: self.category,
             feed,
             article_has_user: readers,
         }
@@ -163,7 +142,6 @@ impl ArticleCore {
             link: self.link,
             published_at: self.published_at,
             created_at: self.created_at,
-            category: self.category,
             feed: self.feed,
             state,
         }
@@ -178,7 +156,6 @@ impl ArticleCore {
             link: self.link,
             published_at: self.published_at,
             created_at: self.created_at,
-            category: self.category,
             feed,
             state,
         }
@@ -198,7 +175,6 @@ pub struct ArticleListItem {
     pub published_at: Option<DateTime<Utc>>,
     #[serde(rename = "createdAt", serialize_with = "ts")]
     pub created_at: DateTime<Utc>,
-    pub category: Option<CategoryView>,
     pub feed: FeedRef,
     #[serde(rename = "ArticleHasUser", skip_serializing_if = "Option::is_none")]
     pub article_has_user: Option<Vec<Reader>>,
@@ -217,7 +193,6 @@ pub struct ArticleDetail {
     pub published_at: Option<DateTime<Utc>>,
     #[serde(rename = "createdAt", serialize_with = "ts")]
     pub created_at: DateTime<Utc>,
-    pub category: Option<CategoryView>,
     pub feed: FeedRefWithDescription,
     #[serde(flatten)]
     pub state: UserState,
@@ -236,7 +211,6 @@ pub struct ListedArticle {
     pub published_at: Option<DateTime<Utc>>,
     #[serde(rename = "createdAt", serialize_with = "ts")]
     pub created_at: DateTime<Utc>,
-    pub category: Option<CategoryView>,
     pub feed: FeedRef,
     #[serde(flatten)]
     pub state: UserState,
@@ -246,7 +220,6 @@ pub struct ListedArticle {
 pub struct ArticleQuery {
     pub limit: i64,
     pub feeds: Option<Vec<String>>,
-    pub categories: Vec<String>,
     pub start_date: Option<NaiveDate>,
     pub end_date: Option<NaiveDate>,
 }
@@ -277,14 +250,6 @@ pub async fn list(core: &Core, user_id: &str, q: ArticleQuery) -> Result<Vec<Art
         sep.push_bind(f);
     }
     b.push(")");
-    if !q.categories.is_empty() {
-        b.push(" AND a.categoryId IN (");
-        let mut sep = b.separated(", ");
-        for c in &q.categories {
-            sep.push_bind(c);
-        }
-        b.push(")");
-    }
     if let Some(d) = q.start_date {
         b.push(" AND a.publishedAt >= ").push_bind(midnight(d));
     }

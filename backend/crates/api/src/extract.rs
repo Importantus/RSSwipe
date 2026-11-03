@@ -161,7 +161,6 @@ impl<S: Send + Sync> FromRequestParts<S> for UserId {
 pub struct RawArticlesQuery {
     pub limit: Option<String>,
     pub feeds: Option<Vec<String>>,
-    pub categories: Option<Vec<String>>,
     pub start_date: Option<String>,
     pub end_date: Option<String>,
     pub errors: Vec<FieldError>,
@@ -178,7 +177,7 @@ impl<S: Send + Sync> FromRequestParts<S> for RawArticlesQuery {
                 None => (key.to_string(), None),
             };
             match name.as_str() {
-                "feeds" | "categories" => {
+                "feeds" => {
                     if bracket
                         .as_deref()
                         .is_some_and(|b| !b.is_empty() && !b.chars().all(|c| c.is_ascii_digit()))
@@ -187,12 +186,9 @@ impl<S: Send + Sync> FromRequestParts<S> for RawArticlesQuery {
                             .push(FieldError::new(&name, "must be a list of ids"));
                         continue;
                     }
-                    let list = if name == "feeds" {
-                        &mut q.feeds
-                    } else {
-                        &mut q.categories
-                    };
-                    list.get_or_insert_with(Vec::new).push(value.into_owned());
+                    q.feeds
+                        .get_or_insert_with(Vec::new)
+                        .push(value.into_owned());
                 }
                 "limit" | "startDate" | "endDate" => {
                     let slot = match name.as_str() {

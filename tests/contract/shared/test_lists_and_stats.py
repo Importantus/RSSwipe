@@ -2,7 +2,7 @@ import uuid
 import pytest
 from conftest import db, follow_and_wait, is_iso_date
 
-LIST_ITEM_KEYS = ["id", "title", "imageUrl", "link", "publishedAt", "createdAt", "category", "feed",
+LIST_ITEM_KEYS = ["id", "title", "imageUrl", "link", "publishedAt", "createdAt", "feed",
                   "read", "saved", "starred", "seen", "dateRead", "dateSaved", "dateStarred", "dateSeen"]
 
 
@@ -91,7 +91,7 @@ def test_star_and_unstar(user):
     assert user.get("/v1/starred").json() == []
     r = user.post("/v1/starred/articles", json={"id": a})
     assert r.status_code == 200 and r.json()["id"] == a and list(r.json()) == [
-        "id", "title", "imageUrl", "link", "publishedAt", "createdAt", "category", "feed",
+        "id", "title", "imageUrl", "link", "publishedAt", "createdAt", "feed",
         "read", "saved", "starred", "seen", "dateRead", "dateSaved", "dateStarred", "dateSeen"]
     st = user.get("/v1/starred").json()
     assert ids(st) == {a} and st[0]["starred"] is True and is_iso_date(st[0]["dateStarred"])
@@ -123,22 +123,6 @@ def test_star_path_param_is_ignored(user):
     assert ids(user.get("/v1/starred").json()) == {a}
 
 
-# --- categories ----------------------------------------------------------------------------------
-def test_categories_empty_when_classification_disabled(user):
-    db("INSERT IGNORE INTO Category (id,name) VALUES ('cat-contract-test-0000-0000-000000000001','Contract')")
-    assert user.get("/v1/categories").json() == []
-
-
-def test_category_filter_on_articles(user):
-    feed, arts = follow_and_wait(user)
-    cid = str(uuid.uuid4())
-    db(f"INSERT INTO Category (id,name) VALUES ('{cid}','C-{cid[:8]}')")
-    db(f"UPDATE Article SET categoryId='{cid}' WHERE id='{arts[0]['id']}'")
-    got = user.get(f"/v1/articles?limit=50&feeds={feed['id']}&categories={cid}").json()
-    assert [a["id"] for a in got] == [arts[0]["id"]]
-    assert got[0]["category"]["id"] == cid and list(got[0]["category"]) == ["id", "name", "createdAt"]
-
-
 # --- statistics ----------------------------------------------------------------------------------
 def test_statistics_shape_and_counts(user):
     feed, arts = follow_and_wait(user)
@@ -165,5 +149,5 @@ def test_statistics_empty_user(user):
 
 
 def test_lists_require_auth(anon):
-    for p in ("/v1/readinglist", "/v1/starred", "/v1/categories", "/v1/statistics/recent"):
+    for p in ("/v1/readinglist", "/v1/starred", "/v1/feed-categories", "/v1/statistics/recent"):
         assert anon.get(p).status_code == 401

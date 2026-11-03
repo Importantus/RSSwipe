@@ -16,7 +16,7 @@ def test_v1_lists_resources_in_order(anon):
     assert r.status_code == 200
     assert [x["name"] for x in r.json()] == [
         "user", "settings", "login", "register", "feeds", "articles",
-        "readinglist", "starred", "categories", "statistics", "system"]
+        "readinglist", "starred", "feed-categories", "statistics", "system"]
     assert r.json()[0] == {"path": "/v1/user", "name": "user"}
 
 
