@@ -12,7 +12,7 @@ import HomeFeedsButton from '@/components/home/navigation/HomeFeedsButton.vue';
 import HomeGreetingLabel from '@/components/home/HomeGreetingLabel.vue';
 import HomeSettingsButton from '@/components/home/navigation/HomeSettingsButton.vue';
 import SourceBar from '@/components/home/SourceBar.vue';
-import { selectionLabel } from '@/components/home/selectionLabel';
+import { filterLabel } from '@/components/home/selectionLabel';
 import { Rss, RotateCcw } from 'lucide-vue-next';
 
 const store = useHomeStore()
@@ -106,10 +106,10 @@ onMounted(async () => {
       <div v-if="feedStore.feedList.length > 0" class="w-full flex justify-center flex-col items-center">
         <img src="/images/MeditatingDoodle.svg" alt="Reading" class="w-[60%]" />
         <h2 class="text-secondary-500">
-          All caught up<template v-if="feedStore.selectedIds.length > 0"> in {{ selectionLabel(feedStore.selectedIds) }}</template>
+          All caught up<template v-if="feedStore.selectedIds.length > 0 || feedStore.mutedCategoryIds.length > 0"> in {{ filterLabel(feedStore.selectedIds, feedStore.mutedCategoryIds) }}</template>
         </h2>
-        <button v-if="feedStore.selectedIds.length > 0"
-          class="mt-4 px-5 py-2 bg-primary-600 rounded-lg font-semibold" @click="feedStore.unselectAll()">
+        <button v-if="feedStore.selectedIds.length > 0 || feedStore.mutedCategoryIds.length > 0"
+          class="mt-4 px-5 py-2 bg-primary-600 rounded-lg font-semibold" @click="feedStore.resetFilter()">
           Show all sources
         </button>
         <button class="p-5" title="Reload" @click="store.fetchArticles()">

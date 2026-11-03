@@ -6,7 +6,7 @@ import FeedAvatar from '@/components/feeds/FeedAvatar.vue'
 import SourceFilterModal from './SourceFilterModal.vue'
 import { looseSelection } from './selectionLabel'
 import { useFeedStore } from '@/stores/feeds'
-import { categoryState, toggleCategoryIn, useFeedCategoriesStore, type FeedCategory } from '@/stores/feedCategories'
+import { categoryState, useFeedCategoriesStore, type FeedCategory } from '@/stores/feedCategories'
 
 const feedStore = useFeedStore()
 const categories = useFeedCategoriesStore()
@@ -18,11 +18,11 @@ onMounted(() => {
 })
 
 const hasCategories = computed(() => categories.withFeeds.length > 0)
-const allActive = computed(() => feedStore.selectedIds.length === 0)
+const allActive = computed(() => feedStore.selectedIds.length === 0 && feedStore.mutedCategoryIds.length === 0)
 const loose = computed(() => (hasCategories.value ? looseSelection(feedStore.selectedIds) : []))
 
 function toggleCategory(category: FeedCategory) {
-  feedStore.setSelection(toggleCategoryIn(category, feedStore.selectedIds))
+  feedStore.cycleCategory(category)
   navigator.vibrate?.(10)
 }
 
@@ -39,7 +39,7 @@ function chipClasses(active: boolean) {
         class="flex-none rounded-xl p-2 px-4 text-xs font-text-detail transition"
         :class="chipClasses(allActive)"
         title="All feeds"
-        @click="feedStore.unselectAll()"
+        @click="feedStore.resetFilter()"
       >
         All
       </button>
@@ -50,6 +50,7 @@ function chipClasses(active: boolean) {
           :key="category.id"
           :category="category"
           :state="categoryState(category, feedStore.selectedIds)"
+:muted="feedStore.isMuted(category.id)"
           @click="toggleCategory(category)"
         />
         <button

@@ -26,3 +26,11 @@ export function selectionLabel(ids: string[]): string {
   }
   return parts.join(' + ')
 }
+
+/** Like `selectionLabel`, including hidden categories: `Tech without Politics` */
+export function filterLabel(ids: string[], mutedCategoryIds: string[]): string {
+  const base = ids.length === 0 ? 'all feeds' : selectionLabel(ids)
+  const categories = useFeedCategoriesStore()
+  const names = mutedCategoryIds.map((id) => categories.byId(id)?.name).filter((n): n is string => !!n)
+  return names.length > 0 ? `${base} without ${names.join(', ')}` : base
+}

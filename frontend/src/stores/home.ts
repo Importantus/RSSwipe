@@ -78,10 +78,16 @@ export const useHomeStore = defineStore({
             }
             this.status = ArticleStatus.LOADING
             const feedsStore = useFeedStore()
+            const filter = await feedsStore.resolveFilter()
+            if (filter.nothingLeft) {
+                // Every feed is hidden by a muted category
+                this.status = this.articleIds.length < 1 ? ArticleStatus.OUT_OF_ARTICLES : ArticleStatus.READY
+                return
+            }
             const response = await axios.get('/articles', {
                 params: {
                     limit: STORED_ARTICLES + this.articleIds.length,
-                    feeds: feedsStore.selectedIds,
+                    feeds: filter.ids,
                     startDate: this.toISO8601(this.getStartDate()),
                     endDate: this.toISO8601(this.getEndDate())
                 }

@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { Check, ChevronDown, Minus, Search } from 'lucide-vue-next'
+import { Check, ChevronDown, EyeOff, Minus, Search } from 'lucide-vue-next'
 import AppModal from '@/components/global/AppModal.vue'
 import TextInputField from '@/components/global/TextInputField.vue'
 import CategoryChip from '@/components/categories/CategoryChip.vue'
 import CategoryDot from '@/components/categories/CategoryDot.vue'
 import FeedAvatar from '@/components/feeds/FeedAvatar.vue'
-import { selectionLabel } from './selectionLabel'
+import { filterLabel } from './selectionLabel'
 import { useFeedStore, type FeedItem } from '@/stores/feeds'
 import {
   categoryState,
   toggleCategoryIn,
+  cycleCategoryIn,
   useFeedCategoriesStore,
   type CategoryState,
   type FeedCategory
@@ -26,6 +27,7 @@ const snackbar = useSnackbarStore()
 
 // Changes are staged here and applied with "Done", so the cards do not reload on every tap
 const draft = ref<string[]>([])
+const draftMuted = ref<string[]>([])
 const search = ref('')
 const collapsed = ref<Set<string>>(new Set())
 
@@ -34,6 +36,7 @@ watch(
   (show) => {
     if (!show) return
     draft.value = [...feedStore.selectedIds]
+    draftMuted.value = [...feedStore.mutedCategoryIds]
     search.value = ''
     collapsed.value = new Set()
   },
@@ -82,10 +85,36 @@ function stateOf(category: FeedCategory): CategoryState {
   return categoryState(category, draft.value)
 }
 
+function isMuted(category: FeedCategory) {
+  return draftMuted.value.includes(category.id)
+}
+
+// The checkbox of a group selects or clears its feeds; a hidden category comes back first
+function toggleGroup(category: FeedCategory) {
+  draftMuted.value = draftMuted.value.filter((id) => id !== category.id)
+  draft.value = toggleCategoryIn(category, draft.value)
+}
+
+function tapCategory(category: FeedCategory) {
+  const next = cycleCategoryIn(category, draft.value, draftMuted.value)
+  draft.value = next.ids
+  draftMuted.value = next.muted
+}
+
+const doneLabel = computed(() => {
+  const parts: string[] = []
+  parts.push(draft.value.length > 0 ? `${draft.value.length} ${draft.value.length === 1 ? 'feed' : 'feeds'}` : 'All feeds')
+  if (draftMuted.value.length > 0) parts.push(`${draftMuted.value.length} hidden`)
+  return `Done · ${parts.join(' · ')}`
+})
+
 function apply() {
   const before = [...feedStore.selectedIds]
-  feedStore.setSelection(draft.value)
-  snackbar.show(`Showing: ${selectionLabel(feedStore.selectedIds)}`, () => feedStore.setSelection(before))
+  const beforeMuted = [...feedStore.mutedCategoryIds]
+  feedStore.setFilter(draft.value, draftMuted.value)
+  snackbar.show(`Showing: ${filterLabel(feedStore.selectedIds, feedStore.mutedCategoryIds)}`, () =>
+    feedStore.setFilter(before, beforeMuted)
+  )
   emit('close')
 }
 </script>
@@ -100,15 +129,23 @@ function apply() {
         :key="category.id"
         :category="category"
         :state="stateOf(category)"
-        @click="draft = toggleCategoryIn(category, draft)"
+        :muted="isMuted(category)"
+        @click="tapCategory(category)"
       />
     </div>
+    <p v-if="categories.withFeeds.length > 0" class="text-xs font-text-detail text-background-400 mb-3 -mt-1">
+      Tap a category to show it, tap again to hide it (<EyeOff :size="12" class="inline -mt-0.5" />), once more to reset.
+    </p>
 
     <div class="overflow-y-auto no-scrollbar h-72 min-h-0">
       <p v-if="groups.length === 0" class="text-sm text-background-500 py-8 text-center">
         No feed matches “{{ search }}”.
       </p>
-      <div v-for="group in groups" :key="group.key" class="mb-2">
+      <div
+        v-for="group in groups"
+        :key="group.key"
+        class="mb-2"
+      >
         <div class="flex items-center gap-3 py-2">
           <button
             v-if="group.category"
@@ -122,7 +159,7 @@ function apply() {
                   ? 'bg-primary-950 border border-primary-600 text-primary-300'
                   : 'border border-secondary-600'
             "
-            @click="draft = toggleCategoryIn(group.category, draft)"
+            @click="toggleGroup(group.category)"
           >
             <Check v-if="stateOf(group.category) === 'full'" :size="14" />
             <Minus v-else-if="stateOf(group.category) === 'partial'" :size="14" />
@@ -138,13 +175,15 @@ function apply() {
             <span class="text-background-500">{{ group.feeds.length }}</span>
             <ChevronDown :size="16" class="ml-auto transition" :class="{ 'rotate-180': isOpen(group) }" />
           </button>
+          <EyeOff v-if="group.category && isMuted(group.category)" :size="16" class="flex-none text-background-400" />
         </div>
         <template v-if="isOpen(group)">
           <button
             v-for="feed in group.feeds"
             :key="feed.id"
             type="button"
-            class="w-full flex items-center gap-3 py-2 pl-2 text-left"
+            class="w-full flex items-center gap-3 py-2 pl-2 text-left transition-opacity"
+            :class="{ 'opacity-40': group.category && isMuted(group.category) }"
             @click="toggleFeed(feed.id)"
           >
             <span
@@ -164,7 +203,7 @@ function apply() {
       <button
         type="button"
         class="h-14 px-5 bg-secondary-800 rounded-lg hover:bg-secondary-700 transition"
-        @click="draft = []"
+        @click="draft = []; draftMuted = []"
       >
         Reset
       </button>
@@ -173,7 +212,7 @@ function apply() {
         class="w-full h-14 bg-primary-600 rounded-lg hover:bg-primary-700 transition font-semibold"
         @click="apply"
       >
-        {{ draft.length > 0 ? `Done · ${draft.length} ${draft.length === 1 ? 'feed' : 'feeds'}` : 'Done · All feeds' }}
+        {{ doneLabel }}
       </button>
     </div>
   </AppModal>

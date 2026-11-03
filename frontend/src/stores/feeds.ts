@@ -3,13 +3,14 @@ import axios from '@/axios'
 import { apiErrorMessage } from '@/apiError'
 import { useHomeStore } from './home';
 import { StoreStatus } from './readingList';
-import { useFeedCategoriesStore } from './feedCategories';
+import { cycleCategoryIn, useFeedCategoriesStore, type FeedCategory } from './feedCategories';
 
 const SELECTION_KEY = 'feedSelection'
+const MUTED_KEY = 'mutedCategories'
 
-function loadSelection(): string[] {
+function loadSelection(key = SELECTION_KEY): string[] {
     try {
-        const stored = JSON.parse(localStorage.getItem(SELECTION_KEY) ?? '[]')
+        const stored = JSON.parse(localStorage.getItem(key) ?? '[]')
         return Array.isArray(stored) ? stored.filter(id => typeof id === 'string') : []
     } catch {
         return []
@@ -44,7 +45,9 @@ export const useFeedStore = defineStore("feedList", {
         state: StoreStatus.LOADING,
         error: "",
         // Feeds the home screen swipes through (empty = all feeds). Remembered across restarts.
-        selectedIds: loadSelection()
+        selectedIds: loadSelection(),
+        // Categories the user hides from the home screen, e.g. politics on a bad day. Hiding wins over selecting.
+        mutedCategoryIds: loadSelection(MUTED_KEY)
     }),
 
     getters: {
@@ -183,16 +186,53 @@ export const useFeedStore = defineStore("feedList", {
         },
         /** Sets the feeds the home screen shows. An empty list means all feeds. */
         setSelection(ids: Iterable<string>) {
+            this.setFilter(ids, this.mutedCategoryIds)
+        },
+        /** Sets which feeds are shown (empty = all) and which categories are hidden, with a single reload. */
+        setFilter(ids: Iterable<string>, mutedCategories: Iterable<string>) {
             const next = [...new Set(ids)].sort()
-            const current = [...this.selectedIds].sort()
-            if (next.length === current.length && next.every((id, i) => id === current[i])) return
+            const nextMuted = [...new Set(mutedCategories)].sort()
+            const same = (a: string[], b: string[]) => a.length === b.length && a.every((id, i) => id === b[i])
+            const selectionSame = same(next, [...this.selectedIds].sort())
+            const mutedSame = same(nextMuted, [...this.mutedCategoryIds].sort())
+            if (selectionSame && mutedSame) return
             this.selectedIds = next
+            this.mutedCategoryIds = nextMuted
             try {
                 localStorage.setItem(SELECTION_KEY, JSON.stringify(next))
+                localStorage.setItem(MUTED_KEY, JSON.stringify(nextMuted))
             } catch {
-                // storage unavailable: the selection just is not remembered
+                // storage unavailable: the filter just is not remembered
             }
             useHomeStore().reload()
+        },
+        /** A tap on a category chip, see `cycleCategoryIn` */
+        cycleCategory(category: FeedCategory) {
+            const next = cycleCategoryIn(category, this.selectedIds, this.mutedCategoryIds)
+            this.setFilter(next.ids, next.muted)
+        },
+        isMuted(categoryId: string): boolean {
+            return this.mutedCategoryIds.includes(categoryId)
+        },
+        /** Back to showing everything */
+        resetFilter() {
+            this.setFilter([], [])
+        },
+        /**
+         * The feed ids to request articles for: the selection (empty = all) without the feeds of hidden categories.
+         * `nothingLeft` is set when hiding leaves no feed at all, as an empty list would mean "all feeds".
+         */
+        async resolveFilter(): Promise<{ ids: string[]; nothingLeft: boolean }> {
+            const muted = this.mutedCategoryIds
+            if (muted.length === 0) return { ids: this.selectedIds, nothingLeft: false }
+            const categories = useFeedCategoriesStore()
+            if (!categories.loaded) await categories.fetch()
+            const hidden = new Set(categories.categories.filter(c => muted.includes(c.id)).flatMap(c => c.feedIds))
+            if (hidden.size === 0) return { ids: this.selectedIds, nothingLeft: false }
+            if (this.selectedIds.length === 0 && this.feedList.length === 0) await this.getFeedList()
+            const base = this.selectedIds.length > 0 ? this.selectedIds : this.feedList.map(item => item.id)
+            const ids = base.filter(id => !hidden.has(id))
+            return { ids, nothingLeft: ids.length === 0 && base.length > 0 }
         },
         toggleFeed(id: string) {
             this.setSelection(this.selectedIds.includes(id)

@@ -40,6 +40,29 @@ export function toggleCategoryIn(category: FeedCategory, ids: Iterable<string>):
     return [...set]
 }
 
+/**
+ * One tap on a category chip moves it on: not selected -> selected -> hidden -> not selected.
+ * Hiding a category also takes its feeds out of the selection, as hiding wins anyway.
+ */
+export function cycleCategoryIn(
+    category: FeedCategory,
+    ids: Iterable<string>,
+    mutedIds: Iterable<string>
+): { ids: string[]; muted: string[] } {
+    const muted = new Set(mutedIds)
+    if (muted.has(category.id)) {
+        muted.delete(category.id)
+        return { ids: [...ids], muted: [...muted] }
+    }
+    if (categoryState(category, ids) === 'full') {
+        const set = new Set(ids)
+        category.feedIds.forEach(id => set.delete(id))
+        muted.add(category.id)
+        return { ids: [...set], muted: [...muted] }
+    }
+    return { ids: toggleCategoryIn(category, ids), muted: [...muted] }
+}
+
 export const useFeedCategoriesStore = defineStore('feedCategories', {
     state: () => ({
         categories: [] as FeedCategory[],
