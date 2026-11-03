@@ -11,8 +11,8 @@ import HomeUndoButton from '@/components/home/navigation/HomeUndoButton.vue';
 import HomeFeedsButton from '@/components/home/navigation/HomeFeedsButton.vue';
 import HomeGreetingLabel from '@/components/home/HomeGreetingLabel.vue';
 import HomeSettingsButton from '@/components/home/navigation/HomeSettingsButton.vue';
-import FeedFilterList from '@/components/feeds/feedFilter/FeedFilterList.vue';
-import CategoryList from '@/components/categories/CategoryList.vue';
+import SourceBar from '@/components/home/SourceBar.vue';
+import { selectionLabel } from '@/components/home/selectionLabel';
 import { Rss, RotateCcw } from 'lucide-vue-next';
 
 const store = useHomeStore()
@@ -33,9 +33,8 @@ onMounted(async () => {
         <HomeGreetingLabel class="flex-1 basis 2/4" />
         <HomeFeedsButton class="flex-none basis 1/4" />
       </div>
-      <div class="mt-5 flex flex-col gap-2">
-        <CategoryList />
-        <FeedFilterList />
+      <div class="mt-5">
+        <SourceBar />
       </div>
     </div>
     <div v-if="store.status === ArticleStatus.READY || store.articles.length > 0" class="h-full flex flex-col relative">
@@ -106,8 +105,14 @@ onMounted(async () => {
       class="flex items-center justify-center flex-col h-full">
       <div v-if="feedStore.feedList.length > 0" class="w-full flex justify-center flex-col items-center">
         <img src="/images/MeditatingDoodle.svg" alt="Reading" class="w-[60%]" />
-        <h2 class="text-secondary-500">All caught up</h2>
-        <button class="p-5" @click="store.fetchArticles()">
+        <h2 class="text-secondary-500">
+          All caught up<template v-if="feedStore.selectedIds.length > 0"> in {{ selectionLabel(feedStore.selectedIds) }}</template>
+        </h2>
+        <button v-if="feedStore.selectedIds.length > 0"
+          class="mt-4 px-5 py-2 bg-primary-600 rounded-lg font-semibold" @click="feedStore.unselectAll()">
+          Show all sources
+        </button>
+        <button class="p-5" title="Reload" @click="store.fetchArticles()">
           <RotateCcw></RotateCcw>
         </button>
       </div>

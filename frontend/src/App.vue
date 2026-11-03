@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import { useSettingsStore } from './stores/settings';
+import AppSnackbar from '@/components/global/AppSnackbar.vue';
 
 const store = useSettingsStore();
 
@@ -14,5 +15,6 @@ store.applySettings();
         <component class="absolute w-full h-full bg-background-950" :is="Component" :key="route.fullPath" />
       </transition>
     </router-view>
+    <AppSnackbar />
   </div>
 </template>

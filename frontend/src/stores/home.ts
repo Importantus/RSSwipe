@@ -3,7 +3,6 @@ import type { Article } from "@/types";
 import { defineStore } from "pinia";
 import { useReadingListStore } from "./readingList";
 import { useArticlesStore } from "./articles";
-import { useCategoriesStore } from "./categories";
 import { useFeedStore } from "./feeds";
 
 const STORED_ARTICLES = 5
@@ -78,13 +77,11 @@ export const useHomeStore = defineStore({
                 return
             }
             this.status = ArticleStatus.LOADING
-            const categoriesStore = useCategoriesStore()
             const feedsStore = useFeedStore()
             const response = await axios.get('/articles', {
                 params: {
                     limit: STORED_ARTICLES + this.articleIds.length,
-                    categories: categoriesStore.selectedCategories.map(c => c.id),
-                    feeds: feedsStore.filteredFeedList.map(f => f.id),
+                    feeds: feedsStore.selectedIds,
                     startDate: this.toISO8601(this.getStartDate()),
                     endDate: this.toISO8601(this.getEndDate())
                 }

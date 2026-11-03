@@ -27,6 +27,10 @@ RSSwipe is a progressive web app. You can install it on your phone or computer a
 
 You can add RSS, Atom and RDF feeds to your account. They are automatically updated on the server every few minutes.
 
+### 🗂️ Categories
+
+Group your feeds into your own categories (a feed can be in several). On the home screen a tap on a category swipes through all of its feeds, and the sources dialog lets you pick single feeds as well. On the feeds page you can sort feeds by long pressing for multi-select or by swiping a row to the right. Your selection is remembered.
+
 ### 📑 Readinglist
 
 You can save articles for later in your readinglist. The readinglist is synced across all your devices. To keep it clean, you can set a time after which articles are automatically removed.

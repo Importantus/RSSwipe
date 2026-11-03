@@ -3,6 +3,18 @@ import axios from '@/axios'
 import { apiErrorMessage } from '@/apiError'
 import { useHomeStore } from './home';
 import { StoreStatus } from './readingList';
+import { useFeedCategoriesStore } from './feedCategories';
+
+const SELECTION_KEY = 'feedSelection'
+
+function loadSelection(): string[] {
+    try {
+        const stored = JSON.parse(localStorage.getItem(SELECTION_KEY) ?? '[]')
+        return Array.isArray(stored) ? stored.filter(id => typeof id === 'string') : []
+    } catch {
+        return []
+    }
+}
 
 
 // The threshold for the error count of a feed to be considered as broken
@@ -12,7 +24,6 @@ export const FEED_ERROR_COUNT_THRESHOLD = 3;
 export interface FeedItem {
     id: string,
     title: string,
-    isFiltered: boolean,
     faviconUrl: string,
     url: string,
     openInApp: boolean,
@@ -31,12 +42,14 @@ export const useFeedStore = defineStore("feedList", {
     state: () => ({
         feedList: [] as FeedItem[],
         state: StoreStatus.LOADING,
-        error: ""
+        error: "",
+        // Feeds the home screen swipes through (empty = all feeds). Remembered across restarts.
+        selectedIds: loadSelection()
     }),
 
     getters: {
         filteredFeedList(): FeedItem[] {
-            return this.feedList.filter(item => item.isFiltered)
+            return this.feedList.filter(item => this.selectedIds.includes(item.id))
         }
     },
 
@@ -52,18 +65,18 @@ export const useFeedStore = defineStore("feedList", {
                     faviconUrl: feed.faviconUrl,
                     url: feed.link,
                     openInApp: feed.openInApp,
-                    isFiltered: this.feedList.find(item => item.id === feed.id) ? this.feedList.find(item => item.id === feed.id)!.isFiltered : false,
                     error_count: feed.error_count,
                     errormessage: feed.errormessage,
                     description: feed.description
                 }))
+                this.pruneSelection()
             } catch (error: any) {
                 this.error = await apiErrorMessage(error, "Request failed")
                 console.log(this.error)
             }
             this.state = StoreStatus.READY
         },
-        async addFeed(url: string, openInApp: boolean) {
+        async addFeed(url: string, openInApp: boolean): Promise<FeedItem | null> {
             this.state = StoreStatus.LOADING
             this.error = ""
             try {
@@ -71,27 +84,36 @@ export const useFeedStore = defineStore("feedList", {
                     url,
                     openInApp
                 })
-                this.feedList.push({
+                const item: FeedItem = {
                     id: response.data.id,
                     title: response.data.title,
                     faviconUrl: response.data.faviconUrl,
                     url: response.data.link,
                     openInApp: response.data.openInApp,
-                    isFiltered: false,
                     error_count: response.data.error_count,
                     errormessage: response.data.errormessage,
                     description: response.data.description
-                })
+                }
+                this.feedList.push(item)
+                this.state = StoreStatus.READY
+                return item
             } catch (error: any) {
                 this.error = await apiErrorMessage(error, "Request failed")
                 console.log(this.error)
             }
             this.state = StoreStatus.READY
+            return null
         },
         async deleteFeed(id: string) {
             this.state = StoreStatus.LOADING
-            await axios.delete(`/feeds/${id}`)
-            this.getFeedList()
+            try {
+                await axios.delete(`/feeds/${id}`)
+                this.feedList = this.feedList.filter(item => item.id !== id)
+                useFeedCategoriesStore().forgetFeed(id)
+                this.pruneSelection()
+            } catch (error: any) {
+                this.error = await apiErrorMessage(error, "Request failed")
+            }
             this.state = StoreStatus.READY
         },
         async exportOpml(): Promise<void> {
@@ -140,24 +162,35 @@ export const useFeedStore = defineStore("feedList", {
                 })
             }
         },
-        toggleFeed(id: string) {
-            const item = this.feedList.find(item => item.id === id)
-            if (item) {
-                item.isFiltered = !item.isFiltered
+        /** Sets the feeds the home screen shows. An empty list means all feeds. */
+        setSelection(ids: Iterable<string>) {
+            const next = [...new Set(ids)].sort()
+            const current = [...this.selectedIds].sort()
+            if (next.length === current.length && next.every((id, i) => id === current[i])) return
+            this.selectedIds = next
+            try {
+                localStorage.setItem(SELECTION_KEY, JSON.stringify(next))
+            } catch {
+                // storage unavailable: the selection just is not remembered
             }
-            const startPageStore = useHomeStore()
-            startPageStore.reload()
+            useHomeStore().reload()
+        },
+        toggleFeed(id: string) {
+            this.setSelection(this.selectedIds.includes(id)
+                ? this.selectedIds.filter(selected => selected !== id)
+                : [...this.selectedIds, id])
         },
         unselectAll() {
-            for (const item of this.feedList) {
-                item.isFiltered = false
-            }
-            const startPageStore = useHomeStore()
-            startPageStore.reload()
+            this.setSelection([])
         },
         isFeedSelected(id: string): boolean {
-            const item = this.feedList.find(item => item.id === id)
-            return item ? item.isFiltered ? item.isFiltered : false : false
+            return this.selectedIds.includes(id)
+        },
+        /** Forget selected feeds the user does not follow (any more) */
+        pruneSelection() {
+            const known = new Set(this.feedList.map(item => item.id))
+            const kept = this.selectedIds.filter(id => known.has(id))
+            if (kept.length !== this.selectedIds.length) this.setSelection(kept)
         },
         async isFeedOpenedInApp(id: string): Promise<boolean> {
             if (this.feedList.length === 0) await this.getFeedList()
