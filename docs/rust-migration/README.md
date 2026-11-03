@@ -8,6 +8,7 @@ Das Backend (früher TypeScript/Express/Prisma) ist ein Cargo-Workspace in `back
 | `PLAN.md` | Architektur und Entscheidungen (inkl. Abschnitt „Abweichungen der Umsetzung“) |
 | `API-CHANGES.md` | **Alle** von außen sichtbaren Änderungen, für die Anpassung der Clients |
 | `BUGFIXES.md` | Behobene Fehler |
+| `BENCHMARK.md` | Performance-Vergleich TypeScript ↔ Rust (Methode und Messwerte) |
 | `schema-reference.txt` | `SHOW CREATE TABLE` der Prisma-Datenbank (Grundlage der Baseline-Migration) |
 
 ## Aufbau
