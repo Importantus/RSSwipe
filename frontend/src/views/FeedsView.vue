@@ -61,6 +61,7 @@ const showOnboarding = computed(() => categories.loaded && categories.categories
 
 // ---- chips as scroll navigation: the section at the top of the list is highlighted ----
 const scroller = ref<HTMLElement>()
+const chipRow = ref<HTMLElement>()
 const sectionEls = new Map<string, HTMLElement>()
 const chipEls = new Map<string, HTMLElement>()
 const activeKey = ref<string | null>(null)
@@ -100,8 +101,13 @@ function scrollToGroup(key: string) {
   scroller.value.scrollTo({ top: scroller.value.scrollTop + sectionTop(el), behavior: reduced ? 'auto' : 'smooth' })
 }
 
+// Scrolls only the chip row. scrollIntoView would also scroll the app container sideways while the page slides in.
 watch(activeKey, (key) => {
-  if (key) chipEls.get(key)?.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' })
+  const chip = key ? chipEls.get(key) : undefined
+  const row = chipRow.value
+  if (!chip || !row) return
+  const left = chip.offsetLeft - (row.clientWidth - chip.offsetWidth) / 2
+  row.scrollTo({ left: Math.max(0, left), behavior: 'smooth' })
 })
 watch(groups, () => nextTick(updateActive), { flush: 'post' })
 
@@ -199,7 +205,7 @@ function openNewCategory() {
         </button>
       </div>
 
-      <div v-if="feedStore.feedList.length > 0 || categories.categories.length > 0" class="flex flex-row gap-2 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
+      <div v-if="feedStore.feedList.length > 0 || categories.categories.length > 0" ref="chipRow" class="relative flex flex-row gap-2 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
         <template v-if="showGroups">
           <template v-for="group in groups" :key="group.key">
             <CategoryChip
